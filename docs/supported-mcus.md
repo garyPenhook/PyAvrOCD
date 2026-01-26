@@ -45,9 +45,7 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 * **ATmega168,** **ATmega168A**, **ATmega168P**, ATmega168PA, **ATmega168PB**,
 * **ATmega328,** **ATmega328P**, **ATmega328PB**
 
-The ATmega8 does not possess a debug interface.
-
-The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to dbugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
+The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to debugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
 
 ### ATmegas supported by [*Atmel AVR Xplained-minis (Debug enabled)*](https://github.com/felias-fogg/avr-xminis-debug-enabled)
 
@@ -59,7 +57,7 @@ The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from 
 
 * **ATmega16(A)**, **ATmega32(A)**
 * **ATmega164(P)(A)**, **ATmega324(P)(A)**, **ATmega324PB**, **ATmega644(P)(A)**, **ATmega1284(P)**
-* <s>**ATmega8535**</s>
+* <s>ATmega8535</s>
 
 The ATmega16 MCUs (with and without an A-suffix) have a stuck-at-one-bit in the program counter, which may lead to problems when you use an unpatched version of AVR-GDB. In this case, backtraces are garbled, and line-stepping might not work as expected. Use the AVR-GDB version shipped with PyAvrOCD instead, which can also be downloaded from the [Releases page of the avr-gdb repo](https://github.com/felias-fogg/avr-gdb/releases/latest).
 
@@ -87,15 +85,6 @@ The ATmega128(A) MCUs do not allow for software breakpoints. This means that you
 
 The ATmega8515 does not have a debug interface.
 
-### Other ATmegas with JTAG interface
-
-* AT90USB646, AT90USB647, <u>AT90USB1286</u>, AT90USB1287
-* ATmega644rfr2, ATmega1284rfr2, ATmega2564rfr2
-* ATmega64rfr2, ATmega128rfr2, <u>ATmega256rfr2</u>
-* ATmega128rfa1
-* ATmega16U4, **ATmega32U4**
-* ATmega406
-
 ### Other ATmegas with debugWIRE interface
 
 * <u>ATmega8U2</u>, ATmega16U2, <u>ATmega32U2</u>
@@ -105,6 +94,15 @@ The ATmega8515 does not have a debug interface.
 * <u>AT90PWM81</u>, AT90PWM161
 * <u>AT90PWM216</u>, AT90PWM316
 * <u>ATmega8HVA</u>, ATmega16HVA, <u>ATmega16HVB</u>, ATmega32HVB, ATmega32HVBrevB, ATmega64HVE2
+
+### Other ATmegas with JTAG interface
+
+* ATmega16U4, **ATmega32U4**
+* AT90USB646, AT90USB647, <u>AT90USB1286</u>, AT90USB1287
+* ATmega644rfr2, ATmega1284rfr2, ATmega2564rfr2
+* ATmega64rfr2, ATmega128rfr2, <u>ATmega256rfr2</u>
+* ATmega128rfa1
+* ATmega406
 
 ### Other ATmegas without a debug interface
 

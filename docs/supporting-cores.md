@@ -64,7 +64,7 @@ The extension of this core is not yet ready.
 
 ### [MajorCore](https://github.com/MCUdude/MajorCore)
 
-This core covers just ATmega8051 and ATmega162, of which only the latter possesses a debugging interface. The additional board manager URL is:
+This core covers just ATmega8515 and ATmega162, of which only the latter possesses a debugging interface. The additional board manager URL is:
 
 ```
 https://mcudude.github.io/MajorCore/package_MCUdude_MajorCore_index.json
