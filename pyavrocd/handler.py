@@ -40,7 +40,7 @@ class GdbHandler():
         self.mon = MonitorCommand(self.dbg.get_iface(), args, toolname)
         self.mem = Memory(avrdebugger, self.mon)
         self.bp = BreakAndExec(self.mon, avrdebugger, self.mem.flash_read_word)
-        self._dw_start = bool(args.debugwire and args.debugwire[0])
+        self._dw_start = bool(args.debugwire and args.debugwire[0] == 'e')
         self._nomm = args.nomm
         self._comsocket = comsocket
         self._devicename = devicename

@@ -500,9 +500,13 @@ def startup(command_line, logger):
     logger.info("Starting GDB server")
     try:
         avrdebugger = XAvrDebugger(backend.transport, device, intf, args)
-        if args.debugwire and args.debugwire[0] == 'd' and intf == 'debugwire':
-            avrdebugger.cold_dw_disable()
-            return 0
+        if args.debugwire:
+            if intf != 'debugwire':
+                logger.warning("Ignoring --debugwire option for %s target", intf)
+            else: 
+                if args.debugwire[0] == 'd' and intf == 'debugwire':
+                    avrdebugger.cold_dw_disable()
+                    return 0
         server = RspServer(avrdebugger, device, args, toolname)
     except Exception as e:
         if logger.getEffectiveLevel() != logging.DEBUG:
