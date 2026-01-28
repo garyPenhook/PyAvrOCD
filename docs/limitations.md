@@ -178,7 +178,7 @@ One possible way to exit debugWIRE mode is to employ avrdude (version 8.0 or mor
 3. Try to burn fuses or upload a program using avrdude (perhaps through the Arduino IDE 2) using ISP programming mode. Avrdude will then try to exit debugWIRE mode if it cannot connect using ISP programming. If it is successful, it will report it.
 4. Burn the default fuses (in particular, disable the DWEN fuse).
 
-Another possible way is to use pyavrocd with the option `--debugwire disable`. First, carry out steps 1 and 2 from above. Then type into a terminal window (\<mcu\> being the name of the MCU):
+Another possible way is to use pyavrocd with the option `--debugwire disable`. First, carry out steps 1 and 2 from above. Then type into a terminal window (<mcu\> being the name of the MCU):
 
 ```
 pyavrocd --manage all --debugwire disable --device <mcu>

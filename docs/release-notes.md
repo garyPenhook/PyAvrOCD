@@ -1,5 +1,7 @@
 # Release Notes
 
+- First stable version
+
 ## Release v0.22.0
 
 - All e2e tests are passed on all MCUs on my desk using all the different debuggers.
