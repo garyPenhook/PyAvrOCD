@@ -140,13 +140,17 @@ It may be enough to start a new debugging session and reflash the program. Howev
 
 ## Undebuggable MCUs
 
-Some AVR MCUs are not debuggable or offer only limited debug support.
+Some AVR MCUs are not debuggable.
 
 MCUs without a debugging interface (e.g., **ATtiny15**, **ATmega8**) can, of course, not be debugged. In addition, there exist a few variants that cannot be debugged because they have special features that make them undebuggable by open source software. These are **ATmega48** and **ATmega88** (without the A-suffix).
 
 These MCUs suffer from the Hotel California Syndrome (You can check out any time you like. But you can never leave!) when one uses open-source software. Since they have the same chip signature as their cousins with an A-suffix, PyAvrOCD goes to some length to recognize those chips and reject them before they get "bricked" by switching them into debugWIRE mode. The Microchip debugging solutions have apparently found a solution around it.
 
-Then there are some MCUs that have [non-zero unused bits in their program counter](https://arduino-craft-corner.de/index.php/2026/01/19/when-unused-program-counter-bits-go-rogue/), such as **ATmega16(A)**, **ATmega64(A)**, **ATmega329(P)**, and **ATmega3250(P)**. There might be more, actually. PyAvrOCD masks these bits, and (the new patched version of) AVR-GDB masks these bits out when they appear in return addresses on the stack. However, if you do not use the AVR-GDB version distributed together with PyAvrOCD, you may encounter the phenomenon that the stack backtrace is empty and that stepping over a function is not possible.
+## MCUs with limited debugging support
+
+Some MCUs offer only limited debug support.
+
+Some MCUs have [non-zero unused bits in their program counter](https://arduino-craft-corner.de/index.php/2026/01/19/when-unused-program-counter-bits-go-rogue/), such as **ATmega16(A)**, **ATmega64(A)**, **ATmega329(P)**, and **ATmega3250(P)**. PyAvrOCD masks these bits, and (the new patched version of) AVR-GDB masks these bits out when they appear in return addresses on the stack. However, if you do not use the AVR-GDB version distributed together with PyAvrOCD, you may encounter the phenomenon that the stack backtrace is empty and that stepping over a function is not possible.
 
 Finally, we have the **ATmega128(A)**, which offers only hardware breakpoints. This is a bit funny since the data sheet explicitly states that the `BREAK` instruction can be used to implement software breakpoints. However, all manuals of the more recent Atmel debuggers note that one can use only the hardware breakpoints on an ATmega128(A), and this has been validated experimentally. For this reason, PyAvrOCD will automatically select the 'hardware breakpoint only' mode.
 
