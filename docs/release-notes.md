@@ -1,5 +1,7 @@
 # Release Notes
 
+## Release v1.0.0
+
 - First stable version
 
 ## Release v0.22.0
