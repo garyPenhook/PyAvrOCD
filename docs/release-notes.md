@@ -2,7 +2,7 @@
 
 ## Release v1.0.0
 
-- First stable version
+- First stable release (covering all classic parts)
 
 ## Release v0.22.0
 

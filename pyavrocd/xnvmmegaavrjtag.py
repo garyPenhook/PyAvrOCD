@@ -1,15 +1,18 @@
 """
 megaAVR JTAG NVM implementation - extended
 """
+from typing import Any
 
-from logging import getLogger
+import logging
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.util import binary
+from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 
 from pymcuprog.nvmmegaavrjtag import NvmAccessProviderCmsisDapMegaAvrJtag
 from pymcuprog.nvm import NvmAccessProviderCmsisDapAvr
 from pymcuprog.pymcuprog_errors import PymcuprogError
+from pymcuprog.avr8target import AvrDevice
 
 from pymcuprog.deviceinfo.deviceinfokeys import DeviceMemoryInfoKeys
 from pymcuprog.deviceinfo.memorynames import MemoryNames
@@ -25,21 +28,21 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
     """
     #pylint: disable=non-parent-init-called, super-init-not-called
     #we want to set up the debug session much later
-    def __init__(self, transport, device_info, manage=None):
+    def __init__(self, transport :  HidTransportBase,
+                     device_info : dict[ str, Any ],
+                     manage : list[str] | None=None):
         self.manage = [] if manage is None else manage
-        self.logger_local = getLogger('pyavrocd.nvmjtag')
+        self.logger_local : logging.Logger = logging.getLogger('pyavrocd.nvmjtag')
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
-        self.avr = XMegaAvrJtagTarget(transport)
+        self.avr : AvrDevice = XMegaAvrJtagTarget(transport)
 
-    #pylint: enable=non-parent-init-called, super-init-not-called
-    def __del__(self):
-        pass
 
     # pylint: disable=arguments-differ
     # reason for the difference in arguments:
     # read and write are declared as staticmethod in the base class,
     # which is an oversight, I believe
-    def read(self, memory_info, offset, numbytes, prog_mode=False):
+    def read(self, memory_info : dict[ str, Any ], offset : int,
+                 numbytes : int, prog_mode : bool=False) -> bytes:
         """
         Read the memory in chunks
 
@@ -50,8 +53,8 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
         :return: array of bytes read
         """
 
-        memtype_string = memory_info[DeviceMemoryInfoKeys.NAME]
-        memtype = self.avr.memtype_read_from_string(memtype_string)
+        memtype_string : str = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype : int  = self.avr.memtype_read_from_string(memtype_string)
         if memtype_string == MemoryNames.EEPROM:
             if prog_mode:
                 memtype = Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE
@@ -77,10 +80,11 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
         self.logger_local.debug("Reading from %s (memtype=0x%x) at %X %d bytes",
                                     memory_info['name'], memtype, offset, numbytes)
 
-        data = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
+        data : bytes = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
         return data
 
-    def write(self, memory_info, offset, data, prog_mode=False):
+    def write(self, memory_info : dict[ str, Any ], offset : int,
+                  data : bytes, prog_mode : bool=False) -> None:
         """
         Write the memory with data
 
@@ -103,6 +107,8 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
             self.logger_local.error(msg)
             raise PymcuprogError(msg)
 
+        data_to_write : bytes
+        address : int
         if prog_mode:
             # For prog_mode, page alignment is necessary
             data_to_write, address = utils.pagealign(data,
@@ -117,11 +123,13 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
             # Flash is offset by the debugger config
             address += memory_info[DeviceMemoryInfoKeys.ADDRESS]
 
-        allow_blank_skip = False
+        allow_blank_skip : bool = False
         if memtype_string in MemoryNames.FLASH:
             memtype = Avr8Protocol.AVR8_MEMTYPE_FLASH_PAGE
             allow_blank_skip = True
 
+        write_chunk_size : int
+        first_chunk_size : int
         if memtype in (Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE, Avr8Protocol.AVR8_MEMTYPE_FLASH_PAGE):
             # For Flash and EEPROM pages we have to write exactly one page
             write_chunk_size = memory_info[DeviceMemoryInfoKeys.PAGE_SIZE]
@@ -150,7 +158,7 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
                                           write_chunk_size,
                                           allow_blank_skip=allow_blank_skip)
 
-    def erase_page(self, pageaddr, prog_mode):
+    def erase_page(self, pageaddr : int, prog_mode : bool) -> bool:
         """
         Erase one page (in debug mode only)
         """
@@ -163,7 +171,7 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
         #self.avr.protocol.check_response(resp)
         return True
 
-    def erase_chip(self, prog_mode):
+    def erase_chip(self, prog_mode : bool) -> bool :
         """
         Erasing entire chip. Save EEPROM by, potentially, reprogramming EESAVE fuse
         """

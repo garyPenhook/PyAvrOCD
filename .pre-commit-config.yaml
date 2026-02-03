@@ -37,3 +37,12 @@ repos:
         -   pyedbglib
         -   pymcuprog
         -   pyusb
+    -   id: typecheck
+        name: typecheck
+        entry: poetry run mypy
+        language: python
+        types: [python]
+        args: []
+        additional_dependencies:
+        -   pyedbglib
+        -   pymcuprog

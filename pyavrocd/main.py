@@ -1,7 +1,6 @@
 """
 AVR GDB server main program
 """
-
 # args, logging
 import webbrowser
 import platform
@@ -27,16 +26,20 @@ import pymcuprog.backend
 from pymcuprog.toolconnection import ToolUsbHidConnection
 from pymcuprog.pymcuprog_errors import PymcuprogToolConnectionError
 
+import pyedbglib
+
 from pyavrocd import dwlink
 from pyavrocd.xavrdebugger import XAvrDebugger
 from pyavrocd.deviceinfo.devices.alldevices import dev_id, dev_iface
 from pyavrocd.monitor import monopts
 from pyavrocd.server import RspServer
 
-def options(cmd):
+
+def options(cmd: list[str]) -> argparse.Namespace:
     """
     Option processing. Returns processed options.
     """
+    parser : argparse.ArgumentParser
     parser = argparse.ArgumentParser(usage="%(prog)s [options]",
             fromfile_prefix_chars='@',
             #formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -71,14 +74,14 @@ def options(cmd):
                             default="1000000",
                             help="CPU clock frequency in Hz (default 1000000)")
 
-    interface_choices = ['debugwire', 'jtag', 'pdi', 'updi']
+    interface_choices : list[str] = ['debugwire', 'jtag', 'pdi', 'updi']
     parser.add_argument("-i", "--interface",
                             metavar="IF",
                             type=str,
                             choices= ['?'] + interface_choices,
                             help="Debugging interface to use, use '?' for list")
 
-    manage_choices = ['all', 'none', 'bootrst', 'nobootrst', 'dwen', 'nodwen',
+    manage_choices : list [str] = ['all', 'none', 'bootrst', 'nobootrst', 'dwen', 'nodwen',
                           'ocden', 'noocden', 'lockbits', 'nolockbits', 'eesave', 'noeesave']
     parser.add_argument("-m", "--manage",
                             metavar="FUSE",
@@ -102,7 +105,7 @@ def options(cmd):
     parser.add_argument('-s', '--start',  dest='prg',
                             help='Start specified program (e.g., simavr)')
 
-    tool_choices = ['atmelice', 'dwlink', 'edbg', 'jtagice3', 'medbg', 'nedbg',
+    tool_choices : list [str] = ['atmelice', 'dwlink', 'edbg', 'jtagice3', 'medbg', 'nedbg',
                         'pickit4', 'powerdebugger', 'snap']
     parser.add_argument("-t", "--tool",
                             metavar="TOOL",
@@ -116,7 +119,7 @@ def options(cmd):
                             dest='serialnumber',
                             help="USB serial number of the unit to use")
 
-    level_choices = ['all', 'debug', 'info', 'warning', 'error', 'critical']
+    level_choices : list[str] = ['all', 'debug', 'info', 'warning', 'error', 'critical']
     parser.add_argument("-v", "--verbose",
                             metavar="LEVEL",
                             default="info", choices= ['?'] + level_choices,
@@ -147,11 +150,17 @@ def options(cmd):
                             action='store_true',
                             help=argparse.SUPPRESS)
 
+    parser.add_argument("--skip-signature-verification",
+                            dest='skipsig',
+                            action='store_true',
+                            help=argparse.SUPPRESS)
 
+    option_name : str
+    option_type : tuple[ str | None, str | None, list [ str ] ]
     for option_name, option_type in monopts.items():
         if option_type[0] == 'cli':
-            default = option_type[1]
-            choices = option_type[2][1:] # copy all options after the None entry
+            default : str | None = option_type[1]
+            choices : list[str] = option_type[2][1:] # copy all options after the None entry
             choices += [ opt[0] for opt in choices ]
             parser.add_argument("--" + option_name, help=argparse.SUPPRESS,
                                     type=str, choices=choices, default=default)
@@ -163,22 +172,24 @@ def options(cmd):
         cmd.append('-h')
     cmd = [x for x in cmd if not x.startswith('@') or os.path.exists(x[1:]) ]
 
-    args = parser.parse_args(cmd)
+    args : argparse.Namespace = parser.parse_args(cmd)
 
     if args.webhelp:
-        webbrowser.open('pyavrocd.io/command-line-options/')
+        webbrowser.open('https://pyavrocd.io/command-line-options/')
         sys.exit(0)
 
     if args.version:
         print("PyAvrOCD version {}".format(importlib.metadata.version("pyavrocd")))
         sys.exit(0)
 
-    questionmark = False
+    questionmark : bool = False
+    alldev : list[str]
     if args.dev == "?":
         questionmark = True
         if args.interface and args.interface != '?':
             print("Supported devices with debugging interface '%s':" % args.interface)
-            alldev = [x for x in sorted(dev_id) if args.interface in dev_iface[dev_id[x]].lower().split("+")]
+            alldev = [x for x in sorted(dev_id)
+                                      if args.interface in dev_iface[dev_id[x]].lower().split("+")]
         else:
             print("Supported devices:")
             alldev = sorted(dev_id)
@@ -217,7 +228,7 @@ def options(cmd):
     return args
 
 
-def setup_logging(args, log_rsp):
+def setup_logging(args : argparse.Namespace, log_rsp : bool) -> None:
     """
     Setup logging
     """
@@ -247,7 +258,8 @@ def setup_logging(args, log_rsp):
         # we do not want to see the message 'Looking for ...' from getdeviceinfo
         getLogger('pymcuprog.deviceinfo.deviceinfo').setLevel(logging.ERROR)
 
-def process_arguments(args, logger): #pylint: disable=too-many-branches
+#pylint: disable=too-many-branches
+def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tuple [None|int, str, str]:
     """
     Process the parsed options. Return triple of
     - return value (if program should be terminated, else None);
@@ -257,9 +269,9 @@ def process_arguments(args, logger): #pylint: disable=too-many-branches
     args.F_CPU = int(args.F_CPU.rstrip('UL'))
 
     if args.cmd:
-        portcmd = [c for c in args.cmd if 'gdb_port' in c]
+        portcmd : list[str] = [c for c in args.cmd if 'gdb_port' in c]
         if portcmd:
-            cmd = portcmd[0]
+            cmd : str = portcmd[0]
             args.port = int(cmd[cmd.index('gdb_port')+len('gdb_port'):])
 
     if args.tool:
@@ -268,7 +280,7 @@ def process_arguments(args, logger): #pylint: disable=too-many-branches
     if args.dev:
         args.dev = args.dev.strip()
 
-    manage = []
+    manage :list[str] = []
     for f in args.manage:
         if f == 'all':
             manage = ['bootrst', 'dwen', 'ocden', 'lockbits', 'eesave']
@@ -286,19 +298,20 @@ def process_arguments(args, logger): #pylint: disable=too-many-branches
 
     if args.clkprg < 0 or args.clkdeb < 0:
         print("Negative frequency values are discouraged")
-        return 1, None, None
+        return 1, "", ""
 
-    device = args.dev
+    device : str = args.dev
 
     if not device:
         print("Please specify target MCU with -d option")
-        return 1, None, None
+        return 1, "", ""
     device = device.lower()
 
     if device not in dev_id:
         print("Device '%s' is not supported by PyAvrOCD" % device)
-        return 1, None, None
+        return 1, "", ""
 
+    intf : list[str]
     if args.interface:
         intf = [args.interface]
     else:
@@ -309,18 +322,17 @@ def process_arguments(args, logger): #pylint: disable=too-many-branches
     logger.debug("Interfaces of chip: %s",  dev_iface[dev_id[device]].lower())
     if not intf:
         print("Device '%s' does not have a compatible debugging interface" % device)
-        return 1, None, None
+        return 1, "", ""
     if len(intf) == 1 and intf[0] not in dev_iface[dev_id[device]].lower():
         print ("Device '%s' does not have the interface '%s'" % (device, intf[0]))
-        return 1, None, None
+        return 1, "", ""
     if len(intf) > 1:
         print("Debugging interface for device '%s' ambiguous: '%s'" % (device, intf))
-        return 1, None, None
-    intf = intf[0]
+        return 1, "", ""
     args.dev = device
-    return None, device, intf
+    return None, device, intf[0]
 
-def handle_simavr(args, device):
+def handle_simavr(args : argparse.Namespace, device : str) -> bool:
     """
     Checks whether simavr shall be started, and if so, will prepare the the start and exit
     when simavr returns.
@@ -330,7 +342,7 @@ def handle_simavr(args, device):
     args.prg = args.prg.strip()
     if os.path.basename(args.prg) != 'simavr':
         return False
-    prg = shutil.which(args.prg)
+    prg : str = shutil.which(args.prg)
     if not prg:
         print("Could not find program '%s'" % args.prg)
         return True
@@ -340,17 +352,17 @@ def handle_simavr(args, device):
         prg += " " + args.xargs
     print("Simavr will be started: %s" % prg, flush=True)
     print("Listening on port %d for gdb connection" % args.port, flush=True)
-    sim = subprocess.Popen(prg, bufsize=0, shell=True)
+    sim : subprocess.Popen = subprocess.Popen(prg, bufsize=0, shell=True)
     sim.wait()
     return True
 
-def startup_helper_prog(args, logger):
+def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> None:
     """
     Starts program requested by user, e.g., a debugger GUI
     """
     if args.prg and args.prg != "nop":
         args.prg = args.prg.strip()
-        prg = shutil.which(args.prg)
+        prg : str = shutil.which(args.prg)
         if prg:
             prg = os.path.abspath(prg)
             logger.info("Starting %s", prg)
@@ -359,7 +371,7 @@ def startup_helper_prog(args, logger):
             logger.critical("Could not find program '%s'", args.prg)
             sys.exit(1)
 
-def run_server(server, logger):
+def run_server(server: RspServer, logger : logging.Logger) -> int:
     """
     Startup server and serve until done.
     """
@@ -372,7 +384,7 @@ def run_server(server, logger):
         raise
     return 0
 
-def number_of_connected_edbg_tools(logger):
+def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
     """
     Find out how many debugging tools are connected
     """
@@ -393,14 +405,16 @@ def number_of_connected_edbg_tools(logger):
             logger.critical("On Windows, USB core is not used, i.e., this error should not happen!")
         return -1 # error return
 
-def reboot(backend, tool, logger):
+def tool_reboot(backend : pymcuprog.backend.Backend,
+                    tool : pyedbglib.hidtransport.hidtransportbase.HidTool,
+                    logger : logging.Logger) -> bool:
     """
     Reboots tool and waits for it to reappear.
     In case it takes too long (> 5sec), False is returned, otherwise True.
     """
     logger.info("Rebooting debugger...")
     backend.reboot_tool()
-    timeout = 200
+    timeout : int = 200
     while timeout > 0:
         try:
             backend.connect_to_tool(tool)
@@ -416,13 +430,13 @@ def reboot(backend, tool, logger):
     return True
 
 #pylint: disable=too-many-branches
-def startup(command_line, logger):
+def startup(command_line : list[str], logger : logging.Logger) -> int:
     """
     Configures the CLI, connects to a tool, and starts debugger
     """
-    log_rsp = False # will becomce true when verbosity is 'all'
+    log_rsp : bool = False # will becomce true when verbosity is 'all'
 
-    args = options(command_line)
+    args : argparse.Namespace = options(command_line)
 
     # verbose option 'all' is a special one
     if args.verbose == "all":
@@ -433,6 +447,9 @@ def startup(command_line, logger):
     setup_logging(args, log_rsp)
 
     # process arguments
+    result : int | None
+    device : str
+    intf : str
     result, device, intf = process_arguments(args, logger)
     if result is not None:
         return result
@@ -444,7 +461,7 @@ def startup(command_line, logger):
     # now report startup
     logger.info("This is PyAvrOCD version %s", importlib.metadata.version("pyavrocd"))
     # determine number of connected tools
-    num_tools = 0
+    num_tools : int = 0
     if args.tool != "dwlink":
         num_tools = number_of_connected_edbg_tools(logger)
 
@@ -457,30 +474,33 @@ def startup(command_line, logger):
         return 1 # exit with error code
 
     # Check whether all connected tools are available as HID devices
-    backend = pymcuprog.backend.Backend()
+    backend : pymcuprog.backend.Backend = pymcuprog.backend.Backend()
     if len(backend.get_available_hid_tools()) != num_tools:
         if platform.system() == 'Linux':
             logger.critical("Perhaps you need to install the udev rules first:")
             logger.critical("Download https://pyavrocd.io/99-edbg-debuggers.rules,")
             logger.critical("review, edit, and install under /etc/udev/rules.d/.")
-        else:
-            print(num_tools, backend.get_available_hid_tools())
-            logger.error("Not all discovered tools are available")
+            return 1
+        logger.error("Not all discovered tools are available")
 
-    available = backend.get_available_hid_tools(serialnumber_substring=args.serialnumber, tool_name=args.tool)
+    available : list[pyedbglib.hidtransport.hidtransportbase.HidTool]
+    available = backend.get_available_hid_tools(serialnumber_substring=args.serialnumber,
+                                                    tool_name=args.tool)
     if len(available) == 0:
         logger.critical("No compatible tool discovered")
         return 1 # exit with error code
     if len(available) > 1:
         logger.critical("More than one compatible tool! Use -u or -t to distinguish.")
+        d : pyedbglib.hidtransport.hidtransportbase.HidTool
         for d in available:
             logger.critical("> Tool: %s, S/N: %s", d.product_string, d.serial_number)
         return 1 # exit with error code
 
-    tool = ToolUsbHidConnection(serialnumber=args.serialnumber, tool_name=args.tool)
+    tool : ToolUsbHidConnection = ToolUsbHidConnection(serialnumber=args.serialnumber,
+                                                           tool_name=args.tool)
     # Now try to connect
     try:
-        toolname = "Unknown tool"
+        toolname : str = "Unknown tool"
         backend.connect_to_tool(tool)
         toolname = backend.transport.hid_device.get_product_string()
         tool.serialnumber = backend.transport.hid_device.get_serial_number_string()
@@ -490,10 +510,10 @@ def startup(command_line, logger):
             logger.critical("Debug probe busy, cannot connect")
         else:
             logger.critical("Could not connect to debug probe: %s", str(e))
-            return 1
+        return 1
 
     if args.reboot:
-        if not reboot(backend, tool, logger):
+        if not tool_reboot(backend, tool, logger):
             return 1
 
     # tool is connected, now we can start
@@ -516,7 +536,7 @@ def startup(command_line, logger):
     startup_helper_prog(args, logger)
     return run_server(server, logger)
 
-def main():
+def main() -> int:
     """
     This generates the root logger and forwards it as well as the arguments to the startup function
     """

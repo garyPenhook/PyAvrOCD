@@ -3,10 +3,12 @@ Discover dw-link and then redirect data from a TCP/IP connection to the serial p
 Further, send the device name in specially designed RSP record and wait for Ack
 Based on Chris Liechti's tcp_serial_redirect script
 """
+from typing import Any
 import os
 import sys
 import subprocess
 import time
+import argparse
 import socket
 import serial
 import serial.threaded
@@ -18,21 +20,21 @@ REQMJVERSION = 6 # required major version of dw-link
 
 class DetachException(Exception):
     """Termination of session because of a detach command"""
-    def __init__(self, msg=None):
+    def __init__(self, msg : str | None = None) -> None:
         super().__init__(msg)
 
 class SerialToNet(serial.threaded.Protocol):
     """serial->socket"""
 
-    def __init__(self, logging):
-        self.logging = logging
-        self.socket = None
-        self.last = b""
+    def __init__(self, logging : bool) -> None:
+        self.logging : bool = logging
+        self.socket : socket.socket | None = None
+        self.last : bytes = b""
 
-    def __call__(self):
+    def __call__(self) -> SerialToNet:
         return self
 
-    def data_received(self, data):
+    def data_received(self, data : bytes) -> None:
         """
         Deal with data received from the serial line: send to socket and maybe log to console.
         """
@@ -40,13 +42,14 @@ class SerialToNet(serial.threaded.Protocol):
             self.socket.sendall(data)
             self.last += data
             if self.last:
+                message : str
                 if self.last[-1] == ord('+') or (len(self.last) > 2 and self.last[-3] == ord('#')):
                     if len(self.last) > 2 and self.last[1] == ord('O') and self.last[2] != ord('K'):
                         message = self.convert_gdb_message()
                     else:
                         message = ""
                     if self.logging:
-                        sys.stdout.write("[DEBUG] recv: {}\n".format(self.last))
+                        sys.stdout.write("[DEBUG] recv: {!r}\n".format(self.last))
                         if message:
                             sys.stdout.write("[DEBUG] dw-link: {}".format(message))
                         sys.stdout.flush()
@@ -55,16 +58,16 @@ class SerialToNet(serial.threaded.Protocol):
                         sys.stdout.flush()
                     self.last = b""
 
-    def convert_gdb_message(self):
+    def convert_gdb_message(self) -> str:
         """
         converts hex string into an UTF-8 text message
         """
-        bs = self.last[2:self.last.find(b'#')]
-        hv = bs.decode('utf-8')
-        bv = bytes.fromhex(hv)
+        bs : bytes = self.last[2:self.last.find(b'#')]
+        hv : str = bs.decode('utf-8')
+        bv : bytes = bytes.fromhex(hv)
         return bv.decode('utf-8')
 
-    def connection_lost(self, exc):
+    def connection_lost(self, exc : Exception) -> None:
         """
         What to do when the connection is lost: Complain when caused by an exception,
         otherwise tell the serial connection is closed and then terminate the program.
@@ -77,55 +80,82 @@ class SerialToNet(serial.threaded.Protocol):
             sys.stdout.write('[INFO] Serial connection closed\n\r')
         os._exit(0)
 
-def build_packet(message, args):
+def build_packet(message : str, args : argparse.Namespace) -> bytes:
     """
     Message is a string. Encode as ASCII and add pre- and suffix
     """
-    message = message.encode('ascii')
-    checksum = sum(message)&0xFF
-    packet = b'$' + message + b'#' + (b'%02X' % checksum)
+    amessage : bytes = message.encode('ascii')
+    checksum = sum(amessage)&0xFF
+    packet = b'$' + amessage + b'#' + (b'%02X' % checksum)
     if args.verbose == 'debug':
         sys.stdout.write("[DEBUG] Packet:" + str(packet) + "\n\r")
     return packet
 
-def send_and_wait(ser, command, args):
+def send_and_wait(ser : serial, command : str, args : argparse.Namespace) -> None:
     """
     Send one monitor command and wait for acknowledgment
     """
-    trial = 3
-    resp = b''
+    trial : int = 6
+    resp : bytes = b''
+    ser.reset_input_buffer()
     while trial and b'+' not in resp:
-        hexcmd = command.encode('utf8').hex().upper()
+        hexcmd : str = command.encode('utf8').hex().upper()
         ser.write(build_packet('qRcmd,' + hexcmd, args))
         ser.flush()
         resp = ser.read_until(b'+')
         trial -= 1
-    ser.reset_input_buffer()
 
-def send_mon_options(ser, args):
+def send_mon_options(ser : serial, args : argparse.Namespace) -> None:
     """
     Send all monitor option values and the not-to-manage fuses
     """
+    key : str
+    value  : tuple[ str | None, str | None, list [ str ] ]
+    man : str
+
     send_and_wait(ser, "\x17mcu " + args.dev, args)
     for key, value in monopts.items():
         if value[0] == 'cli':
-            keyval = getattr(args, key, None)
+            keyval : str | None = getattr(args, key, None)
             if keyval:
                 if args.verbose == "debug":
                     sys.stdout.write("[DEBUG] Send monitor option: " + key + "=" + keyval + "\n\r")
                 send_and_wait(ser, key + " " + keyval, args)
+                if key.startswith("d") and keyval.startswith("d"): # --debugwire disable
+                    oldtimeout : int = ser.timeout
+                    ser.timeout = 2
+                    resp : bytes = ser.read(6)
+                    ser.timeout = oldtimeout
+                    if args.verbose == "debug":
+                        sys.stdout.write("[DEBUG] Reply from dw-link to --debugwire disable: %r\n\r" %
+                                             resp)
+                    if b"OK" in resp:
+                        sys.stdout.write("[INFO] Terminated debugWIRE mode successfully\n\r")
+                        sys.stdout.write("[INFO] Exit\n\r")
+                        sys.exit(0)
+                    else:
+                        sys.stdout.write("[ERROR] Problem terminating debugWIRE mode\n\r")
+                        sys.stdout.write("[INFO] Exit\n\r")
+                        sys.exit(1)
     for man in ['bootrst', 'dwen', 'lockbits']:
         if man not in args.manage:
             if args.verbose == "debug":
                 sys.stdout.write("[DEBUG] Send not-manage option: no" + man + "\n\r")
             send_and_wait(ser, "\x17no" + man, args)
             sys.stdout.write('[WARNING] Fuse %s is not managed by dw-link\n\r' % man.upper())
+    ser.reset_input_buffer()
 
-def discover(args):
+
+def discover(args : argparse.Namespace) -> tuple[int | None, Any, int | None]:
     """
     Discovers the dw-link adapter, if present
     Returns (speed, device, major version of dw-link)
     """
+    delay : float
+    sp : int
+    resp : bytes
+    mversion : int
+    sversion : str
     for delay in (0.2, 2):
         for s in serial.tools.list_ports.comports(True):
             if args.verbose == "debug":
@@ -153,8 +183,8 @@ def discover(args):
                             if not version:
                                 mversion = 0
                             else:
-                                version = version.decode('utf-8')
-                                mversion = int(version[:version.find('.')])
+                                sversion = version.decode('utf-8')
+                                mversion = int(sversion[:sversion.find('.')])
                             return (sp, s.device, mversion)
             except SerialException:
                 pass
@@ -162,7 +192,7 @@ def discover(args):
                 sys.stdout.write('[ERROR] ' + repr(e) + '\n\r')
     return (None, None, None)
 
-def main(args, intf):
+def main(args : argparse.Namespace, intf : str) -> None:
     """
     Main function providing an serial-to-IP bridge for the dw-link hardware debugger
     """
@@ -170,11 +200,14 @@ def main(args, intf):
         args.verbose = "debug"
 
     # discover adapter
+    speed : int | None
+    device : str | None
+    mjversion : int | None
     speed, device, mjversion = discover(args)
     if speed is None or device is None:
         return # return to PyAvrOCD main, which will handle this problem
 
-    if mjversion < REQMJVERSION:
+    if mjversion is None or mjversion < REQMJVERSION:
         sys.stdout.write('[CRITICAL] dw-link version is not compatible, should be at least v%d.0.0\n' % REQMJVERSION)
         sys.exit(1)
 
@@ -204,7 +237,7 @@ def main(args, intf):
     sys.stdout.flush()
 
     # send monitor value options + not-to-manage fuses + mcu type
-    ser.timeout = 0.2
+    ser.timeout = 0.5
     send_mon_options(ser, args)
     ser.timeout = None
 
@@ -219,7 +252,9 @@ def main(args, intf):
             srv.bind(('', args.port))
             srv.listen(1)
         except OSError as error:
-            sys.stdout.write("OSError: " + error.strerror +"\n\r")
+            if error.strerror is None:
+                error.strerror = ""
+            sys.stdout.write("OSError: " + error.strerror + "\n\r")
             sys.exit(3)
 
         subprc = None
@@ -236,10 +271,14 @@ def main(args, intf):
         # packets every 1 second. If 3 consecutive keep-alive packets
         # fail, assume the client is gone and close the connection.
         try:
-            client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
-            client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
-            client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
-            client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            client_socket.setsockopt(socket.IPPROTO_TCP,
+                                         socket.TCP_KEEPIDLE, 1) #type: ignore[attr-defined]
+            client_socket.setsockopt(socket.IPPROTO_TCP,
+                                         socket.TCP_KEEPINTVL, 1) #type: ignore[attr-defined]
+            client_socket.setsockopt(socket.IPPROTO_TCP,
+                                         socket.TCP_KEEPCNT, 3) #type: ignore[attr-defined]
+            client_socket.setsockopt(socket.SOL_SOCKET,
+                                         socket.SO_KEEPALIVE, 1) #type: ignore[attr-defined]
         except AttributeError:
             pass
         client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -248,14 +287,14 @@ def main(args, intf):
             # enter network <-> serial loop
             while True:
                 try:
-                    data = client_socket.recv(1024)
+                    data : bytes = client_socket.recv(1024)
                     if not data:
                         break
                     ser.write(data)                 # get a bunch of bytes and send them
                     if b'$D#44' in data:
                         raise DetachException
                     if args.verbose == "debug":
-                        sys.stdout.write("[DEBUG] sent: {}\n".format(data))
+                        sys.stdout.write("[DEBUG] sent: {!r}\n".format(data))
                         sys.stdout.flush()
                 except socket.error as msg:
                     sys.stdout.write('[ERROR] {}\n\r'.format(msg))

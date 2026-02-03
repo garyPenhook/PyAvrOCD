@@ -7,6 +7,7 @@ from unittest.mock import Mock, MagicMock, patch, call, create_autospec
 from unittest import TestCase
 
 from pymcuprog.deviceinfo import deviceinfo
+from pymcuprog.pymcuprog_errors import PymcuprogError
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 
@@ -16,7 +17,7 @@ from pyavrocd.deviceinfo.devices.atmega644 import DEVICE_INFO
 
 logging.basicConfig(level=logging.DEBUG)
 
-class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
+class TestXNvmAccessProviderCmsisDapMegaJtag(TestCase):
 
     def setUp(self):
         self.nvm = None
@@ -85,6 +86,19 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
         self.nvm.avr.memtype_read_from_string.assert_called_with('internal_sram')
         self.nvm.avr.read_memory_section.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x200, 0x09, 0x09)
 
+    def test_read_undef_mem(self):
+        self.set_up()
+        self.nvm.avr.memtype_read_from_string.return_value=0
+        self.assertRaises(PymcuprogError, self.nvm.read,
+                              self.memory_info.memory_info_by_name('internal_sram'),
+                              0,2)
+
+    def test_write_zero(self):
+        self.set_up()
+        self.nvm.write(0, 0, [])
+        self.nvm.avr.memtype_read_from_string.assert_not_called()
+        self.nvm.avr.write_memory_section.assert_not_called()
+
     def test_write_flash_page(self):
         self.set_up()
         wpage = bytearray(list(range(0x100)))
@@ -94,13 +108,29 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
                                                                  0x200, wpage, 0x100, allow_blank_skip=True)
 
 
-    def test_write_eeprom(self):
+    def test_write_eeprom_debmode(self):
         self.set_up()
         wpage = bytearray(list(range(0x07)))
         self.nvm.avr.memtype_read_from_string.return_value=Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE
         self.nvm.write(self.memory_info.memory_info_by_name('eeprom'), 0x100, wpage)
         self.nvm.avr.write_memory_section.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_EEPROM,
                                                                  0x100, wpage, 0x07, allow_blank_skip=False)
+
+    @patch('pyavrocd.xnvmmegaavrjtag.utils.pagealign')
+    def test_write_eeprom_progmode(self, mockalign):
+        self.set_up()
+        wpage = bytearray(list(range(0x0F)))
+        fullpage = wpage + b'\xff'
+        mockalign.return_value=(fullpage, 0x100)
+        self.nvm.avr.memtype_read_from_string.return_value=Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE
+        self.nvm.write(self.memory_info.memory_info_by_name('eeprom'), 0x100, wpage, prog_mode=True)
+        self.nvm.avr.write_memory_section.assert_has_calls([call(Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE,
+                                                        0x100, fullpage[0:8],
+                                                        0x08, allow_blank_skip=False),
+                                                        call(Avr8Protocol.AVR8_MEMTYPE_EEPROM_PAGE,
+                                                        0x100+8, fullpage[8:],
+                                                        0x08, allow_blank_skip=False)])
+        mockalign.assert_called_once()
 
     def test_write_sram(self):
         self.set_up()
@@ -110,7 +140,18 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
         self.nvm.avr.write_memory_section.assert_has_calls([call(Avr8Protocol.AVR8_MEMTYPE_SRAM,
                                                                  0x200, wpage, len(wpage), allow_blank_skip=False)],any_order=True)
 
-    def test_erase_page(self):
+    def test_write_undef_mem(self):
+        self.set_up()
+        wpage = bytearray(list(range(0x05)))
+        self.nvm.avr.memtype_read_from_string.return_value=0
+        self.assertRaises(PymcuprogError, self.nvm.write,
+                              self.memory_info.memory_info_by_name('internal_sram'),
+                              0x200-0x100,
+                              wpage)
+
+
+
+    def test_erase_page_debmode(self):
         self.set_up()
         self.nvm.avr.protocol = Mock()
         self.assertTrue(self.nvm.erase_page(0x100, False))

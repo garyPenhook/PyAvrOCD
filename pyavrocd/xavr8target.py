@@ -1,10 +1,13 @@
 """
 Device Specific Classes which use AVR8Protocol implementation
 """
-from logging import getLogger
+from typing import Any
+
+import logging
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.util import binary
+from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 
 from pymcuprog.deviceinfo import deviceinfo
 from pymcuprog.deviceinfo.memorynames import MemoryNames
@@ -19,14 +22,14 @@ class XTinyXAvrTarget(TinyXAvrTarget):
     """
     Class handling sessions with TinyX AVR targets using the AVR8 generic protocol
     """
-    def __init__(self, transport):
+    def __init__(self, transport : HidTransportBase) -> None:
         super().__init__(transport)
-        self.logger_loc = getLogger('pyavrocd.tinyxtarget')
+        self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.tinyxtarget')
 
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
     # the registers as part of their SRAM address space.
-    def regfile_read(self):
+    def regfile_read(self) -> bytearray:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -35,7 +38,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.logger_loc.debug("Reading register file")
         return self.protocol.regfile_read()
 
-    def regfile_write(self, regs):
+    def regfile_write(self, regs : bytes) -> None:
         """
         Writes the AVR register file (R0::R31)
 
@@ -45,7 +48,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.logger_loc.debug("Writing register file")
         self.protocol.regfile_write(regs)
 
-    def statreg_read(self):
+    def statreg_read(self) -> bytearray:
         """
         Reads SREG
 
@@ -55,7 +58,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_OCD,
                                              Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, 1)
 
-    def statreg_write(self, data):
+    def statreg_write(self, data : bytes) -> None:
         """
         Writes SREG
 
@@ -63,24 +66,24 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD,
                                        Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, data)
 
-    def stack_pointer_write(self,data):
+    def stack_pointer_write(self, data : bytes) -> None:
         """
         Writes the stack pointer
         """
         self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD, 0x18, data)
 
-    def hardware_breakpoint_set(self, num, address):
+    def hardware_breakpoint_set(self, num : int, address : int) -> bytes | None:
         """
         Sets one hardware breakpoint <num>
 
-        :param num: number of breakpoint 1-3
+        :param num: number of breakpoint: can only be 1
         :param address: Address to break at
         :type address: int
         """
         if num < 1 or num > 1:
             self.logger.error("Tried to set hardware breakpoint %d at 0x%X on JTAG target",
                                 num, address)
-            return 0
+            return None
         resp = self.protocol.jtagice3_command_response(
             bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_SET, Avr8Protocol.CMD_VERSION0, 1, num]) +
             binary.pack_le32(address) +
@@ -88,14 +91,14 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         return self.protocol.check_response(resp)
 
 
-    def hardware_breakpoint_clear(self, num):
+    def hardware_breakpoint_clear(self, num : int) -> bytes | None:
         """
         Clears the hardware breakpoint <num>
         """
         if num < 1 or num > 1:
             self.logger.error("Tried to clear hardware breakpoint %d on JTAG target",
                                 num)
-            return 0
+            return None
         resp = self.protocol.jtagice3_command_response(
             bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, num]))
         return self.protocol.check_response(resp)
@@ -107,9 +110,9 @@ class XTinyAvrTarget(TinyAvrTarget):
     Implements Tiny AVR (debugWIRE) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport):
+    def __init__(self, transport : HidTransportBase) -> None:
         super().__init__(transport)
-        self.logger_loc = getLogger('pyavrocd.tinytarget')
+        self.logger_loc = logging.getLogger('pyavrocd.tinytarget')
 
         # next lines are copied from TinyXAvrTarget
         if transport.device.product_string.lower().startswith('edbg'):
@@ -117,7 +120,7 @@ class XTinyAvrTarget(TinyAvrTarget):
             # but no new EDBG firmware has/will be built)
             self.max_read_chunk_size = 256
 
-    def setup_debug_session(self, timers_run=True, **kwargs):
+    def setup_debug_session(self, timers_run : bool = True, **kwargs : Any) -> None:
         """
         Sets up a debugging session on an Tiny AVR (debugwire)
         """
@@ -132,17 +135,17 @@ class XTinyAvrTarget(TinyAvrTarget):
 
 
     #pylint: disable=arguments-differ
-    def memtype_read_from_string(self, memtype_string):
+    def memtype_read_from_string(self, memtype_string : str) -> int:
         """
         Maps from a string to an AVR memtype taking into account the constraints for
         memory in the NVM mode for reading.
         """
-        memtype = AvrDevice.memtype_read_from_string(memtype_string)
+        memtype : int = AvrDevice.memtype_read_from_string(memtype_string)
         if memtype == Avr8Protocol.AVR8_MEMTYPE_CALIBRATION_SIGNATURE:
             memtype = Avr8Protocol.AVR8_MEMTYPE_SIGNATURE
         return memtype
 
-    def memtype_write_from_string(self, memtype_string):
+    def memtype_write_from_string(self, memtype_string : str) -> int:
         """
         Maps from a string to an avr8 memtype for writes
 
@@ -153,33 +156,33 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         return self.memtype_read_from_string(memtype_string)
 
-    def switch_to_progmode(self):
+    def switch_to_progmode(self) -> None:
         """
         In general, we would switch to programming mode. However, for debugWIRE,
         prog mode or deb mode do not make a difference.
         """
         #self.protocol.enter_progmode()
 
-    def switch_to_debmode(self):
+    def switch_to_debmode(self) -> None:
         """
         In general, we would switch to debugging mode. However, for debugWIRE,
         prog mode or deb mode do not make a difference.
         """
         #self.protocol.leave_progmode()
 
-    def attach(self):
+    def attach(self) -> None:
         """
         For debugWIRE, we will attach to the OCD just once.
         """
         self.protocol.attach()
 
-    def reactivate(self):
+    def reactivate(self) -> None:
         """
         For debugWIRE, reactivating is simply a reset
         """
         self.protocol.reset()
 
-    def setup_config(self, device_info):
+    def setup_config(self, device_info : dict[str, Any ]) -> None:
         """
         Sets up the device config for a tiny AVR device
 
@@ -187,36 +190,34 @@ class XTinyAvrTarget(TinyAvrTarget):
                             by deviceinfo.deviceinfo.getdeviceinfo
         :type device_info: dict
         """
-        if device_info is None:
-            device_info = {}
 
         # Parse the device info for memory descriptions
-        device_memory_info = deviceinfo.DeviceMemoryInfo(device_info)
+        device_memory_info : deviceinfo.DeviceMemoryInfo = deviceinfo.DeviceMemoryInfo(device_info)
 
-        flash_info = device_memory_info.memory_info_by_name(MemoryNames.FLASH)
-        eeprom_info = device_memory_info.memory_info_by_name(MemoryNames.EEPROM)
-        sram_info = device_memory_info.memory_info_by_name(MemoryNames.INTERNAL_SRAM)
+        flash_info : dict = device_memory_info.memory_info_by_name(MemoryNames.FLASH)
+        eeprom_info : dict = device_memory_info.memory_info_by_name(MemoryNames.EEPROM)
+        sram_info : dict = device_memory_info.memory_info_by_name(MemoryNames.INTERNAL_SRAM)
         # Extract settings
-        fl_page_size = flash_info[DeviceMemoryInfoKeys.PAGE_SIZE]
-        fl_size = flash_info[DeviceMemoryInfoKeys.SIZE]
-        fl_base = flash_info[DeviceMemoryInfoKeys.ADDRESS]
-        sram_base = sram_info[DeviceMemoryInfoKeys.ADDRESS]
-        ee_page_size = eeprom_info[DeviceMemoryInfoKeys.PAGE_SIZE]
-        ee_size = eeprom_info[DeviceMemoryInfoKeys.SIZE]
-        ocd_addr = device_info.get(DeviceInfoKeysAvr.OCD_BASE)
-        ocd_rev = device_info.get('ocd_rev')
-        pagebuffers_per_flash_block = device_info.get('buffers_per_flash_page',1)
-        eear_size = device_info.get('eear_size')
-        eearh_addr = device_info.get('eear_base') + eear_size - 1
-        eearl_addr = device_info.get('eear_base')
-        eecr_addr = device_info.get('eecr_base')
-        eedr_addr = device_info.get('eedr_base')
-        spmcsr_addr = device_info.get('spmcsr_base')
-        osccal_addr = device_info.get('osccal_base')
+        fl_page_size : int = flash_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        fl_size : int = flash_info[DeviceMemoryInfoKeys.SIZE]
+        fl_base : int = flash_info[DeviceMemoryInfoKeys.ADDRESS]
+        sram_base : int = sram_info[DeviceMemoryInfoKeys.ADDRESS]
+        ee_page_size : int = eeprom_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        ee_size : int = eeprom_info[DeviceMemoryInfoKeys.SIZE]
+        ocd_addr : int = device_info.get(DeviceInfoKeysAvr.OCD_BASE,0)
+        ocd_rev : int = device_info.get('ocd_rev',0)
+        pagebuffers_per_flash_block : int = device_info.get('buffers_per_flash_page',1)
+        eear_size : int = device_info.get('eear_size',0)
+        eearh_addr : int = device_info.get('eear_base',0) + eear_size - 1
+        eearl_addr : int = device_info.get('eear_base',0)
+        eecr_addr : int = device_info.get('eecr_base',0)
+        eedr_addr : int = device_info.get('eedr_base',0)
+        spmcsr_addr : int = device_info.get('spmcsr_base',0)
+        osccal_addr : int = device_info.get('osccal_base',0)
 
         # Setup device structure and write to tool
         # TINY_FLASH_PAGE_BYTES (2@0x00)
-        devdata = bytearray([fl_page_size & 0xff, 0])
+        devdata : bytearray = bytearray([fl_page_size & 0xff, 0])
         # TINY_FLASH_BYTES (4@0x02)
         devdata += bytearray([fl_size & 0xFF, (fl_size >> 8) & 0xFF,
                                   (fl_size >> 16) & 0xFF, (fl_size >> 24) & 0xFF])
@@ -259,7 +260,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         self.protocol.write_device_data(devdata)
 
 
-    def statreg_read(self):
+    def statreg_read(self) -> bytearray:
         """
         Reads out SREG
 
@@ -268,7 +269,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5F, 1)
 
 
-    def statreg_write(self, data):
+    def statreg_write(self, data : bytes) -> bytearray:
         """
         Writes byte to SREG
         :param: 1 byte of data
@@ -277,7 +278,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5F, data)
 
 
-    def regfile_read(self):
+    def regfile_read(self) -> bytearray:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -285,7 +286,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0, 32)
 
-    def regfile_write(self, regs):
+    def regfile_write(self, regs : bytes) -> bytearray:
         """
         Writes the AVR register file (R0::R31)
 
@@ -294,7 +295,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0, regs)
 
-    def stack_pointer_read(self):
+    def stack_pointer_read(self) -> bytearray:
         """
         Reads the stack pointer
 
@@ -303,7 +304,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5D, 0x02)
 
-    def stack_pointer_write(self, data):
+    def stack_pointer_write(self, data : bytes) -> bytearray:
         """
         Writes the stack pointer
 
@@ -312,7 +313,7 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5D, data)
 
-    def hardware_breakpoint_set(self, num, address):
+    def hardware_breakpoint_set(self, num : int, address : int) -> None:
         """
         Sets one hardware breakpoint <num>
 
@@ -322,23 +323,21 @@ class XTinyAvrTarget(TinyAvrTarget):
         """
         self.logger.error("Tried to set hardware breakpoint %d at 0x%X on debugWIRE target",
                               num, address)
-        return 0
 
 
-    def hardware_breakpoint_clear(self, num):
+    def hardware_breakpoint_clear(self, num : int) -> None:
         """
         Clears the hardware breakpoint <num>
         """
         self.logger.error("Tried to clear hardware breakpoint %d on debugWIRE target",
                               num)
-        return 0
 
 
-    def breakpoint_clear(self):
+    def breakpoint_clear(self) -> None:
         """
         Is needed in stop_debugging - should not be there!
         """
-        return 0
+        return None
 
 
 class XMegaAvrJtagTarget(MegaAvrJtagTarget):
@@ -346,29 +345,29 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
     Implements Mega AVR (JTAG) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport):
+    def __init__(self, transport  : HidTransportBase) -> None:
         super().__init__(transport)
-        self.logger_loc = getLogger('pyavrocd.megatarget')
+        self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.megatarget')
 
     #pylint: disable=arguments-differ
-    def memtype_read_from_string(self, memtype_string):
+    def memtype_read_from_string(self, memtype_string : str) -> int:
         """
         Maps from a string to an AVR memtype taking into account the constraints for
         memory in the NVM mode for reading.
         """
-        memtype = AvrDevice.memtype_read_from_string(memtype_string)
+        memtype : int = AvrDevice.memtype_read_from_string(memtype_string)
         if memtype == Avr8Protocol.AVR8_MEMTYPE_CALIBRATION_SIGNATURE:
             memtype = Avr8Protocol.AVR8_MEMTYPE_SIGNATURE
         return memtype
 
-    def memtype_write_from_string(self, memtype_string):
+    def memtype_write_from_string(self, memtype_string : str) -> int:
         """
         Maps from a string to an AVR memtype taking into account the constraints for
         memory in the NVM mode for writing.
         """
         return self.memtype_read_from_string(memtype_string)
 
-    def switch_to_progmode(self):
+    def switch_to_progmode(self) -> None:
         """
         Simply detach and enter prog mode
         """
@@ -382,7 +381,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         self.protocol.enter_progmode()
         self.logger_loc.debug("Switched to progmode")
 
-    def switch_to_debmode(self):
+    def switch_to_debmode(self) -> None:
         """
         Simply leave prog mode and attach again
         """
@@ -396,14 +395,14 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         self.protocol.attach()
         self.logger_loc.debug("Switched to debug mode")
 
-    def attach(self):
+    def attach(self) -> None:
         """
         Attach (in the beginning)
 
         """
         self.protocol.attach()
 
-    def reactivate(self):
+    def reactivate(self) -> None:
         """
         Reactivate physical: Necessary to get set the right timer mode
         """
@@ -414,7 +413,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         self.protocol.reset()
         self.logger_loc.info("Physical interface re-activated")
 
-    def setup_debug_session(self, clkprg=200, clkdeb=1000, timers_run=True):
+    def setup_debug_session(self, clkprg : int=200, clkdeb : int=1000, timers_run : bool=True) -> None:
         """
         Sets up a programming session on an Mega AVR (JTAG)
         """
@@ -440,7 +439,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
     # setup_config is done in the super class
     # However, it seems to be wrong. Instead of IO register addresses RAM addresses
     # are used. I guess the version below is the correct one!
-    def setup_config(self, device_info):
+    def setup_config(self, device_info : dict[str, Any ]) -> None:
         """
         Sets up the device config for a tiny AVR device
 
@@ -448,37 +447,35 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
                             by deviceinfo.deviceinfo.getdeviceinfo
         :type device_info: dict
         """
-        if device_info is None:
-            device_info = {}
 
         # Parse the device info for memory descriptions
         device_memory_info = deviceinfo.DeviceMemoryInfo(device_info)
 
-        flash_info = device_memory_info.memory_info_by_name(MemoryNames.FLASH)
-        eeprom_info = device_memory_info.memory_info_by_name(MemoryNames.EEPROM)
-        sram_info = device_memory_info.memory_info_by_name(MemoryNames.INTERNAL_SRAM)
+        flash_info : dict = device_memory_info.memory_info_by_name(MemoryNames.FLASH)
+        eeprom_info : dict = device_memory_info.memory_info_by_name(MemoryNames.EEPROM)
+        sram_info : dict = device_memory_info.memory_info_by_name(MemoryNames.INTERNAL_SRAM)
         # Extract settings
-        fl_page_size = flash_info[DeviceMemoryInfoKeys.PAGE_SIZE]
-        fl_size = flash_info[DeviceMemoryInfoKeys.SIZE]
-        fl_base = flash_info[DeviceMemoryInfoKeys.ADDRESS]
-        sram_base = sram_info[DeviceMemoryInfoKeys.ADDRESS]
-        ee_page_size = eeprom_info[DeviceMemoryInfoKeys.PAGE_SIZE]
-        ee_size = eeprom_info[DeviceMemoryInfoKeys.SIZE]
-        ocd_addr = device_info.get(DeviceInfoKeysAvr.OCD_BASE)
-        ocd_rev = device_info.get('ocd_rev')
-        pagebuffers_per_flash_block = device_info.get('buffers_per_flash_page',1)
-        eear_size = device_info.get('eear_size')
-        eearh_addr = device_info.get('eear_base') + eear_size - 1
-        eearl_addr = device_info.get('eear_base')
-        eecr_addr = device_info.get('eecr_base')
-        eedr_addr = device_info.get('eedr_base')
-        spmcsr_addr = device_info.get('spmcsr_base')
-        osccal_addr = device_info.get('osccal_base')
+        fl_page_size : int = flash_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        fl_size : int = flash_info[DeviceMemoryInfoKeys.SIZE]
+        fl_base : int = flash_info[DeviceMemoryInfoKeys.ADDRESS]
+        sram_base : int = sram_info[DeviceMemoryInfoKeys.ADDRESS]
+        ee_page_size : int = eeprom_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        ee_size : int = eeprom_info[DeviceMemoryInfoKeys.SIZE]
+        ocd_addr : int = device_info.get(DeviceInfoKeysAvr.OCD_BASE,0)
+        ocd_rev : int = device_info.get('ocd_rev',0)
+        pagebuffers_per_flash_block : int = device_info.get('buffers_per_flash_page',1)
+        eear_size : int = device_info.get('eear_size',0)
+        eearh_addr : int = device_info.get('eear_base',0) + eear_size - 1
+        eearl_addr : int = device_info.get('eear_base',0)
+        eecr_addr : int = device_info.get('eecr_base',0)
+        eedr_addr : int = device_info.get('eedr_base',0)
+        spmcsr_addr : int = device_info.get('spmcsr_base',0)
+        osccal_addr : int = device_info.get('osccal_base',0)
 
         # Setup device structure and write to tool
 
         # TMEGA_FLASH_PAGE_BYTES (2@0x00)
-        devdata = bytearray([fl_page_size & 0xff, (fl_page_size >> 8) & 0xff])
+        devdata : bytearray = bytearray([fl_page_size & 0xff, (fl_page_size >> 8) & 0xff])
 
         # TMEGA_FLASH_BYTES (4@0x02)
         devdata += bytearray([fl_size & 0xFF, (fl_size >> 8) & 0xFF,
@@ -538,7 +535,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
 
 
 
-    def regfile_read(self):
+    def regfile_read(self) -> bytes:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -546,7 +543,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0, 32)
 
-    def regfile_write(self, regs):
+    def regfile_write(self, regs : bytes) -> bytes:
         """
         Writes the AVR register file (R0::R31)
 
@@ -555,7 +552,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0, regs)
 
-    def statreg_read(self):
+    def statreg_read(self) -> bytes:
         """
         Reads out SREG
 
@@ -564,7 +561,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5F, 1)
 
 
-    def statreg_write(self, data):
+    def statreg_write(self, data : bytes) -> bytes:
         """
         Writes byte to SREG
         :param: 1 byte of data
@@ -572,7 +569,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5F, data)
 
-    def stack_pointer_read(self):
+    def stack_pointer_read(self) -> bytes:
         """
         Reads the stack pointer
 
@@ -581,7 +578,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5D, 0x02)
 
-    def stack_pointer_write(self, data):
+    def stack_pointer_write(self, data : bytes) -> bytes:
         """
         Writes the stack pointer
 
@@ -590,7 +587,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5D, data)
 
-    def hardware_breakpoint_set(self, num, address):
+    def hardware_breakpoint_set(self, num : int, address : int) -> bytes | None:
         """
         Sets one hardware breakpoint <num>
 
@@ -601,7 +598,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         if num < 1 or num > 3:
             self.logger.error("Tried to set hardware breakpoint %d at 0x%X on JTAG target",
                                 num, address)
-            return 0
+            return None
         resp = self.protocol.jtagice3_command_response(
             bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_SET, Avr8Protocol.CMD_VERSION0, 1, num]) +
             binary.pack_le32(address) +
@@ -609,19 +606,19 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         return self.protocol.check_response(resp)
 
 
-    def hardware_breakpoint_clear(self, num):
+    def hardware_breakpoint_clear(self, num : int) -> bytes | None:
         """
         Clears the hardware breakpoint <num>
         """
         if num < 1 or num > 3:
             self.logger.error("Tried to clear hardware breakpoint %d on JTAG target",
                                 num)
-            return 0
+            return None
         resp = self.protocol.jtagice3_command_response(
             bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, num]))
         return self.protocol.check_response(resp)
 
-    def breakpoint_clear(self):
+    def breakpoint_clear(self) -> None:
         """
         Is needed in stop_debugging and will clear all hardware breakpoints
         """
@@ -634,12 +631,12 @@ class XXmegaAvrTarget(XmegaAvrTarget):
     Implements XMEGA (PDI) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport):
+    def __init__(self, transport : HidTransportBase):
         super().__init__(transport)
-        self.logger_loc = getLogger('pyavrocd.xmegatarget')
+        self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.xmegatarget')
 
 
-    def setup_debug_session(self):
+    def setup_debug_session(self) -> None:
         """
         Sets up a debugging session on an XMEGA AVR
         """
@@ -650,7 +647,7 @@ class XXmegaAvrTarget(XmegaAvrTarget):
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
     # the registers as part of their SRAM address space.
-    def regfile_read(self):
+    def regfile_read(self) -> bytes:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -659,7 +656,7 @@ class XXmegaAvrTarget(XmegaAvrTarget):
         self.logger_loc.debug("Reading register file")
         return self.protocol.regfile_read()
 
-    def regfile_write(self, regs):
+    def regfile_write(self, regs : bytes) -> bytes:
         """
         Writes the AVR register file (R0::R31)
 

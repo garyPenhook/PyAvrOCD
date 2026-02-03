@@ -1,12 +1,14 @@
 """
 GDB Server module
 """
+from typing import Any
+
 # args, logging
 import logging
 import signal
 import platform
 from logging import getLogger
-
+import argparse
 
 # utilities
 import time
@@ -19,6 +21,7 @@ import select
 
 from pyavrocd.handler import GdbHandler, RECEIVE_BUFFER
 from pyavrocd.errors import  EndOfSession
+from pyavrocd.xavrdebugger import XAvrDebugger
 
 class RspServer():
     """
@@ -26,24 +29,28 @@ class RspServer():
     and responding, and terminating. The important part is calling the handle_data
     method of the handler.
     """
-    def __init__(self, avrdebugger, devicename, args, toolname):
-        self.avrdebugger = avrdebugger
-        self.devicename = devicename
-        self.port = args.port
-        self.toolname = toolname
-        self.logger = getLogger("pyavrocd.rspserver")
-        self.connection = None
-        self.gdb_socket = None
-        self.handler = None
-        self.address = None
-        self.args = args
-        self._terminate = False
 
-    def _signal_server(self,_signo,_frame):
+    def __init__(self, avrdebugger : XAvrDebugger,
+                     devicename : str,
+                     args : argparse.Namespace,
+                     toolname : str) -> None:
+        self.avrdebugger : XAvrDebugger = avrdebugger
+        self.devicename : str = devicename
+        self.port : int = args.port
+        self.toolname : str = toolname
+        self._terminate : bool = False
+        self.logger : logging.Logger = getLogger("pyavrocd.rspserver")
+        self.args : argparse.Namespace = args
+        self.connection : socket.socket | None = None
+        self.gdb_socket : socket.socket | None = None
+        self.address : int | None = None
+        self.handler : GdbHandler | None = None
+
+    def _signal_server(self, _signo : int ,_frame : Any) -> None:
         self.logger.info("System requested termination using SIGTERM signal")
         self._terminate = True
 
-    def serve(self):
+    def serve(self) -> int:
         """
         Serve away ...
         """
@@ -62,13 +69,13 @@ class RspServer():
                     self.connection, self.address = self.gdb_socket.accept()
                 except socket.timeout:
                     pass
-            self.connection.setblocking(0)
+            self.connection.setblocking(False)
             self.logger.info('Connection from %s', self.address)
             self.handler = GdbHandler(self.connection, self.avrdebugger, self.devicename, self.args, self.toolname)
             while not self._terminate:
                 ready = select.select([self.connection], [], [], 0.2)
                 if ready[0]:
-                    data = self.connection.recv(RECEIVE_BUFFER)
+                    data : bytes = self.connection.recv(RECEIVE_BUFFER)
                     if len(data) > 0:
                         self.handler.handle_data(data)
                     else:
@@ -98,21 +105,6 @@ class RspServer():
                     self.avrdebugger.dw_disable()
                     self.handler.mon.set_debug_mode_active(enable=False)
                 self.avrdebugger.stop_debugging(graceful=True)
-                self.avrdebugger = None
-
-
-    def __del__(self):
-        try:
-            self.logger.info("Terminating GDB server ...")
-            if self.avrdebugger and self.avrdebugger.device:
-                self.avrdebugger.stop_debugging(graceful=True)
-        except Exception as e:
-            if self.logger.getEffectiveLevel() == logging.DEBUG:
-                self.logger.debug("Graceful exception during stopping: %s",e)
-                # raise
-            else:
-                pass
-        finally:
             # sleep 0.5 seconds before closing in order to allow the client to close first
             if platform.system() != "Windows":
                 time.sleep(0.5) # under Windows, a system exception is raised
@@ -122,5 +114,5 @@ class RspServer():
             if self.gdb_socket:
                 self.gdb_socket.close()
                 self.logger.info("Socket closed")
-            self.logger.info("... GDB server terminated")
+            self.logger.info("GDB server terminated")
 

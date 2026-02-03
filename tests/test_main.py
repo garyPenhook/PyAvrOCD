@@ -11,7 +11,7 @@ import sys
 from usb.core import NoBackendError
 import pymcuprog.pymcuprog_errors
 from pyavrocd.main import options,  setup_logging, \
-     process_arguments, startup_helper_prog, run_server, startup, handle_simavr
+     process_arguments, startup_helper_prog, run_server, startup, handle_simavr, tool_reboot
 
 class TestMain(TestCase):
 
@@ -74,6 +74,25 @@ class TestMain(TestCase):
         sys.exit.assert_called_once()
         mocked_print.assert_has_calls([call("Supported devices:")])
 
+    @patch('pyavrocd.main.os.path.exists', MagicMock(return_value=True))
+    @patch('pyavrocd.main.argparse.ArgumentParser.parse_args')
+    def test_add_pyavrocd_options(self,mockparse):
+        mockparse.return_value = SimpleNamespace(dev="atmega328p",
+                                                     webhelp=False,
+                                                     version=False,
+                                                     interface="debugwire",
+                                                     manage=[],
+                                                     tool='dwlink',
+                                                     verbose='all')
+        options(["-d", "atmega328p"])
+        mockparse.assert_called_with(["-d", "atmega328p", "@pyavrocd.options"])
+
+    @patch('pyavrocd.main.sys.exit', MagicMock())
+    @patch('pyavrocd.main.importlib.metadata.version')
+    def test_options_version(self, mockversion):
+        mockversion.return_value = "VERSION"
+        options(["--version"])
+        sys.exit.assert_called_once()
 
     @patch('builtins.print')
     @patch('pyavrocd.main.sys.exit', MagicMock())
@@ -167,7 +186,7 @@ class TestMain(TestCase):
         args.clkprg = -10
         args.clkdeb = None
         args.F_CPU = '1000000L'
-        self.assertEqual(process_arguments(args, MagicMock()), (1, None, None))
+        self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Negative frequency values are discouraged")])
 
     @patch('builtins.print')
@@ -182,7 +201,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
-        self.assertEqual(process_arguments(args, MagicMock()), (1, None, None))
+        self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Please specify target MCU with -d option")])
 
     @patch('builtins.print')
@@ -197,7 +216,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
-        self.assertEqual(process_arguments(args, MagicMock()), (1, None, None))
+        self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Device 'atmega328p' does not have the interface 'jtag'")])
 
     @patch('builtins.print')
@@ -212,7 +231,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
-        self.assertEqual(process_arguments(args, MagicMock()), (1, None, None))
+        self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Device 'atmega31' is not supported by PyAvrOCD")])
 
     @patch('pyavrocd.main.subprocess.Popen')
@@ -287,6 +306,28 @@ class TestMain(TestCase):
         mock_logger = MagicMock()
         self.assertEqual(run_server(mock_server, mock_logger), 0)
 
+    def test_run_server_error(self):
+        mock_server = Mock(serve=Mock(side_effect = ValueError()))
+        self.assertEqual(run_server(mock_server, Mock()), 1)
+
+    @patch('pyavrocd.main.time.sleep',Mock())
+    def test_reboot(self):
+        mockbackend = MagicMock(reboot_tool=Mock(), connect_to_tool=Mock())
+        self.assertEqual(tool_reboot(mockbackend, Mock(), Mock()), True)
+        mockbackend.reboot_tool.assert_called_once()
+        mockbackend.connect_to_tool.assert_called_once()
+
+    @patch('pyavrocd.main.time.sleep',Mock())
+    def test_reboot_timeout(self):
+        mockbackend = MagicMock(reboot_tool=Mock(), connect_to_tool=Mock(side_effect=ValueError()))
+        mock_logger = Mock()
+        self.assertEqual(tool_reboot(mockbackend, Mock(), mock_logger), False)
+        mock_logger.critical.assert_called_with("... could not reconnect")
+
+    def test_startup_fail(self):
+        mock_logger = Mock()
+        self.assertEqual(startup(['-t', 'dwlink'], mock_logger), 1)
+
     @patch('pyavrocd.main.sys.stdout.write')
     def test_startup_no_args(self, mock_print):
         self.assertRaises(SystemExit,startup, [], Mock)
@@ -296,8 +337,7 @@ class TestMain(TestCase):
     def test_startup_wrong_args(self, mock_print):
         self.assertRaises(SystemExit,startup, ['-z'], Mock)
         caller = os.path.basename(sys.argv[0])
-        mock_print.assert_has_calls([
-                                     call(caller + ': error: unrecognized arguments: -z\n')])
+        mock_print.assert_has_calls([call(caller + ': error: unrecognized arguments: -z\n')])
 
     @patch('pyavrocd.main.importlib.metadata.version')
     @patch('pyavrocd.main.dwlink.main')
@@ -311,14 +351,31 @@ class TestMain(TestCase):
 
     @patch('pyavrocd.main.importlib.metadata.version')
     @patch('pyavrocd.main.usb.core.find')
-    def test_startup_no_backend(self, mock_find, mock_version):
+    @patch('pyavrocd.main.platform.system')
+    def test_startup_mac_no_backend(self, mock_system, mock_find, mock_version):
         mock_logger = MagicMock()
         mock_version.return_value='VERSION'
         mock_find.side_effect = NoBackendError("")
+        mock_system.return_value = 'Darwin'
         self.assertEqual(startup(['-d', 'atmega328p'], mock_logger), 1)
         mock_find.assert_called_once()
         mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
-        mock_logger.critical.assert_has_calls([call('Could not discover debug probes: %s', ANY)])
+        mock_logger.critical.assert_has_calls([call('Could not discover debug probes: %s', ANY),
+                                                   call("Install libusb: 'brew install libusb'")])
+
+    @patch('pyavrocd.main.importlib.metadata.version')
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.platform.system')
+    def test_startup_linux_no_backend(self, mock_system, mock_find, mock_version):
+        mock_logger = MagicMock()
+        mock_version.return_value='VERSION'
+        mock_find.side_effect = NoBackendError("")
+        mock_system.return_value = 'Linux'
+        self.assertEqual(startup(['-d', 'atmega328p'], mock_logger), 1)
+        mock_find.assert_called_once()
+        mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
+        mock_logger.critical.assert_has_calls([call('Could not discover debug probes: %s', ANY),
+                                                   call("Install libusb: 'sudo apt install libusb-1.0-0'")])
 
     @patch('pyavrocd.main.dwlink.main')
     @patch('pyavrocd.main.importlib.metadata.version')
@@ -334,6 +391,123 @@ class TestMain(TestCase):
         self.assertEqual(mock_dwlink.call_count,1)
         mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
         mock_logger.critical.assert_has_calls([call('No compatible tool discovered')])
+
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    @patch('pyavrocd.main.platform.system')
+    def test_startup_linux_no_udev(self, mock_system, mock_backend, mock_find):
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(get_available_hid_tools=MagicMock(return_value=[]))
+        mock_system.return_value = 'Linux'
+        mock_logger = MagicMock()
+        self.assertEqual(startup(['-d', 'atmega328p'], mock_logger), 1)
+        mock_logger.critical.assert_called_with("review, edit, and install under /etc/udev/rules.d/.")
+
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    @patch('pyavrocd.main.platform.system')
+    def test_startup_mac_not_available(self, mock_system, mock_backend, mock_find):
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(get_available_hid_tools=MagicMock(return_value=[]))
+        mock_system.return_value = 'Darwin'
+        mock_logger = MagicMock()
+        self.assertEqual(startup(['-d', 'atmega328p'], mock_logger), 1)
+        mock_logger.error.assert_called_with("Not all discovered tools are available")
+        mock_logger.critical.assert_called_with("No compatible tool discovered")
+
+    @patch('pyavrocd.main.XAvrDebugger', MagicMock())
+    @patch('pyavrocd.main.RspServer', MagicMock())
+    @patch('pyavrocd.main.dwlink.main')
+    @patch('pyavrocd.main.importlib.metadata.version')
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    def test_startup_with_tool(self, mock_backend, mock_find,  mock_version, mock_dwlink):
+        mock_logger = MagicMock()
+        mock_version.return_value='VERSION'
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(connect_to_tool=Mock(),get_available_hid_tools=MagicMock(return_value=[t3]),transport=Mock())
+        self.assertNotEqual(startup(['-d', 'atmega328p', '-v=all'], mock_logger), 1)
+        self.assertEqual(mock_dwlink.call_count,0)
+        mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION'),
+                                               call('Connected to %s', ANY),
+                                               call('Starting GDB server')])
+
+    @patch('pyavrocd.main.dwlink.main')
+    @patch('pyavrocd.main.importlib.metadata.version')
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    def test_startup_oserror_busy(self, mock_backend, mock_find,  mock_version, mock_dwlink):
+        mock_logger = MagicMock()
+        mock_version.return_value='VERSION'
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(connect_to_tool=Mock(side_effect=OSError("open failed")),
+                                                  get_available_hid_tools=MagicMock(return_value=[t3]),
+                                                  transport=Mock())
+        self.assertEqual(startup(['-d', 'atmega328p', '-v=all'], mock_logger), 1)
+        self.assertEqual(mock_dwlink.call_count,0)
+        mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
+        mock_logger.critical.assert_has_calls([call('Debug probe busy, cannot connect')])
+
+    @patch('pyavrocd.main.XAvrDebugger', MagicMock())
+    @patch('pyavrocd.main.RspServer', MagicMock())
+    @patch('pyavrocd.main.importlib.metadata.version')
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    def test_startup_oserror_other(self, mock_backend, mock_find,  mock_version):
+        mock_logger = MagicMock()
+        mock_version.return_value='VERSION'
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(connect_to_tool=Mock(side_effect=OSError("other")),
+                                                  get_available_hid_tools=MagicMock(return_value=[t3]),
+                                                  transport=Mock())
+        self.assertEqual(startup(['-d', 'atmega328p', '-v=all'], mock_logger), 1)
+        mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
+        mock_logger.critical.assert_has_calls([call('Could not connect to debug probe: %s', 'other')])
+
+    @patch('pyavrocd.main.RspServer', MagicMock())
+    @patch('pyavrocd.main.XAvrDebugger', MagicMock())
+    @patch('pyavrocd.main.importlib.metadata.version')
+    @patch('pyavrocd.main.usb.core.find')
+    @patch('pyavrocd.main.pymcuprog.backend.Backend')
+    def test_startup_reboot(self, mock_backend, mock_find,  mock_version):
+        mock_logger = MagicMock()
+        mock_version.return_value='VERSION'
+        t3 = SimpleNamespace()
+        t3.idVendor = 0x3EB
+        t3.idProduct = 0x2141
+        mock_find.return_value=[ t3 ]
+        mock_backend.return_value = MagicMock(connect_to_tool=Mock(),get_available_hid_tools=MagicMock(return_value=[t3]),transport=Mock())
+        self.assertNotEqual(startup(['-d', 'atmega328p', '-v=all', '--reboot'], mock_logger), 1)
+        mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION'),
+                                           call('Connected to %s', ANY),
+                                           call('Rebooting debugger...'),
+                                           call('Reconnected to %s', ANY),
+                                           call('Starting GDB server')])
+        mock_logger.critical.assert_not_called()
+
+    @patch('pyavrocd.main.sys.exit')
+    @patch('pyavrocd.main.shutil.which')
+    @patch('pyavrocd.main.subprocess.Popen')
+    def test_startup_simavr(self, mocked_popen, mocked_which, mocked_exit):
+        mocked_which.return_value =  '/usr/bin/simavr'
+        self.assertEqual(startup(['-d', 'atmega328p', '-s=simavr'], Mock()), 0)
+        mocked_popen.assert_called_once()
+        mocked_exit.assert_not_called()
 
     @patch('pyavrocd.main.importlib.metadata.version')
     @patch('pyavrocd.main.pymcuprog.backend.Backend')

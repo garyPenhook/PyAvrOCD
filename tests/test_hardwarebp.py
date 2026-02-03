@@ -7,6 +7,7 @@ from unittest.mock import call, create_autospec,  Mock
 from unittest import TestCase
 from pyavrocd.xavrdebugger import XAvrDebugger
 from pyavrocd.hardwarebp import HardwareBP
+from pyavrocd.errors import FatalError
 
 class TestHardwareBP(TestCase):
 
@@ -99,7 +100,7 @@ class TestHardwareBP(TestCase):
     def test_set_temp_imposs(self):
         self.set_up()
         self.hbp._hwbplist = [ 100, 200, 300 ]
-        self.assertEqual(self.hbp.set_temp([2,4,6,8]), None)
+        self.assertRaises(FatalError, self.hbp.set_temp, [2,4,6,8])
         self.assertEqual(self.hbp._hwbplist, [ 100, 200, 300 ])
         self.assertEqual(self.hbp._tempalloc, None)
 

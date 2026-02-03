@@ -369,9 +369,9 @@ class TestMonitorCommand(TestCase):
     def test_dispatch_timers(self):
         self.set_up()
         self.assertFalse(self.mo._timersfreeze)
-        self.assertEqual(self.mo.dispatch(['timers', 'run']), (1, "MCU reset\nTimers will run when execution is stopped"))
+        self.assertEqual(self.mo.dispatch(['timers', 'run']), ("1", "MCU reset\nTimers will run when execution is stopped"))
         self.assertFalse(self.mo._timersfreeze)
-        self.assertEqual(self.mo.dispatch(['timers', 'freeze']), (0, "MCU reset\nTimers are frozen when execution is stopped"))
+        self.assertEqual(self.mo.dispatch(['timers', 'freeze']), ("0", "MCU reset\nTimers are frozen when execution is stopped"))
         self.assertTrue(self.mo._timersfreeze)
         self.assertEqual(self.mo.dispatch(['timers']), ("", "Timers are frozen when execution is stopped"))
         self.assertEqual(self.mo.dispatch(['timers', 'bla']), ("", "Unknown argument in 'monitor' command"))

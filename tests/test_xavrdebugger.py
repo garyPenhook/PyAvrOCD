@@ -18,6 +18,7 @@ class TestXAvrDebugger(TestCase):
         self.xa = None
         self.xaj = None
         self.xau = None
+        self.xa23 = None
 
     def set_up(self):
         mock_transport = MagicMock()
@@ -27,8 +28,8 @@ class TestXAvrDebugger(TestCase):
         args.clkdeb = 4000
         args.timers = 'r'
         args.load = 'n'
+        args.skipsig = False
         # a debugWIRE target
-
         self.xa = XAvrDebugger(mock_transport, "attiny85", "debugwire", args)
         self.xa.logger = MagicMock()
         self.xa.transport = mock_transport
@@ -40,6 +41,18 @@ class TestXAvrDebugger(TestCase):
         self.xa.housekeeper = Mock()
         self.xa._wait_for_break = Mock()
         self.xa._wait_for_break.return_value = False # after reset: we are stopped
+        # special case: ATtiny2313
+        self.xa23 = XAvrDebugger(mock_transport, "attiny2313", "debugwire", args)
+        self.xa23.logger = MagicMock()
+        self.xa23.transport = mock_transport
+        self.xa23.memory_info = MagicMock()
+        self.xa23.device = MagicMock()
+        self.xa23.device.avr = MagicMock()
+        self.xa23.device.avr.protocol = MagicMock(spec=Avr8Protocol)
+        self.xa23.logger = Mock()
+        self.xa23.housekeeper = Mock()
+        self.xa23._wait_for_break = Mock()
+        self.xa23._wait_for_break.return_value = False # after reset: we are stopped
         # a JTAG target
         self.xaj = XAvrDebugger(mock_transport, "atmega644", "jtag", args)
         self.xaj.logger = MagicMock()
@@ -256,11 +269,44 @@ class TestXAvrDebugger(TestCase):
         self.xa.device.avr.protocol.activate_physical.return_value = bytearray([0x01, 0x02, 0x03, 0x04])
         self.assertEqual(self.xa._activate_interface(), 0x04030201)
 
-    def test__activate_interface_fail(self):
+    def test__check_attiny2313_ok(self):
+        self.set_up()
+        self.xa23.device.read.side_effect = Jtagice3ResponseError("Invalid address",
+                                            code=Avr8Protocol.AVR8_FAILURE_INVALID_ADDRESS)
+        self.assertEqual(self.xa23._check_attiny2313(), None)
+        self.xa23.device.read.assert_called_once()
+
+    def test__check_attiny2313_fail(self):
+        self.set_up()
+        self.xa23.device.read.return_value = bytearray([0])
+        self.assertRaises(FatalError,self.xa23._check_attiny2313)
+        self.xa23.device.read.assert_called_once()
+
+
+    def test__check_attiny2313_no2313(self):
+        self.set_up()
+        self.assertEqual(self.xa._check_attiny2313(), None)
+        self.xa.device.read.assert_not_called()
+
+
+    def test__activate_interface_fail_invalid_state(self):
         self.set_up()
         self.xa.device.avr.protocol.activate_physical.side_effect = Jtagice3ResponseError("Error",
                                     Avr8Protocol.AVR8_FAILURE_INVALID_PHYSICAL_STATE)
         self.assertRaises(Jtagice3ResponseError, self.xa._activate_interface)
+
+    def test__activate_interface_fail_phy_dw_error(self):
+        self.set_up()
+        self.xa.device.avr.protocol.activate_physical.side_effect = Jtagice3ResponseError("Error",
+                                    Avr8Protocol.AVR8_FAILURE_DW_PHY_ERROR)
+        self.assertRaises(FatalError, self.xa._activate_interface)
+
+    def test__activate_interface_fail_clock(self):
+        self.set_up()
+        self.xa.device.avr.protocol.activate_physical.side_effect = Jtagice3ResponseError("Error",
+                                    Avr8Protocol.AVR8_FAILURE_CLOCK_ERROR)
+        self.assertRaises(Jtagice3ResponseError, self.xa._activate_interface)
+
 
     def test__handle_bootrst_fail(self):
         self.set_up()
@@ -386,18 +432,25 @@ class TestXAvrDebugger(TestCase):
             call("The DWEN fuse is not managed by PyAvrOCD.")])
 
     @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
-    def test__check_atmega48_and_88_fail(self):
+    def test__check_atmega48_and_88_atmega48_fail(self):
         self.set_up()
         self.xa.spidevice = Mock()
         self.xa.spidevice.read.side_effect=[bytes([0x00])]
         self.assertRaises(FatalError, self.xa._check_atmega48_and_88, 0x1E9025)
 
     @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
-    def test__check_atmega48_and_88_ok(self):
+    def test__check_atmega48_and_88_atmega48_ok(self):
         self.set_up()
         self.xa.spidevice = Mock()
         self.xa.spidevice.read.side_effect=[bytes([0xFF])]
         self.xa._check_atmega48_and_88(0x1E9025)
+
+    @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
+    def test__check_atmega48_and_88_atmega88_fail(self):
+        self.set_up()
+        self.xa.spidevice = Mock()
+        self.xa.spidevice.read.side_effect=[bytes([0x00])]
+        self.assertRaises(FatalError, self.xa._check_atmega48_and_88, 0x1E930A)
 
     @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
     def test__check_atmega48_and_88_atmega88_ok(self):
@@ -414,6 +467,71 @@ class TestXAvrDebugger(TestCase):
         self.set_up()
         self.xa._power_cycle()
         self.xa.logger.info.assert_has_calls([call("Signed on to tool again")])
+
+    def test_dw_disable_nodwen(self):
+        self.set_up()
+        self.xa.manage = []
+        self.xa.dw_disable()
+        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xa.device.avr.protocol.stop.assert_called_once()
+        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+        self.xa.housekeeper.end_session.assert_called_once()
+
+    @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
+    @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())
+    @patch('pyavrocd.xavrdebugger.NvmAccessProviderCmsisDapSpi', MagicMock())
+    def test_dw_disable_dwen(self):
+        self.set_up()
+        self.xa.manage = ['dwen']
+        self.xa.dw_disable()
+        self.xa.logger.info.assert_called_with("... disabling debugWIRE mode done")
+        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xa.device.avr.protocol.stop.assert_called_once()
+        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+        self.xa.spidevice.isp.enter_progmode.assert_called_once()
+        self.xa.spidevice.isp.write_fuse_byte.assert_called_once()
+        self.xa.spidevice.isp.leave_progmode.assert_called_once()
+
+
+    def test_cold_dw_disable_nodwen_start(self):
+        self.set_up()
+        self.xa.manage = []
+        self.xa.start_debugging = Mock(return_value=True)
+        self.xa.cold_dw_disable()
+        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+
+    def test_cold_dw_disable_nodwen_nostart(self):
+        self.set_up()
+        self.xa.manage = []
+        self.xa.start_debugging = Mock(return_value=False)
+        self.xa.cold_dw_disable()
+        self.xa.device.avr.protocol.debugwire_disable.assert_not_called()
+
+    def test_cold_dw_disable_nojtag(self):
+        self.set_up()
+        self.assertRaises(FatalError, self.xaj.cold_dw_disable)
+
+    def test_software_breakpoint_set_ok(self):
+        self.set_up()
+        self.assertTrue(self.xa.software_breakpoint_set(10))
+        self.xa.device.avr.protocol.software_breakpoint_set.assert_called_once()
+
+    def test_software_breakpoint_set_fail(self):
+        self.set_up()
+        self.xa.device.avr.protocol.software_breakpoint_set.side_effect = FatalError()
+        self.assertFalse(self.xa.software_breakpoint_set(10))
+
+    def test_hardware_breakpoint_set(self):
+        self.set_up()
+        self.xa.bad_pc_bit_mask = 0x8000
+        self.xa.hardware_breakpoint_set(1, 0x100)
+        self.xa.device.avr.hardware_breakpoint_set.assert_called_with(1, 0x8100)
+
+    def test_hardware_breakpoint_clear(self):
+        self.set_up()
+        self.xa.hardware_breakpoint_clear(1)
+        self.xa.device.avr.hardware_breakpoint_clear.assert_called_with(1)
+
 
     def test_stack_pointer_write(self):
         self.set_up()
@@ -460,3 +578,9 @@ class TestXAvrDebugger(TestCase):
         self.xa.device.avr.regfile_read.return_value=rfile
         self.assertEqual(self.xa.register_file_read(),rfile)
         self.xa.device.avr.regfile_read.assert_called_once()
+
+    def test_reset(self):
+        self.set_up()
+        self.xa.reset()
+        self.xa.device.avr.protocol.reset.assert_called_once()
+

@@ -27,6 +27,16 @@ class TestXAvr8TargetUpdi(TestCase):
         self.assertEqual(self.xa.memtype_write_from_string('eeprom'), Avr8Protocol.AVR8_MEMTYPE_EEPROM_ATOMIC)
         self.assertEqual(self.xa.memtype_write_from_string('internal_sram'), Avr8Protocol.AVR8_MEMTYPE_SRAM)
 
+    def test_regfile_read(self):
+        self.set_up()
+        self.xa.protocol.regfile_read.return_value=bytearray(range(32))
+        self.assertEqual(self.xa.regfile_read(), bytearray(range(32)))
+
+    def test_regfile_write(self):
+        self.set_up()
+        self.xa.regfile_write(bytearray(range(32)))
+        self.xa.protocol.regfile_write.assert_called_with(bytearray(range(32)))
+
     def test_statreg_read(self):
         self.set_up()
         self.xa.protocol.memory_read.return_value=bytearray([0x7F])
@@ -47,7 +57,7 @@ class TestXAvr8TargetUpdi(TestCase):
 
     def test_hardware_breakpoint_set_fail(self):
         self.set_up()
-        self.assertEqual(self.xa.hardware_breakpoint_set(2, 0x200),0)
+        self.assertEqual(self.xa.hardware_breakpoint_set(2, 0x200),None)
 
     def test_hardware_breakpoint_set_right(self):
         self.set_up()

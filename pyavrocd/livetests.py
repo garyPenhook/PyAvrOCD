@@ -3,10 +3,18 @@ Live Tests for dw-gdbserver
 """
 #pylint: disable=protected-access
 
+from collections.abc import Callable
+from typing import Any
+
 import time
 import logging
 from logging import getLogger
 import binascii
+
+from pyavrocd.xavrdebugger import XAvrDebugger
+from pyavrocd.memory import Memory
+from pyavrocd.monitor import MonitorCommand
+from pyavrocd.breakexec import BreakAndExec
 
 # pylint: disable=too-many-instance-attributes
 class LiveTests():
@@ -15,24 +23,24 @@ class LiveTests():
     Will be activated by the monitor command 'LiveTests'.
     """
 
-    def __init__(self, handler):
-        self.logger = getLogger('pyavrocd.livetests')
-        self.handler = handler
-        self.dbg = handler.dbg
-        self.mem = handler.mem
-        self.mon = handler.mon
-        self.bp = handler.bp
-        self.backup_send_packet = None
-        self.send_string = ""
-        self.success = 0
-        self.failure = 0
-        self.tests_total = 0
-        self.flash_transparent = False
-        self.sram_start = self.dbg.memory_info.\
+    def __init__(self, handler : Any):
+        self.logger : logging.Logger = getLogger('pyavrocd.livetests')
+        self.handler : Any = handler
+        self.dbg : XAvrDebugger = handler.dbg
+        self.mem : Memory = handler.mem
+        self.mon : MonitorCommand = handler.mon
+        self.bp : BreakAndExec = handler.bp
+        self.backup_send_packet : Callable[[str], None] | None = None
+        self.send_string : str = ""
+        self.success : int= 0
+        self.failure : int = 0
+        self.tests_total : int = 0
+        self.flash_transparent : bool = False
+        self.sram_start : int = self.dbg.memory_info.\
           memory_info_by_name('internal_sram')['address']
-        self.test_code = self.setup_test_code(self.sram_start)
+        self.test_code : bytes = self.setup_test_code(self.sram_start)
 
-    def setup_test_code(self, sram_addr):
+    def setup_test_code(self, sram_addr : int) -> bytes:
         """
         This sets up the test code in a bytearray. The parameter sram_addr
         is our special special sram address that we need for test purposes.
@@ -59,7 +67,7 @@ class LiveTests():
                               0xf5, 0xcf, 0x0e, 0x94, 0xe4, 0x00, 0x0c, 0x94, 0xd9, 0x00,
                               0x11, 0xe9, 0x08, 0x95, 0x98, 0x95])
 
-    def mock_send_packet(self, mes):
+    def mock_send_packet(self, mes : str) -> None:
         """
         Instead of sending the message mes to GDB, it simply returns the string
         so that it can be checked by the test procedure.
@@ -67,7 +75,7 @@ class LiveTests():
         self.send_string = mes
 
     # pylint: disable=too-many-statements
-    def run_tests(self):
+    def run_tests(self) -> None:
         """
         Running the live tests. All exceptions are caught, counted as failure, and
         the remanibg tests are skipped. In the end, we restore the send_packet method
@@ -84,7 +92,7 @@ class LiveTests():
         try:
             self.handler.send_debug_message("Running live tests ...")
             self.logger.info("Starting live tests (will clobber SRAM and flash)")
-            self.handler.send_packet = self.mock_send_packet
+            self.handler.send_packet = self.mock_send_packet #type: ignore
             self._live_test_load()
             self._live_test_verify_loaded()
             self._live_test_continue_stop()
@@ -123,7 +131,7 @@ class LiveTests():
             self.logger.info("Tests failed:    %s", self.failure)
             self.logger.info("Tests skipped:   %s", self.tests_total -
                                  self.success - self.failure)
-            self.handler.send_packet = self.backup_send_packet
+            self.handler.send_packet = self.backup_send_packet  #type: ignore
             if self.success == self.tests_total:
                 self.handler.send_debug_message("... live tests successfully finished.")
             else:
@@ -134,7 +142,7 @@ class LiveTests():
             self.logger.info("All monitor state variables set to default values")
             self.mon.set_default_state()
 
-    def check_result(self, success_condition):
+    def check_result(self, success_condition : bool) -> None:
         """
         Check for success, report, and count
         """
@@ -146,35 +154,35 @@ class LiveTests():
             self.logger.error("... failed")
 
     # pylint: disable=protected-access
-    def _live_test_load(self):
+    def _live_test_load(self) -> None:
         """
         Loads test code and checks that load has been successful (X-packet)
         """
         self.logger.info("Running 'load' test ...")
-        verify_save = self.mon._verify
+        verify_save : bool = self.mon._verify
         self.mon._verify = False # because on mEDBG debuggers, first page is not always writeable
-        test_code = self.handler.escape(self.test_code)
-        header = "0001AA,%0X:" % len(test_code)
+        test_code : bytes = self.handler.escape(self.test_code)
+        header : str = "0001AA,%0X:" % len(test_code)
         self.send_string = ""
         self.handler.dispatch("X", header.encode("ascii") + test_code)
-        self.handler.dispatch(None, None) # signal timeout, so that last record will be written
+        self.handler.dispatch("", b"") # signal timeout, so that last record will be written
         self.mon._verify = verify_save
         self.check_result(self.send_string == "OK")
 
-    def _live_test_verify_loaded(self):
+    def _live_test_verify_loaded(self) -> None:
         """
         Verify that binary code has been loaded to flash memory.
         """
         self.logger.info("Running 'verify loaded' test ...")
         self.mon._cache = False # disable caching
-        codesnippet = self.mem.flash_read(0x1aa, len(self.test_code))
+        codesnippet : bytes = self.mem.flash_read(0x1aa, len(self.test_code))
         self.logger.debug("Code flashed: %s", ' '.join('0x{:02x}'.format(x) for x in codesnippet))
         self.mon._cache = True # re-enable caching
         self.check_result(codesnippet == self.test_code)
 
     # no tests for '!' and '?' packstes because unit tests are enough
 
-    def _live_test_continue_stop(self):
+    def _live_test_continue_stop(self) -> None:
         """
         Test 'continue' and 'stop' function.
         """
@@ -186,7 +194,7 @@ class LiveTests():
         self.logger.debug("Sent: %s", self.send_string)
         self.check_result(self.dbg.program_counter_read() == (0x1B0 >> 1))
 
-    def _live_test_continue_at_break(self):
+    def _live_test_continue_at_break(self) -> None:
         """
         Test 'continue' at a 'break' location
         """
@@ -200,12 +208,12 @@ class LiveTests():
 
     # no test for 'D' packet because unit tests are enough
 
-    def _live_test_get_register(self):
+    def _live_test_get_register(self) -> None:
         """
         Test 'get register' function.
         """
         self.logger.info("Running 'get register' test ...")
-        newdata = bytearray(list(range(32,64))) + \
+        newdata : bytes = bytearray(list(range(32,64))) + \
           bytearray([0x99, 0x77, 0x00, 0x46, 0x34, 0x00, 0x00 ])
         self.dbg.register_file_write(newdata[:32])
         self.dbg.status_register_write(newdata[32:33])
@@ -216,90 +224,91 @@ class LiveTests():
         self.logger.debug("Sent string: %s", self.send_string)
         self.check_result(self.send_string == (binascii.hexlify(newdata)).decode('ascii'))
 
-    def _live_test_set_register(self):
+    def _live_test_set_register(self) -> None:
         """
         Test 'set register' function.
         """
         self.logger.info("Running 'set register' test ...")
-        newdata = binascii.hexlify(bytearray(list(range(64,96))) + \
+        newdata : bytes = binascii.hexlify(bytearray(list(range(64,96))) + \
           bytearray([0x88, 0x66, 0x00, 0x26, 0x16, 0x00, 0x00 ]))
         self.handler.dispatch("G", newdata)
-        regs = self.dbg.register_file_read()
-        sreg = self.dbg.status_register_read()
-        sp = self.dbg.stack_pointer_read()
+        regs : bytes = self.dbg.register_file_read()
+        sreg : bytes = self.dbg.status_register_read()
+        sp : bytes = self.dbg.stack_pointer_read()
         # get PC as word address and make a byte address
-        pc = self.dbg.program_counter_read() << 1
-        reg_string = ""
+        pc : int = self.dbg.program_counter_read() << 1
+        reg_string : str = ""
+        reg : int
         for reg in regs:
             reg_string = reg_string + format(reg, '02x')
-        sreg_string = ""
+        sreg_string : str = ""
         for reg in sreg:
             sreg_string = sreg_string + format(reg, '02x')
-        sp_string = ""
+        sp_string : str = ""
         for reg in sp:
             sp_string = sp_string + format(reg, '02x')
-        pcstring = binascii.hexlify(pc.to_bytes(4,byteorder='little')).decode('ascii')
+        pcstring : str = binascii.hexlify(pc.to_bytes(4,byteorder='little')).decode('ascii')
         reg_string = reg_string + sreg_string + sp_string + pcstring
         self.logger.debug("Newdata:     %s", newdata.decode("ascii"))
         self.logger.debug("New setting: %s", reg_string)
         self.check_result(reg_string == newdata.decode("ascii") and
                               self.send_string == "OK")
 
-    def _live_test_get_memory_sram(self):
+    def _live_test_get_memory_sram(self) -> None:
         """
         Tests 'get memory' function on sram
         """
         self.logger.info("Running 'get memory sram' test ...")
-        data = bytearray([0x07,0x99,0x12])
+        data : bytes = bytearray([0x07,0x99,0x12])
         self.dbg.sram_write(self.sram_start+2, data)
         self.handler.dispatch('m', b'80%04X,03' % (self.sram_start+2))
         self.check_result(self.send_string == binascii.hexlify(data).decode('ascii'))
 
-    def _live_test_get_memory_eeprom(self):
+    def _live_test_get_memory_eeprom(self) -> None:
         """
         Tests 'get memory' function on eeprom
         """
         self.logger.info("Running 'get memory eeprom' test ...")
-        data = bytearray([0x08,0x77,0x51])
+        data : bytes = bytearray([0x08,0x77,0x51])
         self.dbg.eeprom_write(2, data)
         self.logger.debug("Written 3 bytes to EEPROM address 2")
         self.handler.dispatch('m', b'81%04X,03' % 2)
         self.logger.debug("Fetched 3 bytes from EEPROM at address 2")
         self.check_result(self.send_string == binascii.hexlify(data).decode('ascii'))
 
-    def _live_test_get_memory_flash(self):
+    def _live_test_get_memory_flash(self) -> None:
         """
         Tests 'get memory' function on flash memory
         """
         self.logger.info("Running 'get memory flash' test ...")
-        data = bytearray([0x95,0x98,0x95]) # is already flashed at 0x1cb
+        data : bytes = bytearray([0x95,0x98,0x95]) # is already flashed at 0x1cb
         self.handler.dispatch('m', b'00%04X,03' % 0x1cb)
         self.check_result(self.send_string == binascii.hexlify(data).decode('ascii'))
 
-    def _live_test_set_memory_sram(self):
+    def _live_test_set_memory_sram(self) -> None:
         """
         Tests 'set memory' function on sram
         """
         self.logger.info("Running 'set memory sram' test ...")
-        data = bytearray([0x65,0x99,0x12,0x34,0x56])
+        data : bytes = bytearray([0x65,0x99,0x12,0x34,0x56])
         self.handler.dispatch('M', b'80%04X,05:%s' % ((self.sram_start+2),
                                                        binascii.hexlify(data)))
         newdata = self.dbg.sram_read(self.sram_start+2, 5)
         self.check_result(newdata == data and self.send_string == "OK")
 
-    def _live_test_set_memory_eeprom(self):
+    def _live_test_set_memory_eeprom(self) -> None:
         """
         Tests 'set memory' function on eeprom
         """
         self.logger.info("Running 'set memory eeprom' test ...")
-        data = bytearray([0x75,0x96,0x17,0x84,0x19])
+        data : bytes = bytearray([0x75,0x96,0x17,0x84,0x19])
         self.logger.debug("Data to store: %s", ' '.join([format(n, "02X") for n in data]))
         self.handler.dispatch('M', b'81%04X,05:%s' % (2, binascii.hexlify(data)))
-        newdata = self.dbg.eeprom_read(2, 5)
+        newdata : bytes = self.dbg.eeprom_read(2, 5)
         self.logger.debug("Retrieved data: %s", ' '.join([format(n, "02X") for n in newdata]))
         self.check_result(newdata == data and self.send_string == "OK")
 
-    def _live_test_get_one_data_register(self):
+    def _live_test_get_one_data_register(self) -> None:
         """
         Tests 'get one register' function
         """
@@ -308,7 +317,7 @@ class LiveTests():
         self.handler.dispatch('p', b'16')
         self.check_result(self.send_string == '71')
 
-    def _live_test_get_sreg(self):
+    def _live_test_get_sreg(self) -> None:
         """
         Tests 'get sreg' function
         """
@@ -319,7 +328,7 @@ class LiveTests():
         self.logger.debug("Result: %s", self.send_string)
         self.check_result(self.send_string == 'FC')
 
-    def _live_test_get_sp(self):
+    def _live_test_get_sp(self) -> None:
         """
         Tests 'get sp' function
         """
@@ -330,7 +339,7 @@ class LiveTests():
         self.logger.debug("Result: %s", self.send_string)
         self.check_result(self.send_string == '6100')
 
-    def _live_test_get_pc(self):
+    def _live_test_get_pc(self) -> None:
         """
         Tests 'get pc' function
         """
@@ -341,7 +350,7 @@ class LiveTests():
         self.logger.debug("Result: %s", self.send_string)
         self.check_result(self.send_string == 'aa010000')
 
-    def _live_test_set_one_data_register(self):
+    def _live_test_set_one_data_register(self) -> None:
         """
         Tests 'set one register' function
         """
@@ -350,7 +359,7 @@ class LiveTests():
         result = self.dbg.sram_read(0x03,1)
         self.check_result(self.send_string == 'OK' and result[0] == 0x26)
 
-    def _live_test_set_sreg(self):
+    def _live_test_set_sreg(self) -> None:
         """
         Tests 'set sreg' function
         """
@@ -359,7 +368,7 @@ class LiveTests():
         result = self.dbg.status_register_read()
         self.check_result(self.send_string == 'OK' and result[0] == 0x87)
 
-    def _live_test_set_sp(self):
+    def _live_test_set_sp(self) -> None:
         """
         Tests 'set sp' function
         """
@@ -368,7 +377,7 @@ class LiveTests():
         result = self.dbg.stack_pointer_read()
         self.check_result(self.send_string == 'OK' and result[0] == 0x34 and result[1] == 0)
 
-    def _live_test_set_pc(self):
+    def _live_test_set_pc(self) -> None:
         """
         Tests 'set pc' function
         """
@@ -380,7 +389,7 @@ class LiveTests():
     # qAttached, qOffsets, qRcmd, qSupported, qThreadInfo, qsThreadInfo, qXfer:memory-map:read
     # covered by unit tests
 
-    def _live_test_step(self):
+    def _live_test_step(self) -> None:
         """
         Tests 'step' function
         """
@@ -395,19 +404,19 @@ class LiveTests():
         self.handler.dispatch('vCont', b';S05')
         time.sleep(0.1)
         self.handler.poll_events()
-        send1 = self.send_string
+        send1 : str  = self.send_string
         self.logger.debug("Send1: %s", self.send_string)
         self.send_string = ""
         self.handler.dispatch('vCont', b';s')
         time.sleep(0.1)
         self.handler.poll_events()
-        send2 = self.send_string
+        send2 : str = self.send_string
         self.logger.debug("Send2: %s", self.send_string)
         self.send_string = ""
         self.handler.dispatch('vCont', b';s')
         time.sleep(0.1)
         self.handler.poll_events()
-        send3 = self.send_string
+        send3 : str = self.send_string
         self.logger.debug("Send3: %s", self.send_string)
         self.logger.debug("PC=%0X", self.dbg.program_counter_read() << 1)
         self.logger.debug("regs=%s", self.dbg.sram_read(16, 3))
@@ -421,7 +430,7 @@ class LiveTests():
     # T-package and vCont;? is covered by unit test
     # vCont;c, vCont;C, vCont;s, vCont;S covered already above
 
-    def _live_test_vcont_range(self):
+    def _live_test_vcont_range(self) -> None:
         """
         Testing the range step command. Note that we do not stop anymore after first step
         """
@@ -439,13 +448,13 @@ class LiveTests():
         self.handler.dispatch("vCont", b";r1b2,1c0")
         time.sleep(0.1)
         self.handler.poll_events()
-        send2 = self.send_string
+        send2 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
-        pc2 = self.dbg.program_counter_read() << 1
+        pc2 : int = self.dbg.program_counter_read() << 1
         self.logger.debug("Result of range-stepping: %s", send2)
         self.check_result(pc2 == 0x1aa and send2.startswith("T05"))
 
-    def _live_test_vcont_step_with_protected_bp(self):
+    def _live_test_vcont_step_with_protected_bp(self) -> None:
         """
         Testing the step command when there is a disabled SWBP at the current position.
         This SWBP should not be removed in order to avoid superfluous reprogramming
@@ -462,34 +471,34 @@ class LiveTests():
         self.handler.dispatch("Z", b"1,1b2,2")
         self.handler.dispatch("Z", b"1,1b4,2")
         self.mon._cache = False
-        opc1 = self.mem.flash_read_word(0x1b2)
+        opc1 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode before 'continue': 0x%X", opc1)
         self.send_string = ""
         self.handler.dispatch("vCont", b";c")
         time.sleep(0.1)
         self.handler.poll_events()
-        send1 = self.send_string
+        send1 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
         self.logger.debug("Result of 'continue': %s", send1)
-        opc2 = self.mem.flash_read_word(0x1b2)
+        opc2 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode after 'continue': 0x%X", opc2)
         self.handler.dispatch("z", b"1,1b2,2")
         self.handler.dispatch("z", b"1,1b4,2")
-        opc3 = self.mem.flash_read_word(0x1b2)
+        opc3 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode after 'delete BP': 0x%X", opc3)
         self.handler.dispatch("Z", b"1,1b4,2")
-        opc4 = self.mem.flash_read_word(0x1b2)
+        opc4 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode before 'step': 0x%X", opc4)
         self.send_string = ""
         self.handler.dispatch("vCont", b";s")
         time.sleep(0.1)
         self.handler.poll_events()
-        send2 = self.send_string
+        send2 : str = self.send_string
         self.logger.debug("Result of 'step': %s", send2)
-        opc5 = self.mem.flash_read_word(0x1b2)
+        opc5 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode after 'step': 0x%X", opc5)
         self.handler.dispatch("Z", b"1,1b2,2")
-        opc6 = self.mem.flash_read_word(0x1b2)
+        opc6 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("Opcode after 'insert BP': 0x%X", opc6)
         self.check_result(self.dbg.program_counter_read() == (0x1b4 >> 1) and
                               send1 == "T0520:87;21:3400;22:b2010000;thread:1;" and
@@ -501,7 +510,7 @@ class LiveTests():
         self.bp.cleanup_breakpoints()
         self.mon._onlyswbps = False
 
-    def _live_test_vcont_step_with_old_exec(self):
+    def _live_test_vcont_step_with_old_exec(self) ->  None:
         """
         This test uses old-style execution in order to demonstrate that
         this leads to reprogramming flash at each breakpoint hit.
@@ -519,40 +528,40 @@ class LiveTests():
         self.handler.dispatch("Z", b"1,1ac,2")
         self.handler.dispatch("Z", b"1,1ae,2")
         self.mon._cache = False
-        opc1 = self.mem.flash_read_word(0x1ac)
+        opc1 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode before 'continue' opc1=0x%X", opc1)
         self.send_string = ""
         self.handler.dispatch("vCont", b";c")
         time.sleep(0.1)
         self.handler.poll_events()
-        send1 = self.send_string
+        send1 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
         self.logger.debug("Result of 'continue' send1=%s", send1)
-        opc2 = self.mem.flash_read_word(0x1ac)
+        opc2 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode after 'continue' opc2=0x%X", opc2)
         self.handler.dispatch("z", b"1,1ac,2")
         self.handler.dispatch("z", b"1,1ae,2")
-        opc3 = self.mem.flash_read_word(0x1ac)
+        opc3 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode after 'delete BP'  opc3=0x%X", opc3)
         self.handler.dispatch("Z", b"1,1ae,2")
-        opc4 = self.mem.flash_read_word(0x1ac)
+        opc4 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode before 'step'  opc4=0x%X", opc4)
         self.send_string = ""
         self.handler.dispatch("vCont", b";s")
         time.sleep(0.1)
         self.handler.poll_events()
-        send2 = self.send_string
+        send2 : str = self.send_string
         self.logger.debug("Result of 'step' send2=%s", send2)
-        opc5 = self.mem.flash_read_word(0x1ac)
+        opc5 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode after 'step' opc5=0x%X", opc5)
         self.handler.dispatch("z", b"1,1ae,2")
         self.handler.dispatch("Z", b"1,1ac,2")
         self.handler.dispatch("vCont", b";s")
         time.sleep(0.1)
         self.handler.poll_events()
-        send3 = self.send_string
+        send3 : str = self.send_string
         self.logger.debug("Result of 'step' send3=%s", send3)
-        opc6 = self.mem.flash_read_word(0x1ac)
+        opc6 : int = self.mem.flash_read_word(0x1ac)
         self.logger.debug("Opcode after 'insert BP' & step: opc6=0x%X", opc6)
         self.check_result(self.dbg.program_counter_read() == (0x1b0 >> 1) and
                               send1 == "T0520:87;21:3400;22:ac010000;thread:1;" and
@@ -566,7 +575,7 @@ class LiveTests():
         self.mon._onlyswbps = False
         self.dbg.device.avr.protocol.software_breakpoint_clear_all()
 
-    def _live_test_vcont_step_hwbp_unprotected(self):
+    def _live_test_vcont_step_hwbp_unprotected(self) -> None:
         """
         If the breakpoint at the current position is a hardware breakpoint,
         we do not protect it! It will be deleted and (perhaps) later re-asserted
@@ -581,17 +590,17 @@ class LiveTests():
         self.handler.poll_events()
         self.logger.debug("HWBP after stopping: %s", self.bp.hwbp._hwbplist[0])
         self.logger.debug("Breakpoint at 0x1b2 after stopping: %s", self.bp._bp.get(0x1b2,None))
-        hw1 = self.bp.hwbp._hwbplist[0]
+        hw1 : int | None = self.bp.hwbp._hwbplist[0]
         self.handler.dispatch("z", b"1,1b2,2")
         self.handler.dispatch("vCont", b";s")
         time.sleep(0.1)
         self.handler.poll_events()
         self.logger.debug("HWBP after single-step: %s", self.bp.hwbp._hwbplist[0])
         self.logger.debug("Breakpoint at 0x1b2 after step: %s", self.bp._bp.get(0x1b2,None))
-        hw2 = self.bp.hwbp._hwbplist[0]
+        hw2 : int | None = self.bp.hwbp._hwbplist[0]
         self.check_result(hw1 == 0x1b2 and hw2 is None)
 
-    def _live_test_v_flash_erase_clean_bps(self):
+    def _live_test_v_flash_erase_clean_bps(self) -> None:
         """
         Receives vFalshErase package and checks that all breakpoints are cleared
         """
@@ -604,7 +613,7 @@ class LiveTests():
         self.mon._cache = False
         self.mon._onlyswbps = True
         self.handler.dispatch("Z", b"1,1b2,2")
-        opc1 = self.mem.flash_read_word(0x1b2)
+        opc1 : int = self.mem.flash_read_word(0x1b2)
         self.dbg.program_counter_write(0x1c4 >> 1)
         self.logger.debug("OPC after setting BP: 0x%X", opc1)
         self.handler.dispatch("vCont", b";c")
@@ -612,10 +621,10 @@ class LiveTests():
         self.handler.poll_events()
         self.dbg.stop() # in order to stop a runaway!
         self.handler.dispatch("z", b"1,1b2,2")
-        opc2 = self.mem.flash_read_word(0x1b2)
+        opc2 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("OPC after deleting BP: 0x%X", opc2)
         self.handler.dispatch("vFlashErase", b"")
-        opc3 = self.mem.flash_read_word(0x1b2)
+        opc3 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("OPC after vFlashErase: 0x%X", opc3)
         self.logger.debug("Debug table: %s", self.bp._bp)
         self.mon._cache = True
@@ -623,7 +632,7 @@ class LiveTests():
         self.check_result(opc1 == 0xE429 and opc2 == 0x9598 and opc3 == 0xE429 and
                               self.bp._bp == {})
 
-    def _live_test_load_clean_bps(self):
+    def _live_test_load_clean_bps(self) -> None:
         """
         Loads test code with X-package and checks that all breakpoints are cleared
         """
@@ -636,7 +645,7 @@ class LiveTests():
         self.mon._onlyswbps = True
         self.mon._noload = True
         self.handler.dispatch("Z", b"1,1b2,2")
-        opc1 = self.mem.flash_read_word(0x1b2)
+        opc1 : int = self.mem.flash_read_word(0x1b2)
         self.dbg.program_counter_write(0x1c4 >> 1)
         self.logger.debug("OPC after setting BP: 0x%X", opc1)
         self.handler.dispatch("vCont", b";c")
@@ -644,14 +653,14 @@ class LiveTests():
         self.handler.poll_events()
         self.dbg.stop() # in order to stop a runaway!
         self.handler.dispatch("z", b"1,1b2,2")
-        opc2 = self.mem.flash_read_word(0x1b2)
+        opc2 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("OPC after deleting BP: 0x%X", opc2)
         self.mon._verify = False # because on mEDBG debuggers, first page is not always writeable
-        test_code = self.handler.escape(self.test_code)
-        header = "0001AA,%0X:" % len(test_code)
+        test_code : bytes = self.handler.escape(self.test_code)
+        header : str = "0001AA,%0X:" % len(test_code)
         self.handler.dispatch("X", header.encode("ascii") + test_code)
-        self.handler.dispatch(None, None) # simulate timeout to flash the last pending record
-        opc3 = self.mem.flash_read_word(0x1b2)
+        self.handler.dispatch("", b"") # simulate timeout to flash the last pending record
+        opc3 : int = self.mem.flash_read_word(0x1b2)
         self.logger.debug("OPC after load: 0x%X", opc3)
         self.logger.debug("Debug table: %s", self.bp._bp)
         self.mon._verify = True

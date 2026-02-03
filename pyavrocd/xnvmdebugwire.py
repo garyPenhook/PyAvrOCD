@@ -1,19 +1,23 @@
 """
 DebugWIRE NVM implementation - extended
 """
+from typing import Any
 
-from logging import getLogger
+import logging
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
+from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 
 from pymcuprog.nvmdebugwire import NvmAccessProviderCmsisDapDebugwire
 from pymcuprog.nvm import NvmAccessProviderCmsisDapAvr
 from pymcuprog.pymcuprog_errors import PymcuprogError
+from pymcuprog.avr8target import AvrDevice
 
 from pymcuprog.deviceinfo.deviceinfokeys import DeviceMemoryInfoKeys
 from pymcuprog.deviceinfo.memorynames import MemoryNames
 
 from pymcuprog import utils
+
 
 from pyavrocd.xavr8target import XTinyAvrTarget
 
@@ -23,19 +27,19 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
     """
     #pylint: disable=non-parent-init-called, super-init-not-called
     #we want to set up the debug session much later
-    def __init__(self, transport, device_info, **kwargs):
+    def __init__(self, transport : HidTransportBase,
+                     device_info : dict[ str, Any ],
+                     **kwargs : Any) -> None:
         _dummy = kwargs
-        self.logger_local = getLogger('pyavrocd.nvmdw')
+        self.logger_local : logging.Logger = logging.getLogger('pyavrocd.nvmdw')
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
-        self.avr = XTinyAvrTarget(transport)
-
-    def __del__(self):
-        pass
+        self.avr : AvrDevice = XTinyAvrTarget(transport)
 
     # pylint: disable=arguments-differ
     # reason for the difference: read and write are declared as staticmethod in the base class,
     # which is an oversight, I believe
-    def read(self, memory_info, offset, numbytes, prog_mode=False):
+    def read(self, memory_info : dict[ str, Any ], offset : int,
+                 numbytes : int, prog_mode : bool=False) -> bytes:
         """
         Read the memory in chunks
 
@@ -45,8 +49,8 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
         :return: array of bytes read
         """
         _dummy = prog_mode # not relevant for debugWIRE
-        memtype_string = memory_info[DeviceMemoryInfoKeys.NAME]
-        memtype = self.avr.memtype_read_from_string(memtype_string)
+        memtype_string : str = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype : int = self.avr.memtype_read_from_string(memtype_string)
         if memtype == 0:
             msg = "Unsupported memory type: {}".format(memtype_string)
             self.logger.error(msg)
@@ -66,10 +70,11 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
 
         self.logger.debug("Reading from %s at %X %d bytes", memory_info['name'], offset, numbytes)
 
-        data = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
+        data : bytes = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
         return data
 
-    def write(self, memory_info, offset, data, _programming_mode=False):
+    def write(self, memory_info : dict[ str, Any ], offset : int,
+                  data : bytes, _programming_mode : bool=False) -> None:
         """
         Write the memory with data
 
@@ -79,13 +84,15 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
         """
         if len(data) == 0:
             return
-        memtype_string = memory_info[DeviceMemoryInfoKeys.NAME]
-        memtype = self.avr.memtype_read_from_string(memtype_string)
+        memtype_string : str = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype : int = self.avr.memtype_read_from_string(memtype_string)
         if memtype == 0:
-            msg = "Unsupported memory type: {}".format(memtype_string)
+            msg : str = "Unsupported memory type: {}".format(memtype_string)
             self.logger.error(msg)
             raise PymcuprogError(msg)
 
+        data_to_write : bytes
+        address : int
         if memtype_string != MemoryNames.EEPROM:
             # For debugWIRE parts single byte access is enabled for
             # EEPROM so no need to align to page boundaries
@@ -101,10 +108,12 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
             # Flash is offset by the debugger config
             address += memory_info[DeviceMemoryInfoKeys.ADDRESS]
 
-        allow_blank_skip = False
+        allow_blank_skip : bool = False
         if memtype_string in MemoryNames.FLASH:
             allow_blank_skip = True
 
+        write_chunk_size : int
+        first_chunk_size : int
         if memtype_string in (MemoryNames.FLASH, MemoryNames.EEPROM):
             # For Flash we have to write exactly one page but for EEPROM we
             # could write less than one page, but not more.
@@ -135,7 +144,7 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
                                           write_chunk_size,
                                           allow_blank_skip=allow_blank_skip)
 
-    def erase_page(self, addr, prog_mode):
+    def erase_page(self, addr : int, prog_mode : bool) -> bool:
         """
         In debugWIRE, we cannot erase single pages. But we also do not need to because this takes
         place while flash programming.
@@ -144,7 +153,7 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
         _dummy2 = prog_mode
         return False
 
-    def erase_chip(self, prog_mode):
+    def erase_chip(self, prog_mode : bool) -> bool:
         """
         Erasing entire chip is impossible in debugWIRE.
         """

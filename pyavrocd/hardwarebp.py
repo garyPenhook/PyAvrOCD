@@ -4,21 +4,25 @@ This module deals with the management of hardware breakpoints
 # args, logging
 import logging
 
+from pyavrocd.xavrdebugger import XAvrDebugger
+from pyavrocd.errors import FatalError
+
+
 class HardwareBP():
     """
     This class manages the hardware breakpoints with some basic methods (including starting
     execution with the temporary breakpoint). All addresses are byte addresses into flash space.
     """
 
-    def __init__(self, dbg):
-        self.dbg = dbg
-        self._numhwbp = dbg.get_hwbpnum()
-        self._hwbplist = [None]*self._numhwbp
-        self._tempalloc = None
-        self.logger = logging.getLogger('pyavrocd.hardwarebp')
+    def __init__(self, dbg : XAvrDebugger) -> None:
+        self.dbg : XAvrDebugger = dbg
+        self._numhwbp : int = dbg.get_hwbpnum()
+        self._hwbplist : list[int | None] = [None]*self._numhwbp
+        self._tempalloc : list[int] | None = None
+        self.logger : logging.Logger = logging.getLogger('pyavrocd.hardwarebp')
 
 
-    def execute(self):
+    def execute(self) -> None:
         """
         Start execution with HWBP 0 (if not None)
         """
@@ -29,7 +33,7 @@ class HardwareBP():
             self.logger.debug("Run")
             self.dbg.run()
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         """
         Clear all hardware breakpoints
         """
@@ -38,7 +42,7 @@ class HardwareBP():
             self.dbg.hardware_breakpoint_clear(ix+1)
         self.logger.debug("All hardware breakpoints cleared")
 
-    def clear(self, addr):
+    def clear(self, addr : int) -> bool:
         """
         Clear breakpoint at a given address. If successful return True, otherwise False.
         """
@@ -48,7 +52,7 @@ class HardwareBP():
         self.logger.error("Tried to clear hardware breakpoint at 0x%X, but there is none", addr)
         return False
 
-    def _free(self, ix):
+    def _free(self, ix : int) -> bool:
         """
         Free a BP at index ix. If unsuccessful, return False, otherwise True.
         """
@@ -61,13 +65,13 @@ class HardwareBP():
         self.logger.error("Tried to release unallocated hardware breakpoint %d", ix)
         return False
 
-    def available(self):
+    def available(self) -> int:
         """
         Returns the number of hardware breakpoints that are available
         """
         return self._numhwbp - len([addr for addr in self._hwbplist if addr is not None])
 
-    def set(self, addr):
+    def set(self, addr : int) -> int | None:
         """
         Allocates the next free hardware breakpoint (counting up) and returns the index
         -- provided there is a free hardware breakpoint. Otherwise, None is returned.
@@ -87,19 +91,20 @@ class HardwareBP():
         self.logger.debug("Could not allocate a HWBP")
         return None
 
-    def set_temp(self,templist):
+    def set_temp(self,templist : list[int]) -> list[int]:
         """
-        Try to set all HWBPs for all addresses in templist. Returns None if impossible or
+        Try to set all HWBPs for all addresses in templist. Raise error if impossible or
         returns a list of addresses that needs to become software breakpoints. This function
         is used to support range-stepping. In self._tempalloc we remember, which HWBPs (index!)
         have been allocated temporarily.
         """
         self.logger.debug("Trying to allocate %d temp HWBPs", len(templist))
-        reassignlist = []
+        reassignlist : list[int] = []
         if len(templist) > self._numhwbp:
-            return None
+            raise FatalError("Not enough HWBPs for range-stepping. Internal confusion.")
         self._tempalloc = []
-        allocated = [addr for addr in self._hwbplist if addr is not None]
+        allocated : list[int] = [addr for addr in self._hwbplist if addr is not None]
+        nextix : int | None
         for el in templist:
             nextix = self.set(el)
             if nextix is not None:
@@ -108,11 +113,15 @@ class HardwareBP():
                 trytoremove = allocated.pop()
                 reassignlist.append(trytoremove)
                 self.clear(trytoremove)
-                self._tempalloc.append(self.set(el))
+                nextix = self.set(el)
+                if nextix is not None:
+                    self._tempalloc.append(nextix)
+                else:
+                    raise FatalError("Internal confusion in hardware breakpoint management")
         self.logger.debug("Allocated %d temp HWBPs", len(self._tempalloc))
         return reassignlist
 
-    def clear_temp(self):
+    def clear_temp(self) -> None:
         """
         Clears the temporary allocated hardware breakpoints.
         """
@@ -125,15 +134,15 @@ class HardwareBP():
         self._tempalloc = None
         self.logger.debug("HWBP temp allocation cleared: %d HWBPs cleared", toclear)
 
-    def temp_allocated(self):
+    def temp_allocated(self) -> int | None:
         """
         Returns number of HWBPs temporarily allocated to range-stepping
         """
         if self._tempalloc is None:
-            return 0
+            return None
         return len(self._tempalloc)
 
-    def borrow_hwbp0(self):
+    def borrow_hwbp0(self) -> int | None:
         """
         Borrow the temporary breakpoint for just one single step (over a sleep instruction).
         If it is used as a temporary HWBP in range-stepping, simply return None. Same, if we can

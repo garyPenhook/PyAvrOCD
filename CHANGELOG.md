@@ -1,5 +1,17 @@
 # Changelog
 
+### 1.0.1
+
+- **Fixed:**
+     - Adaptation of `--debugwire` handling in dwlink.py
+     - Added "https://" to `webbrowse`r call so that webhelp (option `-H`) works with Python versions <3.14
+     - Termination code in `RspServer` fixed: `__del__` is not used any longer
+
+- **Added:**
+     - Added type annotations and checked everything with mypy
+     - Distinguishing ATiny2313 from ATtiny2313A when verifying the chip signature
+
+
 ### 1.0.0 (24-Jan-2022)
 
 - Final e2e test on ATmega162 successful

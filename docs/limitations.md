@@ -105,7 +105,7 @@ On the other hand, often instructions need to be executed closely together. Sinc
 
 ### Single-stepping lines containing loops
 
-When GDB is instructed to single-step source code, it will step until a new source line is hit. This can result in a problem with lines containing, perhaps implicitly, loops. For example, `_delay_ms` is a macro that expands into a loop. When single-stepping such a line, execution can be slowed down by a factor of 1,000,000. Fortunately, GDB supports so-called range-stepping, instructing the GDB server to execute a range of instructions until this range is left. The current implementation of the GDB servers (PyAvrOCD and dw-link) can deal with range-stepping and will handle  `_delay_ms` without a problem. However, in cases when such loops have more than one exit point, and we are working on a debugWIRE target, a slowdown will probably occur because only the hardware breakpoints are used to handle exit points of such ranges. One can recover from slow execution by interrupting using Ctrl-C, setting a breakpoint outside of the loop, and then continuing execution.
+When GDB is instructed to single-step source code, it will step until a new source line is hit. This can result in slowing down execution significantly when lines contain, perhaps implicitly, loops, e.g., the `_delay_ms` macro. PyAvrOCD can deal with `_delay_ms`, but in other cases, slowdowns can happen. One can recover from slow execution by interrupting using Ctrl-C, setting a breakpoint outside of the loop, and then continuing execution.
 
 ## Serial communication
 
@@ -147,12 +147,15 @@ MCUs without a debugging interface (e.g., **ATtiny15**, **ATmega8**) can, of cou
 These MCUs suffer from the Hotel California Syndrome (You can check out any time you like. But you can never leave!) when one uses open-source software. Since they have the same chip signature as their cousins with an A-suffix, PyAvrOCD goes to some length to recognize those chips and reject them before they get "bricked" by switching them into debugWIRE mode. The Microchip debugging solutions have apparently found a solution around it.
 
 ## MCUs with limited debugging support
-
 Some MCUs offer only limited debug support.
 
 Some MCUs have [non-zero unused bits in their program counter](https://arduino-craft-corner.de/index.php/2026/01/19/when-unused-program-counter-bits-go-rogue/), such as **ATmega16(A)**, **ATmega64(A)**, **ATmega329(P)**, and **ATmega3250(P)**. PyAvrOCD masks these bits, and (the new patched version of) AVR-GDB masks these bits out when they appear in return addresses on the stack. However, if you do not use the AVR-GDB version distributed together with PyAvrOCD, you may encounter the phenomenon that the stack backtrace is empty and that stepping over a function is not possible.
 
-Finally, we have the **ATmega128(A)**, which offers only hardware breakpoints. This is a bit funny since the data sheet explicitly states that the `BREAK` instruction can be used to implement software breakpoints. However, all manuals of the more recent Atmel debuggers note that one can use only the hardware breakpoints on an ATmega128(A), and this has been validated experimentally. For this reason, PyAvrOCD will automatically select the 'hardware breakpoint only' mode.
+There are a few MCUs that have special features or offer only limited support.
+
+Some MCUs have [non-zero unused bits in their program counter](https://arduino-craft-corner.de/index.php/2026/01/19/when-unused-program-counter-bits-go-rogue/), e.g., **ATmega16(A)**, **ATmega64(A)**, **ATmega329(P)**, and **ATmega3250(P)**. PyAvrOCD masks these bits, and (the new patched version of) AVR-GDB masks these bits out when they appear in return addresses on the stack. However, if you do not use the AVR-GDB version distributed together with PyAvrOCD, you may encounter the phenomenon that the stack backtrace is empty and that stepping over a function is not possible.
+
+Finally, we have the **ATmega128(A)**, which offers only hardware breakpoints. This is a bit funny since the data sheet explicitly states that the `BREAK` instruction can be used to implement software breakpoints. However, all manuals of the more recent Atmel debuggers note that one can use only the hardware breakpoints on an ATmega128(A). For this reason, PyAvrOCD will automatically select the *hardware-breakpoint-only* mode.
 
 ## DebugWIRE can brick MCUs
 

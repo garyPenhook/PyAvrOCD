@@ -33,6 +33,7 @@ class TestRspServer(TestCase):
         self.assertTrue(self.rs._terminate)
         self.rs.logger.info.assert_called_with("System requested termination using SIGTERM signal")
 
+    @patch('pyavrocd.server.time.sleep',Mock())
     @patch('pyavrocd.server.signal.signal',Mock())
     @patch('pyavrocd.server.socket.socket')
     @patch('pyavrocd.server.select.select')
@@ -48,9 +49,10 @@ class TestRspServer(TestCase):
                                               call('Connection from %s', '111.222.333.444'),
                                               call('Connection closed by GDB'),
                                               call('Leaving GDB server')])
-        self.assertEqual(self.rs.logger.info.call_count,4)
+        self.assertEqual(self.rs.logger.info.call_count,7)
 
 
+    @patch('pyavrocd.server.time.sleep',Mock())
     @patch('pyavrocd.server.signal.signal',Mock())
     @patch('pyavrocd.server.socket.socket')
     @patch('pyavrocd.server.select.select')
@@ -66,7 +68,7 @@ class TestRspServer(TestCase):
                                               call('Connection from %s', '111.222.333.444'),
                                               call('End of session'),
                                               call('Leaving GDB server')])
-        self.assertEqual(self.rs.logger.info.call_count,4)
+        self.assertEqual(self.rs.logger.info.call_count,7)
 
 
     @patch('pyavrocd.server.signal.signal',Mock())
@@ -77,13 +79,13 @@ class TestRspServer(TestCase):
     @patch('pyavrocd.server.GdbHandler')
     def test_serve_KI(self, mock_handler, mock_select, mock_socket, mock_print):
         self.set_up()
-        mock_socket.return_value.accept.return_value = (Mock(), '111.222.333.444')
+        mock_socket.return_value.accept.return_value = (Mock(close=Mock()), '111.222.333.444')
         mock_socket.return_value.accept.return_value[0].recv.side_effect = KeyboardInterrupt("")
         mock_handler.return_value = create_autospec(GdbHandler)
         mock_select.side_effect = [(1,0,0), (1,0,0), (1,0,0)]
         self.rs.logger.getEffectiveLevel.return_value = logging.CRITICAL
-        mock_stop = self.rs.avrdebugger.stop_debugging
         self.assertEqual(self.rs.serve(), 1)
         mock_print.assert_has_calls([call('Listening on port 2000 for gdb connection')])
-        self.assertEqual(self.rs.avrdebugger, None)
-        mock_stop.assert_called_once()
+        self.rs.avrdebugger.stop_debugging.assert_called_once()
+        self.rs.gdb_socket.close.assert_called_once() #pylint: disable=no-member
+        self.rs.connection.close.assert_called_once() #pylint: disable=no-member

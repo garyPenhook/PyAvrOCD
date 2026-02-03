@@ -1,9 +1,13 @@
 """
 Python AVR MCU debugger
 """
+from typing import Any #pylint disable=unused-import
+from collections.abc import Callable
+
 # utilities
 import time
 import logging
+import argparse
 
 #edbg library
 from pyedbglib.protocols.jtagice3protocol import Jtagice3ResponseError
@@ -11,11 +15,12 @@ from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.protocols.avrispprotocol import AvrIspProtocol #pylint: disable=unused-import
 from pyedbglib.protocols.edbgprotocol import EdbgProtocol
 from pyedbglib.protocols import housekeepingprotocol
+from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 
 # pymcuorig library
 from pymcuprog.avrdebugger import AvrDebugger
 from pymcuprog.deviceinfo import deviceinfo
-from pymcuprog.nvmspi import NvmAccessProviderCmsisDapSpi
+from pymcuprog.nvmspi import NvmAccessProviderCmsisDapSpi, NvmAccessProviderCmsisDapAvr
 from pymcuprog.pymcuprog_errors import PymcuprogToolConfigurationError,\
      PymcuprogNotSupportedError
 from pymcuprog.utils import read_target_voltage
@@ -42,24 +47,32 @@ class XAvrDebugger(AvrDebugger):
     :type use_events_for_run_stop_state: boolean
     """
     #pylint: disable=super-init-not-called,too-many-positional-arguments
-    def __init__(self, transport, devicename, iface, args):
+    def __init__(self, transport : HidTransportBase,
+                     devicename : str,
+                     iface : str,
+                     args : argparse.Namespace) -> None:
         """
         We do not want to make use of the base class' init method,
         because all startup code is collected in the start_debugging method!
         """
-        self.logger = logging.getLogger(__name__)
-        self.transport = transport
-        self._devicename = devicename
-        self._iface = iface
-        self.manage = args.manage
-        self.clkprg = args.clkprg
-        self.clkdeb = args.clkdeb
-        self.timers_run = args.timers[0]=='r'
-        self.args = args
-        self.housekeeper = None
-        self.bad_pc_bit_mask = 0
-        self._hwbpnum = None
-        self._architecture = None
+        self.logger : logging.Logger = logging.getLogger(__name__)
+        self.transport : HidTransportBase = transport
+        self._devicename : str = devicename
+        self._iface : str = iface
+        self.bad_pc_bit_mask : int = 0
+        self.manage : list[ str ] = args.manage
+        self.clkprg : int = args.clkprg
+        self.clkdeb : int = args.clkdeb
+        self.timers_run : bool = args.timers[0]=='r'
+        self.args : argparse.Namespace = args
+        self._hwbpnum : int = 0
+        self._architecture : str = ""
+        self.device_info : dict[str, Any ] = {}
+        self.memory_info : deviceinfo.DeviceMemoryInfo | None = None
+        self.spidevice : NvmAccessProviderCmsisDapSpi | None = None
+        self.device : NvmAccessProviderCmsisDapAvr
+        self.edbg_protocol : EdbgProtocol | None = None
+        self.housekeeper : housekeepingprotocol.Jtagice3HousekeepingProtocol | None = None
         self.use_events_for_run_stop_state =  False # in order to avoid the timing glitch with ATmega32/Atmel-ICE
 
         # Gather device info
@@ -69,25 +82,19 @@ class XAvrDebugger(AvrDebugger):
             self.device_info = deviceinfo.getdeviceinfo("pyavrocd.deviceinfo.devices." + devicename)
         except ImportError:
             raise PymcuprogNotSupportedError("No device info for device: {}".format(devicename)) #pylint: disable=raise-missing-from
-        self._architecture = self.device_info['architecture'].lower()
-        if iface not in self.device_info['interface'].lower():
+        self._architecture = str(self.device_info['architecture']).lower()
+        if iface not in str(self.device_info['interface']).lower():
             raise PymcuprogToolConfigurationError("Incompatible debugging interface")
-
 
         # Memory info for the device
         self.memory_info = deviceinfo.DeviceMemoryInfo(self.device_info)
 
-        # ISP interface in order to program DWEN fuse
-        self.spidevice = None
-
-        self.edbg_protocol = None
         # Edbg protocol instance, necessary to access target power control
         if transport and transport.hid_device is not None:
             self.edbg_protocol = EdbgProtocol(transport)
             self.logger.debug("EdbgProtcol instance created")
 
         # Now attach the right NVM device
-        self.device = None
         if iface == "updi":
             self.device = XNvmAccessProviderCmsisDapUpdi(self.transport, self.device_info)
             self._hwbpnum = 2
@@ -104,29 +111,29 @@ class XAvrDebugger(AvrDebugger):
             self.manage = [ 'none' ]
         self.logger.info("Managing fuses: %s", ", ".join(self.manage))
 
-    def get_iface(self):
+    def get_iface(self) -> str:
         """
         info about debugging interface
         """
         return self._iface
 
-    def get_architecture(self):
+    def get_architecture(self) -> str:
         """
         info about architecture
         """
         return self._architecture
 
-    def get_hwbpnum(self):
+    def get_hwbpnum(self) -> int:
         """
         info about number of hardware breakpoints
         """
         return self._hwbpnum
 
-    def start_debugging(self, flash_data=None, warmstart=False):
+    def start_debugging(self, flash_data : bytes | None = None, warmstart : bool = False) -> bool:
         """
         Start the debug session, i.e., initialize everything and start the debug engine.
         A warm start will assume that the OCD has already been activated, and will gracefully
-        fail if not. Warmstarts happen only with debugWIRE.
+        fail if not. Warmstarts happen only with debugWIRE. Return False if unsuccessful.
         """
         _dummy = flash_data
         self.logger.info("Starting up debug session...")
@@ -151,6 +158,7 @@ class XAvrDebugger(AvrDebugger):
         self.switch_to_progmode()
         self.logger.info("Switched to programming mode")
         self._verify_target(dev_id)
+        self._check_attiny2313()
         self._post_process_after_start()
         self.logger.info("Postprocessing finished")
         self.switch_to_debmode()
@@ -160,7 +168,7 @@ class XAvrDebugger(AvrDebugger):
         return True
 
     # Cleanup code for detaching from target
-    def stop_debugging(self, graceful=True):
+    def stop_debugging(self, graceful : bool = True) -> None:
         """
         Stop the debug session and clean up in a safe way
         """
@@ -212,14 +220,15 @@ class XAvrDebugger(AvrDebugger):
         try:
             # Sign off device
             if self.use_events_for_run_stop_state:
-                self.housekeeper.end_session()
-                self.logger.info("Signed off from tool")
+                if self.housekeeper is not None:
+                    self.housekeeper.end_session()
+                    self.logger.info("Signed off from tool")
         except Exception as e:
             if not graceful:
                 self.logger.info("Error while signing off from tool: %s", e)
         self.logger.info("... terminating debugging session done")
 
-    def _post_process_after_start(self):
+    def _post_process_after_start(self) -> None:
         """
         After having attached to the OCD, do a bit of post processing
         (for JTAG targets only): Clear lockbits, unprogram BOOTRST, and program OCDEN.
@@ -233,9 +242,9 @@ class XAvrDebugger(AvrDebugger):
         self._handle_bootrst(self.read_fuse_one_byte,
                 self.write_fuse)
         # program OCDEN
-        ofuse_addr = self.device_info['ocden_base']
-        ofuse_mask = self.device_info['ocden_mask']
-        ofuse = self.read_fuse_one_byte(ofuse_addr)
+        ofuse_addr : int = self.device_info['ocden_base']
+        ofuse_mask : int = self.device_info['ocden_mask']
+        ofuse : bytes = self.read_fuse_one_byte(ofuse_addr)
         self.logger.info("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
         if ofuse[0] & ofuse_mask == ofuse_mask: # only if OCDEN is not yet programmed
             if 'ocden' not in self.manage:
@@ -250,16 +259,20 @@ class XAvrDebugger(AvrDebugger):
         else:
             self.logger.info("OCDEN is already programmed")
 
-    def _verify_target(self, dev_id):
+    def _verify_target(self, dev_id : int) -> None:
         """
         Check that the MCU we connected to has a signature that is compatible with the
         one given as an argument when calling the server. The prerequisite for this method is
-        that the signature is readable in the mode, in which this method is called (progmode or debmode)
+        that the signature is readable in the mode, in which this method is called
+        (progmode or debmode).
         """
+        sig : int
+        if self.args.skipsig:
+            return
         if self._iface == 'debugwire':
             sig = (0x1E<<16)+dev_id # The id returned from activate_physical
         else:
-            idbytes = self.read_sig(0,3)
+            idbytes : bytes = self.read_sig(0,3)
             sig = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
         self.logger.debug("Device signature of connected chip: %X", sig)
@@ -284,7 +297,7 @@ class XAvrDebugger(AvrDebugger):
                         dev_name[self.device_info['device_id']]))
         self.logger.info("Device signature checked")
 
-    def _check_stuck_at_one_pc(self):
+    def _check_stuck_at_one_pc(self) -> None:
         """
         Check that the connected MCU does not suffer from stuck-at-1-bits in the program counter.
         Currently, I only know of ATmega48, ATmega88, ATmega329, and ATmega3250. The two
@@ -301,6 +314,8 @@ class XAvrDebugger(AvrDebugger):
         self.logger.info("Check for stuck bits in PC")
         pc = (super().program_counter_read()) << 1
         self.logger.debug("PC(byte)=%X",pc)
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
         mask = self.memory_info.memory_info_by_name('flash')['size'] - 1
         self.logger.debug("Mask for testing: 0x%X", mask)
         self.bad_pc_bit_mask = pc - (mask & pc)
@@ -308,16 +323,37 @@ class XAvrDebugger(AvrDebugger):
         if self.bad_pc_bit_mask:
             self.logger.warning("MCU has non-zero unused bit in PC: 0x%X", self.bad_pc_bit_mask)
 
-    def _activate_interface(self, graceful=False):
+    def _check_attiny2313(self) -> None:
+        """
+        Distinguishes ATtiny2313 and ATtiny2313A by probing the OCD register.
+        Will raise error if it is not the correct type.
+        """
+        if not self.device_info['name'].startswith("attiny2313") or self.args.skipsig:
+            return
+        try:
+            pair : tuple[ str, str ]
+            _ : bytes = self.sram_read(self.device_info['ocd_base'], 1)
+            # if we are past this point, it must be the wrong type
+            if self.device_info['name'] == "attiny2313":
+                pair = ("attiny2313a", "attiny2313")
+            else:
+                pair = ("attiny2313", "attiny2313a")
+            raise FatalError("Wrong MCU: %s. Expected: %s" % pair)
+        except Jtagice3ResponseError as error: # This should happen if it is the right chip!
+            if error.code == Avr8Protocol.AVR8_FAILURE_INVALID_ADDRESS:
+                return
+            raise
+
+    def _activate_interface(self, graceful : bool = False) -> int:
         """
         Activate physical interface (perhaps trying twice)
 
         """
 
         try:
-            not_edbg = 'edbg' not in self.transport.device.product_string.lower()
-            dev_id = self.device.avr.protocol.activate_physical(use_reset=not_edbg)
-            dev_code = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
+            not_edbg : bool = 'edbg' not in self.transport.device.product_string.lower()
+            dev_id : bytes = self.device.avr.protocol.activate_physical(use_reset=not_edbg)
+            dev_code : int = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
             self.logger.info("Physical interface activated: 0x%X", dev_code)
         except Jtagice3ResponseError as error:
             # The debugger could be out of sync with the target, retry
@@ -342,14 +378,15 @@ class XAvrDebugger(AvrDebugger):
                 raise
         return dev_code
 
-    def _handle_bootrst(self, read, write):
+    def _handle_bootrst(self, read : Callable[[int], bytes],
+                              write : Callable[[int, bytes], bytes]) -> None:
         """
         Unprogram bootrst (if permitted) for different settings (ISP amd JTAG).
         """
         if 'bootrst_base' in self.device_info:
-            bfuse_addr = self.device_info['bootrst_base']
-            bfuse_mask = self.device_info['bootrst_mask']
-            bfuse = read(bfuse_addr)
+            bfuse_addr : int = self.device_info['bootrst_base']
+            bfuse_mask : int = self.device_info['bootrst_mask']
+            bfuse : bytes = read(bfuse_addr)
             self.logger.debug("BOOTRST addr: 0x%X, mask: 0x%X", bfuse_addr,   bfuse_mask)
             self.logger.debug("BOOTRST fuse byte: 0x%X", bfuse[0])
             if bfuse[0] & bfuse_mask == 0: # if BOOTRST is programmed
@@ -358,10 +395,12 @@ class XAvrDebugger(AvrDebugger):
                     self.logger.warning("If you do not want to start in the boot loader, clear this fuse manually.")
                     self.logger.warning("Or let payavrocd manage this fuse: '-m bootrst'.")
                 else:
-                    newfuse = bfuse[0] | bfuse_mask
+                    newfuse : int = bfuse[0] | bfuse_mask
                     self.logger.debug("Writing new fuse byte: 0x%x", newfuse)
                     write(bfuse_addr, bytearray([newfuse]))
                     if self._iface == 'debugwire': #necessary because otherwise the read may fail
+                        if self.spidevice is None:
+                            raise FatalError("SPI module not initialized")
                         self.spidevice.isp.leave_progmode()
                         self.spidevice =  NvmAccessProviderCmsisDapSpi(self.transport, self.device_info)
                         self.logger.debug("Reconnected to SPI programming module")
@@ -372,7 +411,8 @@ class XAvrDebugger(AvrDebugger):
             else:
                 self.logger.info("BOOTRST was already unprogrammed")
 
-    def _handle_lockbits(self, read, erase):
+    def _handle_lockbits(self, read : Callable[[], bytes],
+                               erase : Callable[[], None]) -> None:
         """
         Clear lockbits (if permitted) for different settings (JTAG and ISP)
         """
@@ -400,7 +440,8 @@ class XAvrDebugger(AvrDebugger):
             self.logger.info("MCU is not locked.")
 
 
-    def prepare_debugging(self, callback=None, recognition=None):
+    def prepare_debugging(self, callback : Callable[[], bool] | None = None,
+                                recognition : Callable[[], None] | None =None) -> None:
         """
         A function that prepares for starting a debug session. The only use case is
         for the debugWIRE interface, where we need to program the DWEN fuse using ISP.
@@ -417,12 +458,14 @@ class XAvrDebugger(AvrDebugger):
         try:
             if read_target_voltage(self.housekeeper) < 1.5:
                 raise FatalError("Target is not powered")
+            if self.housekeeper is None:
+                raise FatalError("Housekeeping module not initialized")
             self.housekeeper.start_session() # need to start a new session after reading target voltage
             self.logger.info("Signed on to tool")
             self.spidevice = NvmAccessProviderCmsisDapSpi(self.transport, self.device_info)
             self.logger.info("Connected to SPI programming module")
-            device_id = int.from_bytes(self.spidevice.read_device_id(),byteorder='little')
-            if self.device_info['device_id'] != device_id:
+            device_id : int = int.from_bytes(self.spidevice.read_device_id(),byteorder='little')
+            if self.device_info['device_id'] != device_id and not self.args.skipsig:
                 raise FatalError("Wrong MCU: '%s' (Sig: %x), expected: '%s (Sig: %x)'" %
                         (dev_name.get(device_id,"Unknown"),
                         device_id,
@@ -434,10 +477,10 @@ class XAvrDebugger(AvrDebugger):
             self._handle_lockbits(self.spidevice.isp.read_lockbits, self.spidevice.erase)
             self._handle_bootrst(self.spidevice.isp.read_fuse_byte, self.spidevice.isp.write_fuse_byte)
             # program the DWEN bit
-            dwen_addr = self.device_info['dwen_base']
-            dwen_mask = self.device_info['dwen_mask']
+            dwen_addr : int = self.device_info['dwen_base']
+            dwen_mask : int = self.device_info['dwen_mask']
             self.logger.debug("DWEN addr: 0x%X, DWEN mask: 0x%X", dwen_addr, dwen_mask)
-            dwen_byte = self.spidevice.isp.read_fuse_byte(dwen_addr)
+            dwen_byte : bytes = self.spidevice.isp.read_fuse_byte(dwen_addr)
             self.logger.debug("DWEN fuse byte: 0x%X", dwen_byte[0])
             if dwen_byte[0] & dwen_mask != 0: # DWEN is not programmed!
                 if 'dwen' not in self.manage:
@@ -448,7 +491,7 @@ class XAvrDebugger(AvrDebugger):
                     raise FatalError("Debugging is impossible when DWEN is not programmed.")
                 if device_id in [ 0x1E9205, 0x1E930A ]:
                     self._check_atmega48_and_88(device_id)
-                newfuse = dwen_byte[0] & (0xFF & ~(dwen_mask))
+                newfuse : int = dwen_byte[0] & (0xFF & ~(dwen_mask))
                 self.logger.debug("New DWEN fuse: 0x%X", newfuse)
                 self.logger.debug("Writing fuse byte: 0x%X", newfuse)
                 self.spidevice.isp.write_fuse_byte(dwen_addr, bytearray([newfuse]))
@@ -460,14 +503,16 @@ class XAvrDebugger(AvrDebugger):
             # end current tool session and start a new one
         finally:
             try:
-                self.spidevice.isp.leave_progmode()
+                if self.spidevice is not None:
+                    self.spidevice.isp.leave_progmode()
             except Exception:
                 pass
-            self.housekeeper.end_session()
-            self.logger.info("Signed off from tool")
+            if self.housekeeper is not None:
+                self.housekeeper.end_session()
+                self.logger.info("Signed off from tool")
             self.logger.info("... preparation for debugWIRE debugging done")
 
-    def _check_atmega48_and_88(self, device_id):
+    def _check_atmega48_and_88(self, device_id : int) -> None:
         """
         The ATmega48 and ATmega88 (without A or P suffix) have a dirty program counter
         and in addition get semi-bricked when trying to program the DWEN fuse. Even
@@ -477,7 +522,13 @@ class XAvrDebugger(AvrDebugger):
         checking the boot_signature, run the program, and check the lock bits, where
         the result will be stored.
         """
+        if self.args.skipsig:
+            return
         self.logger.info("Test for dirty PC on ATmega48/88")
+        if self.spidevice is None:
+            raise FatalError("SPI module not initialized")
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
         # erase flash (and maybe EEPROM)
         self.spidevice.isp.erase()
         # change option value of 'load' option if necessary
@@ -504,30 +555,32 @@ class XAvrDebugger(AvrDebugger):
         time.sleep(0.1)
         # start programming mode again and read result
         self.spidevice.isp.enter_progmode()
-        result_lockbits = self.spidevice.read(self.memory_info.memory_info_by_name('lockbits'), 0, 1)
-        # check result
+        result_lockbits : bytes = self.spidevice.read(self.memory_info.memory_info_by_name('lockbits'), 0, 1)
+        # Check result
         self.logger.debug("Result from lockbits: 0x%X",   result_lockbits[0])
         # Now erase chip again to clear lock bits
         self.spidevice.isp.erase()
-        # Restore EESAVE bit if necessary
-        # and check results
+        # Check results
         if result_lockbits[0] != 0xFF:
             raise FatalError("MCU cannot be debugged because of stuck-at-1 bit in the PC")
 
-    def _power_cycle(self, callback=None, recognition=None):
+    def _power_cycle(self, callback : Callable[[], bool] | None = None,
+                           recognition : Callable[[], None] | None = None) -> None:
         """
         Ask user for power-cycle and wait for voltage to come up again.
         If callback is callable, we try that first. It might magically
         perform a power cycle.
         """
-        wait_start = time.monotonic()
-        last_message = 0
-        magic = False
-        if callback:
+        wait_start : float = time.monotonic()
+        last_message : float = 0
+        magic : bool = False
+        if callback is not None:
             magic = callback()
         if magic: # callback has done all the work
             return
         self.logger.info("Restarting the debug tool before power-cycling")
+        if self.housekeeper is None:
+            raise FatalError("Housekeeping module not initialized")
         self.housekeeper.end_session() # might be necessary after an unsuccessful power-cycle
         self.logger.info("Signed off from tool")
         while time.monotonic() - wait_start < 150:
@@ -537,7 +590,7 @@ class XAvrDebugger(AvrDebugger):
             if read_target_voltage(self.housekeeper) < 0.5:
                 wait_start = time.monotonic()
                 self.logger.info("*** Power-down recognized. Apply power again! ***")
-                if recognition:
+                if recognition is not None:
                     recognition()
                 while  read_target_voltage(self.housekeeper) < 1.5 and \
                   time.monotonic() - wait_start < 20:
@@ -551,7 +604,7 @@ class XAvrDebugger(AvrDebugger):
             time.sleep(0.1)
         raise FatalError("Timed out waiting for power-cycle")
 
-    def dw_disable(self):
+    def dw_disable(self) -> None:
         """
         Disables debugWIRE and unprograms the DWEN fusebit. After this call,
         there is no connection to the target anymore. For this reason all critical things
@@ -572,13 +625,15 @@ class XAvrDebugger(AvrDebugger):
         self.logger.info("Detached from OCD")
         self.device.avr.deactivate_physical()
         self.logger.info("Physical interface deactivated")
-        self.housekeeper.end_session()
-        self.logger.info("Signed off from tool")
         if 'dwen' not in self.manage:
             self.logger.warning("Cannot unprogram DWEN since this fuse is not managed by PyAvrOCD")
             self.logger.warning("Unprogram this fuse before switching the power of the MCU off!")
             self.logger.warning("In order to let payavrocd manage this fuse use: '-m dwen'.")
         else:
+            # sign off
+            if self.housekeeper is not None:
+                self.housekeeper.end_session()
+                self.logger.info("Signed off from tool")
             # start housekeeping again
             time.sleep(0.5)
             self.housekeeper = housekeepingprotocol.Jtagice3HousekeepingProtocol(self.transport)
@@ -600,11 +655,12 @@ class XAvrDebugger(AvrDebugger):
             self.spidevice.isp.leave_progmode()
             self.logger.info("SPI programming terminated")
         # we do not interact with the tool anymore after this
-        self.housekeeper.end_session()
-        self.logger.info("Signed off from tool")
+        if self.housekeeper is not None:
+            self.housekeeper.end_session()
+            self.logger.info("Signed off from tool")
         self.logger.info("... disabling debugWIRE mode done")
 
-    def cold_dw_disable(self):
+    def cold_dw_disable(self) -> None:
         """
         Disable debugWIRE mode without connecting to a debugger. This will only be successful if
         we can access the chip using the debugWIRE protocol.
@@ -617,19 +673,19 @@ class XAvrDebugger(AvrDebugger):
             return
         self.dw_disable()
 
-    def switch_to_debmode(self):
+    def switch_to_debmode(self) -> bool:
         """
         Switch to debugging mode
         """
         return self.device.avr.switch_to_debmode()
 
-    def switch_to_progmode(self):
+    def switch_to_progmode(self) -> bool:
         """
         Switch to programming mode
         """
         return self.device.avr.switch_to_progmode()
 
-    def software_breakpoint_set(self, address):
+    def software_breakpoint_set(self, address : int) -> bool:
         """
         This is a version of setting a software breakpoint that
         catches exceptions.
@@ -643,7 +699,7 @@ class XAvrDebugger(AvrDebugger):
 
     #pylint: disable=arguments-differ
     #we actually need two arguments when more than one HWBP is there
-    def hardware_breakpoint_set(self, ix, address):
+    def hardware_breakpoint_set(self, ix : int, address : int) -> bytes | None:
         """
         Set a hardware breakpoint at address
         """
@@ -651,13 +707,13 @@ class XAvrDebugger(AvrDebugger):
 
     #pylint: disable=arguments-differ
     #we actually need the extra argument when more than one HWBP is there
-    def hardware_breakpoint_clear(self, ix):
+    def hardware_breakpoint_clear(self, ix : int) -> bytes | None:
         """
         Clear the ix-th hardware breakpoint
         """
         return self.device.avr.hardware_breakpoint_clear(ix)
 
-    def stack_pointer_write(self, data):
+    def stack_pointer_write(self, data : bytes) -> None:
         """
         Writes the stack pointer
 
@@ -667,7 +723,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Writing stack pointer")
         self.device.avr.stack_pointer_write(data)
 
-    def status_register_read(self):
+    def status_register_read(self) -> bytes:
         """
         Reads the status register from the AVR
 
@@ -677,7 +733,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Reading status register")
         return self.device.avr.statreg_read()
 
-    def status_register_write(self, data):
+    def status_register_write(self, data : bytes) -> None:
         """
         Writes new value to status register
         :param data: SREG
@@ -687,7 +743,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Write status register: %s", data)
         self.device.avr.statreg_write(data)
 
-    def register_file_read(self):
+    def register_file_read(self) -> bytes:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -697,7 +753,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Reading register file")
         return self.device.avr.regfile_read()
 
-    def register_file_write(self, regs):
+    def register_file_write(self, regs : bytes) -> None:
         """
         Writes the AVR register file (R0::R31)
 
@@ -707,7 +763,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Writing register file")
         self.device.avr.regfile_write(regs)
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the AVR core.
         The PC will point to the first instruction to be executed.
@@ -716,44 +772,44 @@ class XAvrDebugger(AvrDebugger):
         self.device.avr.protocol.reset()
         self._wait_for_break()
 
-    def read_fuse(self, addr, size):
+    def read_fuse(self, addr : int, size : int) -> bytes:
         """
         Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, size)
 
-    def read_fuse_one_byte(self, addr):
+    def read_fuse_one_byte(self, addr : int) -> bytes:
         """
         Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, 1)
 
 
-    def write_fuse(self, addr, data):
+    def write_fuse(self, addr : int, data : bytes) -> bytes:
         """
         Write fuses (does not work with debugWIRE and in JTAG only in programming mode)
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, data)
 
-    def read_lock(self, addr, size):
+    def read_lock(self, addr : int, size : int) -> bytes:
         """
         Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, size)
 
-    def read_lock_one_byte(self):
+    def read_lock_one_byte(self) -> bytes:
         """
         Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1)
 
-    def write_lock(self, addr, data):
+    def write_lock(self, addr : int , data : bytes) -> bytes | None:
         """
         Write lock bits (does not work with debugWIRE and in JTAG only in programming mode)
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, data)
 
-    def read_sig(self, addr, size):
+    def read_sig(self, addr : int, size : int) -> bytes:
         """
         Read signature in a liberal way, i.e., throwing no errors
         """
@@ -762,19 +818,19 @@ class XAvrDebugger(AvrDebugger):
             resp += [0xFF]*(addr+size)
         return bytearray(resp[addr:addr+size])
 
-    def read_usig(self, addr, size):
+    def read_usig(self, addr : int, size : int) -> bytes:
         """
         Read contents of user signature (does not work with debugWIRE)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, size)
 
-    def write_usig(self, addr, data):
+    def write_usig(self, addr : int, data : bytes) -> bytes | None:
         """
         Write user signature
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, data)
 
-    def flash_read(self, address, numbytes, prog_mode=False):
+    def flash_read(self, address : int, numbytes : int, prog_mode : bool = False) -> bytes:
         """
         Read flash content from the AVR
 
@@ -785,16 +841,18 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Reading %d bytes from flash at %X", numbytes, address)
         # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
         # However the address used here is already zero-offset, so no compensation is done here
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
         return self.device.read(self.memory_info.memory_info_by_name('flash'),
                                     address, numbytes, prog_mode=prog_mode)
 
-    def program_counter_read(self):
+    def program_counter_read(self) -> int:
         """
         Apply the bad PC bit mask (which is for addressing bates, so shift one one to the right)
         """
         return super().program_counter_read() & ~(self.bad_pc_bit_mask >> 1)
 
-    def run_to(self, address):
+    def run_to(self, address : int) -> None:
         """
         Apply bad bit (if present) when starting execution
         """

@@ -2,7 +2,7 @@
 The test suit for the XTinyAvrTarget class
 """
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
-from unittest.mock import  MagicMock, call, create_autospec
+from unittest.mock import  MagicMock, create_autospec
 from unittest import TestCase
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
@@ -45,10 +45,15 @@ class TestXAvr8TargetDw(TestCase):
         self.xa.attach()
         self.xa.protocol.attach.assert_called_once()
 
+    def test_reactivate(self):
+        self.set_up()
+        self.xa.reactivate()
+        self.xa.protocol.reset.assert_called_once()
+
     def test_setup_config(self):
         self.set_up()
         self.xa.setup_config(DEVICE_INFO)
-        self.xa.protocol.write_device_data.assert_has_calls([call(bytearray([0x40, 0x00,
+        self.xa.protocol.write_device_data.assert_called_with(bytearray([0x40, 0x00,
                                                                              0x00, 0x20, 0x00, 0x00,
                                                                              0x00, 0x00, 0x00, 0x00,
                                                                              0xC0, 0x1F, 0x00, 0x00,
@@ -64,7 +69,7 @@ class TestXAvr8TargetDw(TestCase):
                                                                              0x1C,
                                                                              0x1D,
                                                                              0x57,
-                                                                             0x31]))])
+                                                                             0x31]))
 
     def test_statreg_read(self):
         self.set_up()
@@ -103,12 +108,12 @@ class TestXAvr8TargetDw(TestCase):
 
     def test_hardware_breakpoint_set_fail(self):
         self.set_up()
-        self.assertEqual(self.xa.hardware_breakpoint_set(1,1), 0)
+        self.assertEqual(self.xa.hardware_breakpoint_set(1,1), None)
 
     def test_hardware_breakpoint_clear_fail(self):
         self.set_up()
-        self.assertEqual(self.xa.hardware_breakpoint_clear(1), 0)
+        self.assertEqual(self.xa.hardware_breakpoint_clear(1), None)
 
     def test_breakpoint_clear(self):
         self.set_up()
-        self.assertEqual(self.xa.breakpoint_clear(), 0)
+        self.assertEqual(self.xa.breakpoint_clear(), None)

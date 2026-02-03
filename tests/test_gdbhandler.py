@@ -65,17 +65,15 @@ class TestGdbHandler(TestCase):
     def test_empty_packet(self):
         self.set_up()
         self.gh.mem.lazy_loading = True
-        self.gh.dispatch(None,'')
+        self.gh.dispatch('',b'')
         self.assertEqual(self.gh._set_binary_memory_handler_finalize.call_count, 2) #pylint: disable=no-member
 
-
-    def test_exception_in_packet_handler(self):
+    def test_exception_in_continue_packet_handler(self):
         self.set_up()
         self.gh.critical = None
-        self.gh.dispatch('!', None)
+        self.gh.dispatch('c', []) # will raise exception when packet should be converted to int
         self.gh._comsocket.sendall.assert_called_with(rsp("S06"))
         self.assertFalse(self.gh.critical is None)
-        self.gh.critical = None
 
     def test_extended_remote_handler(self):
         self.set_up()
@@ -408,7 +406,7 @@ class TestGdbHandler(TestCase):
 
     def test_monitorCommand_Target_0(self):
         self.set_up()
-        self.gh.mon.dispatch.return_value = (0, 'B')
+        self.gh.mon.dispatch.return_value = ('0', 'B')
         self.assertEqual(self.gh.dispatch('qRcmd', b',5461726765742030'), None)
         self.gh.dbg.device.avr.protocol.set_byte.assert_called_with(
             Avr8Protocol.AVR8_CTXT_OPTIONS,
@@ -585,7 +583,7 @@ class TestGdbHandler(TestCase):
         self.set_up()
         self.gh._step_handler = Mock()
         self.gh.dispatch('vCont', b';S09')
-        self.gh._step_handler.assert_has_calls([call('')])
+        self.gh._step_handler.assert_has_calls([call(b'')])
 
     def test_thread_alive_handler(self):
         self.set_up()
@@ -680,7 +678,7 @@ class TestGdbHandler(TestCase):
     def test_flash_writeHandler_success(self):
         self.set_up()
         self.gh.dispatch('vFlashWrite', b':0100:ABC')
-        self.gh.mem.store_to_cache.assert_called_with(0x100,[ord('A'), ord('B'), ord('C')])
+        self.gh.mem.store_to_cache.assert_called_with(0x100,bytearray(b'ABC'))
         self.gh._comsocket.sendall.assert_called_with(rsp("OK"))
 
     def test_escape(self):
@@ -768,7 +766,7 @@ class TestGdbHandler(TestCase):
     def test_set_binary_memory_handler_finalize_no_action(self):
         self.set_up()
         self.gh.mem.lazy_loading = False
-        self.assertEqual(self.gh.dispatch(None,None), None)
+        self.assertEqual(self.gh.dispatch('',b''), None)
         self.gh.mem.flash_pages.assert_not_called()
         self.gh.mon.disable_noinitialload.assert_not_called()
 
@@ -776,7 +774,7 @@ class TestGdbHandler(TestCase):
         self.set_up()
         self.gh.mon.is_noinitialload.return_value = True
         self.gh.mem.lazy_loading = True
-        self.assertEqual(self.gh.dispatch(None,None), None)
+        self.assertEqual(self.gh.dispatch('',b''), None)
         self.gh.mem.flash_pages.assert_called_once()
         self.assertFalse(self.gh.mem.lazy_loading)
         self.gh.mon.disable_noinitialload.assert_called_once()

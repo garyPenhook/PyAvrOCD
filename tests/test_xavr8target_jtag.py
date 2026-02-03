@@ -51,6 +51,39 @@ class TestXAvr8TargetJtag(TestCase):
         self.xa.protocol.activate_physical.assert_not_called()
         self.xa.protocol.leave_progmode.assert_called_once()
 
+    def test_attach(self):
+        self.set_up()
+        self.xa.attach()
+        self.xa.protocol.attach.assert_called_once()
+
+    def test_reactivate(self):
+        self.set_up()
+        self.xa.reactivate()
+        self.xa.protocol.detach.assert_called_once()
+        self.xa.protocol.attach.assert_called_once()
+        self.xa.protocol.deactivate_physical.assert_called_once()
+        self.xa.protocol.activate_physical.assert_called_once()
+        self.xa.protocol.reset.assert_called_once()
+
+    def test_setup_debug_session(self):
+        self.set_up()
+        self.xa.setup_debug_session(clkprg=256, clkdeb=2000, timers_run=True)
+        self.xa.protocol.set_le16.assert_has_calls([call(Avr8Protocol.AVR8_CTXT_PHYSICAL,
+                                                         Avr8Protocol.AVR8_PHY_MEGA_DBG_CLK,
+                                                         2000),
+                                                    call(Avr8Protocol.AVR8_CTXT_PHYSICAL,
+                                                         Avr8Protocol.AVR8_PHY_MEGA_PRG_CLK,
+                                                         256)], any_order=True)
+        self.xa.protocol.set_le32.assert_called_with(Avr8Protocol.AVR8_CTXT_PHYSICAL,
+                                                         Avr8Protocol.AVR8_PHY_JTAG_DAISY,
+                                                         0)
+        self.xa.protocol.set_byte.assert_called_with(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                                                         Avr8Protocol.AVR8_OPT_RUN_TIMERS,
+                                                         True)
+        self.xa.protocol.set_variant.assert_called_with(Avr8Protocol.AVR8_VARIANT_MEGAOCD)
+        self.xa.protocol.set_function.assert_called_with(Avr8Protocol.AVR8_FUNC_DEBUGGING)
+        self.xa.protocol.set_interface(Avr8Protocol.AVR8_PHY_INTF_JTAG)
+
     def test_setup_config(self):
         self.set_up()
         self.xa.setup_config(DEVICE_INFO)
@@ -110,7 +143,7 @@ class TestXAvr8TargetJtag(TestCase):
 
     def test_hardware_breakpoint_set_fail(self):
         self.set_up()
-        self.assertEqual(self.xa.hardware_breakpoint_set(4, 0x200),0)
+        self.assertEqual(self.xa.hardware_breakpoint_set(4, 0x200), None)
 
     def test_hardware_breakpoint_set_right(self):
         self.set_up()
@@ -125,6 +158,11 @@ class TestXAvr8TargetJtag(TestCase):
         self.xa.protocol.check_response.return_value = None
         self.assertEqual(self.xa.hardware_breakpoint_clear(3), None)
         self.xa.protocol.jtagice3_command_response.assert_called_with(bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, 3]))
+
+    def test_hardware_breakpoint_clear_fail(self):
+        self.set_up()
+        self.xa.protocol.check_response.return_value = None
+        self.assertEqual(self.xa.hardware_breakpoint_clear(4), None)
 
     def test_breakpoint_clear(self):
         self.set_up()

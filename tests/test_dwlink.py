@@ -6,7 +6,8 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock, patch, call
 from unittest import TestCase
 
-from pyavrocd.dwlink import SerialToNet, discover, main
+from pyavrocd.dwlink import SerialToNet, discover, main, build_packet, \
+     send_and_wait, send_mon_options
 
 class TestSerialToNet(TestCase):
 
@@ -73,6 +74,71 @@ class TestSerialToNet(TestCase):
         self.assertEqual(mock_write.call_count, 1)
         mock_exit.assert_called_once()
         mock_sleep.assert_not_called()
+
+    def test_build_packet(self):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        self.assertEqual(build_packet('MESSAGE', args),b'$MESSAGE#05')
+
+    def test_send_and_wait(self):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        mock_ser = Mock()
+        mock_ser.read_until.side_effect = [b' ', b' +']
+        send_and_wait(mock_ser, "help", args)
+        self.assertEqual(mock_ser.read_until.call_count, 2)
+        self.assertEqual(mock_ser.write.call_count, 2)
+        mock_ser.write.assert_called_with(b'$qRcmd,68656C70#DC')
+
+    @patch('pyavrocd.dwlink.sys.stdout.write')
+    @patch('pyavrocd.dwlink.sys.stdout.flush', Mock())
+    def test_send_mon_opts_normal(self, mock_write):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        args.dev = 'attiny85'
+        args.timers = 'f'
+        args.manage = ['bootrst', 'lockbits']
+        mock_ser = Mock()
+        mock_ser.read_until.return_value = b'+'
+        send_mon_options(mock_ser, args)
+        mock_ser.write.assert_has_calls([call(b'$qRcmd,176D637520617474696E793835#A6'), # mcu attiny85
+                                            call(b'$qRcmd,74696D6572732066#83'), # timers f
+                                            call(b'$qRcmd,176E6F6477656E#40')]) # nodwen
+        mock_write.assert_called_with('[WARNING] Fuse DWEN is not managed by dw-link\n\r')
+
+    @patch('pyavrocd.dwlink.sys.stdout.flush', Mock())
+    @patch('pyavrocd.dwlink.time.sleep', Mock())
+    @patch('pyavrocd.dwlink.sys.stdout.write')
+    def test_send_mon_opts_dwoff(self, mock_write):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        args.dev = 'attiny85'
+        args.debugwire = 'd'
+        args.manage = ['bootrst', 'lockbits']
+        mock_ser = Mock()
+        mock_ser.read_until.return_value = b'+'
+        mock_ser.read.return_value = b'$OK#FF'
+        self.assertRaises(SystemExit, send_mon_options, mock_ser, args)
+        mock_ser.write.assert_has_calls([call(b'$qRcmd,176D637520617474696E793835#A6'), # mcu attiny85
+                                            call(b'$qRcmd,6465627567776972652064#B6')]) # debugwire d
+        mock_write.assert_has_calls([call("[INFO] Terminated debugWIRE mode successfully\n\r")])
+
+    @patch('pyavrocd.dwlink.sys.stdout.flush', Mock())
+    @patch('pyavrocd.dwlink.time.sleep', Mock())
+    @patch('pyavrocd.dwlink.sys.stdout.write')
+    def test_send_mon_opts_dwoff_fail(self, mock_write):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        args.dev = 'attiny85'
+        args.debugwire = 'd'
+        args.manage = ['bootrst', 'lockbits']
+        mock_ser = Mock()
+        mock_ser.read_until.return_value = b'+'
+        mock_ser.read.return_value = b''
+        self.assertRaises(SystemExit, send_mon_options, mock_ser, args)
+        mock_ser.write.assert_has_calls([call(b'$qRcmd,176D637520617474696E793835#A6'), # mcu attiny85
+                                            call(b'$qRcmd,6465627567776972652064#B6')]) # debugwire d
+        mock_write.assert_has_calls([call("[ERROR] Problem terminating debugWIRE mode\n\r")])
 
     @patch('pyavrocd.dwlink.serial.tools.list_ports.comports')
     @patch('pyavrocd.dwlink.sys.stdout.write')

@@ -1,6 +1,7 @@
 """
 Memory module for the AVR GDB server
 """
+from collections.abc import Callable
 
 # args, logging
 import logging
@@ -8,6 +9,8 @@ import logging
 # debugger modules
 from pyavrocd.errors import  FatalError
 from pyavrocd.deviceinfo.devices.alldevices import dev_name
+from pyavrocd.xavrdebugger import XAvrDebugger
+from pyavrocd.monitor import MonitorCommand
 
 class Memory():
     """
@@ -23,47 +26,49 @@ class Memory():
     unprogrammed. One can finalize loading when calling flash_pages with the lazy attribute set to False.
     """
 
-    def __init__(self, dbg, mon):
-        self.logger = logging.getLogger('pyavrocd.memory')
-        self.dbg = dbg
-        self.mon = mon
-        self._flash = bytearray() # bytearray starting at 0x0000
+    def __init__(self, dbg : XAvrDebugger, mon : MonitorCommand) -> None:
+        self.logger : logging.Logger = logging.getLogger('pyavrocd.memory')
+        self.dbg : XAvrDebugger = dbg
+        self.mon : MonitorCommand = mon
+        self._flash : bytearray = bytearray() # bytearray starting at 0x0000
         # some device info that is needed throughout
-        self._flash_start = self.dbg.memory_info.memory_info_by_name('flash')['address']
-        self._flash_page_size = self.dbg.memory_info.memory_info_by_name('flash')['page_size']
-        self._flash_size = self.dbg.memory_info.memory_info_by_name('flash')['size']
-        self._multi_buffer = self.dbg.device_info.get('buffers_per_flash_page',1)
-        self._masked_registers = self.dbg.device_info.get('masked_registers',[])
-        self._ronly_registers = self.dbg.device_info.get('ronly_registers',[])
-        self._multi_page_size = self._multi_buffer*self._flash_page_size
-        self._sram_start = self.dbg.memory_info.memory_info_by_name('internal_sram')['address']
-        self._sram_size = self.dbg.memory_info.memory_info_by_name('internal_sram')['size']
-        self._eeprom_start = self.dbg.memory_info.memory_info_by_name('eeprom')['address']
-        self._eeprom_size = self.dbg.memory_info.memory_info_by_name('eeprom')['size']
-        self._flashmem_start_prog = 0
-        self.lazy_loading = False
-        self.programming_mode = False
+        if self.dbg.memory_info is None:
+            raise FatalError("No memory info available")
+        self._flash_start : int = int(self.dbg.memory_info.memory_info_by_name('flash')['address'])
+        self._flash_page_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['page_size'])
+        self._flash_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['size'])
+        self._multi_buffer : int = int(self.dbg.device_info.get('buffers_per_flash_page',1))
+        self._masked_registers : list[int] = self.dbg.device_info.get('masked_registers',[])
+        self._ronly_registers : list[int] = self.dbg.device_info.get('ronly_registers',[])
+        self._multi_page_size : int = self._multi_buffer*self._flash_page_size
+        self._sram_start : int = self.dbg.memory_info.memory_info_by_name('internal_sram')['address']
+        self._sram_size : int = self.dbg.memory_info.memory_info_by_name('internal_sram')['size']
+        self._eeprom_start : int = self.dbg.memory_info.memory_info_by_name('eeprom')['address']
+        self._eeprom_size : int = self.dbg.memory_info.memory_info_by_name('eeprom')['size']
+        self._flashmem_start_prog : int = 0
+        self.lazy_loading : bool = False
+        self.programming_mode : bool = False
 
-    def init_flash(self):
+    def init_flash(self) -> None:
         """
         Initialize flash by emptying it.
         """
         self._flash = bytearray()
         self._flashmem_start_prog = 0
 
-    def is_flash_empty(self):
+    def is_flash_empty(self) -> bool:
         """
         Return true if flash cache is empty.
         """
         return len(self._flash) == 0
 
-    def flash_filled(self):
+    def flash_filled(self) -> int:
         """
         Return how many bytes have already be filled.
         """
         return len(self._flash)
 
-    def readmem(self, addr, size):
+    def readmem(self, addr : str, size : str) -> bytes:
         """
         Read a chunk of memory and return a bytestring or bytearray.
         The parameter addr and size should be hex strings.
@@ -72,21 +77,24 @@ class Memory():
         isize = int(size, 16)
         return method(iaddr, isize)
 
-    def writemem(self, addr, data):
+    def writemem(self, addr : str, data : bytes) -> str:
         """
         Write a chunk of memory and return a reply string.
         The parameter addr should be a hex string.
         """
+        iaddr : int
+        method : Callable[[int, bytes], str | None]
         iaddr, _, method = self.mem_area(addr)
         if not data:
             return "OK"
-        response = method(iaddr, data)
+        response  = method(iaddr, data)
         self.logger.debug("Result of writing: %s", response)
         if response is None:
             return "OK"
         return "E13"
 
-    def mem_area(self, addr):
+    def mem_area(self, addr : str) \
+      -> tuple[int, Callable[[int, int], bytes], Callable[[int, bytes], str | None]]:
         """
         This function returns a triple consisting of the real address as an int, the read,
         and the write method. If illegal address section, give error message and return
@@ -97,12 +105,12 @@ class Memory():
         is raised when the signatures differ. This can be used to check for the right MCU
         by including the directive '#include <avr/signature.h>' in the source file.
         """
-        addr_section = "00"
+        addr_section : str = "00"
         if len(addr) == 6:
             if addr[0] == '8':
                 addr_section = addr[:2]
                 addr = addr[2:]
-        iaddr = int(addr,16)
+        iaddr : int = int(addr,16)
         self.logger.debug("Address section: %s",addr_section)
         if addr_section == "00": # flash
             if self.programming_mode:
@@ -139,15 +147,16 @@ class Memory():
                               addr, addr_section)
         return (0, lambda addr, num: bytes([0xFF]*num), lambda *x: 'E13')
 
-    def sram_masked_read(self, addr, size):
+    def sram_masked_read(self, addr : int, size : int) -> bytes:
         """
         Read a chunk from SRAM but leaving  out any masked registers. In theory,
         one could use the "Memory Read Masked" method of the AVR8 Generic protocol.
         However, there is no Python method implemented that does that for you.
         For this reason, we do it here step by step.
         """
-        end = addr + size
-        data = bytearray()
+        end : int = addr + size
+        data : bytearray = bytearray()
+        mr : int
         for mr in sorted(self._masked_registers):
             if mr >= end or addr >= end:
                 break
@@ -161,13 +170,14 @@ class Memory():
             data.extend(self.dbg.sram_read(addr, end - addr))
         return data
 
-    def sram_masked_write(self, addr, data):
+    def sram_masked_write(self, addr : int, data : bytes) -> None:
         """
         Write a chunk to SRAM but leaving  out any read-only registers. If there is an
         attempt to write to a read-only register, spew out a warning message.
         """
-        start = addr
-        end = addr + len(data)
+        start : int = addr
+        end : int = addr + len(data)
+        rr : int
         for rr in sorted(self._ronly_registers):
             if rr >= end or addr >= end:
                 break
@@ -182,7 +192,7 @@ class Memory():
             # write remaining data
             self.dbg.sram_write(addr, data[addr-start:end-start])
 
-    def flash_read(self, addr, size):
+    def flash_read(self, addr : int, size : int) -> bytes:
         """
         Read flash contents from cache that had been constructed during loading the file.
         It is faster and circumvents the problem that with some debuggers only page-sized
@@ -195,11 +205,12 @@ class Memory():
             return bytearray([0xFF]*size)
         if self.mon.is_cache() and addr + size <= self.flash_filled():
             return self._flash[addr:addr+size]
-        baseaddr = (addr // self._flash_page_size) * self._flash_page_size
-        endaddr = addr + size
-        pnum = ((endaddr - baseaddr) +  self._flash_page_size - 1) // self._flash_page_size
+        baseaddr : int = (addr // self._flash_page_size) * self._flash_page_size
+        endaddr : int = addr + size
+        pnum : int = ((endaddr - baseaddr) +  self._flash_page_size - 1) // self._flash_page_size
         self.logger.debug("No cache, request %d pages starting at 0x%X", pnum, baseaddr)
-        response = bytearray()
+        response : bytearray = bytearray()
+        p : int
         for p in range(pnum):
             response +=  self.dbg.flash_read(baseaddr + (p * self._flash_page_size),
                                                   self._flash_page_size)
@@ -207,14 +218,14 @@ class Memory():
         response = response[addr-baseaddr:addr-baseaddr+size]
         return response
 
-    def flash_read_word(self, addr):
+    def flash_read_word(self, addr : int) -> int:
         """
         Read one word at an even address from flash (LSB first!) and return it as a word value.
         """
         return(int.from_bytes(self.flash_read(addr, 2), byteorder='little'))
 
     #pylint: disable=useless-return
-    def flash_write(self, addr, data):
+    def flash_write(self, addr : int, data : bytes) -> str | None:
         """
         This writes an arbitrary chunk of data to flash. If addr is lower than len(self._flash),
         the cache is cleared. This should do the right thing when loading is implemented with
@@ -226,7 +237,7 @@ class Memory():
         self.flash_pages()
         return None
 
-    def store_to_cache(self, addr, data):
+    def store_to_cache(self, addr : int, data : bytes) -> None:
         """
         Store chunks into the flash cache. Programming will take place later.
         """
@@ -237,7 +248,7 @@ class Memory():
         self._flash.extend(data)
         self.logger.debug("%s", self._flash)
 
-    def flash_pages(self):
+    def flash_pages(self) -> None:
         """
         Write pages to flash memory, starting at _flashmem_start_prog up to len(self._flash)-1.
         Since programming takes place in chunks of size self._multi_page_size, beginning and end
@@ -250,6 +261,19 @@ class Memory():
         This out of the way, we program. Optionally, after writing, we check whether
         we were successful.
         """
+        startaddr : int
+        stopaddr : int
+        roundup : int
+        pgaddr : int
+        give_info : int
+        proged : int
+        next_mile_stone : int
+        pagetoflash : bytearray
+        readbackpage : bytearray
+        currentpage : bytearray
+        flashmemtype : int
+        p : int
+
         if self.mon.is_noinitialload(): # if loading is set to filling the cache only, we do not flash
             return
         startaddr = (self._flashmem_start_prog // self._multi_page_size) * self._multi_page_size
@@ -262,6 +286,7 @@ class Memory():
         give_info = stopaddr-startaddr > 2048
         proged = 0
         next_mile_stone = 2000
+
         self.logger.info("Flashing at 0x%X, length: %u ...", pgaddr, stopaddr-startaddr)
         while pgaddr < stopaddr:
             self.logger.debug("Flashing page starting at 0x%X", pgaddr)
@@ -319,7 +344,7 @@ class Memory():
             self._flashmem_start_prog = len(self._flash)
         self.logger.info("... flashing done")
 
-    def memory_map(self):
+    def memory_map(self) -> str:
         """
         Return a memory map in XML format. Include registers, IO regs, and EEPROM in SRAM area
         """
@@ -331,18 +356,18 @@ class Memory():
                               0x60000, # is needed to read the other memory areas as well
                               self._flash_start, self._flash_size, self._multi_page_size)
 
-    def fuse_read(self, addr, size):
+    def fuse_read(self, addr : int, size : int) -> bytes:
         """
         Read fuses (does not work with debugWIRE)
         """
         try:
-            resp = self.dbg.read_fuse(addr, size)
+            resp : bytes = self.dbg.read_fuse(addr, size)
         except Exception as e:
             self.logger.error("Error reading fuses: %s", e)
             return bytearray([0xFF]*size)
         return bytearray(resp)
 
-    def fuse_write(self, addr, data):
+    def fuse_write(self, addr : int, data : bytes) -> str | None:
         """
         Write fuses (does not work with debugWIRE)
         """
@@ -353,18 +378,18 @@ class Memory():
             return 'E13'
         return None
 
-    def lock_read(self, addr, size):
+    def lock_read(self, addr : int, size : int) -> bytes:
         """
         Read lock bits (does not work with debugWIRE)
         """
         try:
-            resp = self.dbg.read_lock(addr, size)
+            resp : bytes = self.dbg.read_lock(addr, size)
         except Exception as e:
             self.logger.error("Error reading lockbits: %s", e)
             return bytearray([0xFF]*size)
         return bytearray(resp)
 
-    def lock_write(self, addr, data):
+    def lock_write(self, addr : int, data : bytes) -> str | None:
         """
         Write lock bits (does not work with debugWIRE)
         """
@@ -375,18 +400,18 @@ class Memory():
             return 'E13'
         return None
 
-    def sig_read(self, addr, size):
+    def sig_read(self, addr : int, size : int) -> bytes:
         """
         Read signature in a liberal way, i.e., throwing no errors
         """
         try:
-            resp = self.dbg.read_sig(addr, size)
+            resp : bytes = self.dbg.read_sig(addr, size)
         except Exception as e:
             self.logger.error("Error reading the signature: %s", e)
             return bytearray([0xFF]*size)
         return bytearray(resp)
 
-    def compare_signatures(self, addr, data):
+    def compare_signatures(self, addr : int, data : bytes) -> None:
         """
         Compare signature supplied by ELF file with the one specified on
         the command-line of the GDB server. If mismatch, report Fatal Error
@@ -399,18 +424,18 @@ class Memory():
                                     dev_name[self.dbg.device_info['device_id']]))
         self.logger.info("MCU signature read and verified")
 
-    def usig_read(self, addr, size):
+    def usig_read(self, addr : int, size : int) -> bytes:
         """
         Read contents of user signature (does not work with debugWIRE)
         """
         try:
-            resp = self.dbg.read_usig(addr, size)
+            resp : bytes = self.dbg.read_usig(addr, size)
         except Exception as e:
             self.logger.error("Error reading the user signature: %s", e)
             return bytearray([0xFF]*size)
         return bytearray(resp)
 
-    def usig_write(self, addr, data):
+    def usig_write(self, addr : int, data : bytes) -> str | None:
         """
         Write user signature (does not work with debugWIRE)
         """
@@ -421,7 +446,7 @@ class Memory():
             return 'E13'
         return None
 
-    def eeprom_read(self, address, numbytes):
+    def eeprom_read(self, address : int, numbytes : int) -> bytes:
         """
         Read EEPROM content from the AVR
         Needs to be handled here because depending on programm_mode, different memtypes have to be used
@@ -432,11 +457,13 @@ class Memory():
         self.logger.debug("Reading %d bytes from EEPROM at %X", numbytes, address)
         # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
         # So the offset is subtracted here (and added later in the debugger)
-        offset = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
+        if self.dbg.memory_info is None:
+            raise FatalError("No memory info available")
+        offset : int = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
         return self.dbg.device.read(self.dbg.memory_info.memory_info_by_name('eeprom'), address-offset,
                                         numbytes, self.programming_mode)
 
-    def eeprom_write(self, address, data):
+    def eeprom_write(self, address : int , data : bytes) -> None:
         """
         Write EEPROM content to the AVR
         Needs to be handled here because depending on programm_mode, different memtypes have to be used
@@ -447,6 +474,8 @@ class Memory():
         self.logger.debug("Writing %d bytes to EEPROM at %X", len(data), address)
         # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
         # So the offset is subtracted here (and added later in the debugger)
-        offset = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
+        if self.dbg.memory_info is None:
+            raise FatalError("No memory info available")
+        offset : int = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
         return self.dbg.device.write(self.dbg.memory_info.memory_info_by_name('eeprom'), address-offset,
                                          data, self.programming_mode)

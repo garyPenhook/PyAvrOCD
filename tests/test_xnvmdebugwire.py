@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch, call, create_autospec
 from unittest import TestCase
 
 from pymcuprog.deviceinfo import deviceinfo
+from pymcuprog.pymcuprog_errors import PymcuprogError
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 
@@ -63,6 +64,20 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
         self.nvm.avr.memtype_read_from_string.assert_called_with('internal_sram')
         self.nvm.avr.read_memory_section.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x100, 0x09, 0x09)
 
+    def test_read_undef_mem(self):
+        self.set_up()
+        self.nvm.avr.memtype_read_from_string.return_value=0
+        self.assertRaises(PymcuprogError, self.nvm.read,
+                              self.memory_info.memory_info_by_name('internal_sram'),
+                              0,2)
+
+    def test_write_zero(self):
+        self.set_up()
+        self.nvm.write(0, 0, [])
+        self.nvm.avr.memtype_read_from_string.assert_not_called()
+        self.nvm.avr.write_memory_section.assert_not_called()
+
+
     def test_write_flash_page(self):
         self.set_up()
         wpage = bytearray(list(range(0x40)))
@@ -96,6 +111,15 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
         self.nvm.write(self.memory_info.memory_info_by_name('internal_sram'), 0x100-0x60, wpage)
         self.nvm.avr.write_memory_section.assert_has_calls([call(Avr8Protocol.AVR8_MEMTYPE_SRAM,
                                                                  0x100, wpage, len(wpage), allow_blank_skip=False)],any_order=True)
+
+    def test_write_undef_mem(self):
+        self.set_up()
+        wpage = bytearray(list(range(0x05)))
+        self.nvm.avr.memtype_read_from_string.return_value=0
+        self.assertRaises(PymcuprogError, self.nvm.write,
+                              self.memory_info.memory_info_by_name('internal_sram'),
+                              0x200-0x100,
+                              wpage)
 
     def test_erase_page(self):
         self.set_up()

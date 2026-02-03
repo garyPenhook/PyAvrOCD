@@ -3,6 +3,8 @@ Harvester scripts
 
 Currently only supports AVR atdf files
 """
+from typing import Any
+
 # pylint: disable=consider-using-f-string,line-too-long
 
 import os
@@ -484,7 +486,7 @@ def get_buf_per_page(element):
     return bufpp
 
 
-def determine_address_size(flash_offset):
+def determine_address_size(flash_offset : int) -> int:
     """
     Determine number of address bits needed for Flash
 
@@ -500,7 +502,7 @@ def determine_address_size(flash_offset):
             address_size = '24-bit'
     return address_size
 
-def harvest_from_file(filename):
+def harvest_from_file(filename : str) -> tuple[ str, list[str]]:
     #pylint: disable=too-many-statements,too-many-branches,too-many-locals
     """
     Harvest parameters from a file
@@ -542,7 +544,7 @@ def harvest_from_file(filename):
     cs0_base = None
     buf_per_page = None
 
-    memories = {}
+    memories : dict[str, Any] = {}
     masked = []
     ronly = []
     for event, elem in xml_iter:
@@ -731,7 +733,7 @@ def harvest_from_file(filename):
     output += "    'interface': '" + '+'.join(interfaces) + "'\n"
     return output, crit_fields
 
-def main():
+def main() -> None:
     """
     Main function for the harvest utility
     """
