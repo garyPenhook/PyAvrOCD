@@ -31,7 +31,7 @@ class SerialToNet(serial.threaded.Protocol):
         self.socket : socket.socket | None = None
         self.last : bytes = b""
 
-    def __call__(self) -> SerialToNet:
+    def __call__(self) -> serial.threaded.Protocol:
         return self
 
     def data_received(self, data : bytes) -> None:
