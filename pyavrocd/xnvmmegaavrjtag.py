@@ -42,7 +42,7 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
     # read and write are declared as staticmethod in the base class,
     # which is an oversight, I believe
     def read(self, memory_info : dict[ str, Any ], offset : int,
-                 numbytes : int, prog_mode : bool=False) -> bytes:
+                 numbytes : int, prog_mode : bool=False) -> bytearray:
         """
         Read the memory in chunks
 
@@ -80,7 +80,7 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
         self.logger_local.debug("Reading from %s (memtype=0x%x) at %X %d bytes",
                                     memory_info['name'], memtype, offset, numbytes)
 
-        data : bytes = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
+        data : bytearray = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
         return data
 
     def write(self, memory_info : dict[ str, Any ], offset : int,

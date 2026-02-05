@@ -147,7 +147,7 @@ class TestGdbHandler(TestCase):
         self.gh.dbg.get_iface.return_value = 'jtag'
         self.gh.dispatch('vCont',b';c')
         self.gh._comsocket.sendall.assert_has_calls([
-            call(rsp("O4A5441472070696E7320617265206E6F7420656E61626C65640A")),
+            call(rsp("O4A5441472070696E7320617265206E6F7420656E61626C6564206F72204F4344454E206973206E6F742070726F6772616D6D65640A")),
             call(rsp("S01"))])
 
     def test_continue_handler_impossible_other_iface(self):
@@ -401,7 +401,7 @@ class TestGdbHandler(TestCase):
         self.set_up()
         self.gh.mon.dispatch.return_value = ('dwoff', 'BlaBlaBla')
         self.assertEqual(self.gh.dispatch('qRcmd', b',642064'), None)
-        self.gh.dbg.dw_disable.assert_called_once()
+        self.gh.dbg.stop_debugging.assert_called_once()
         self.gh._comsocket.sendall.assert_called_with(rsp("426C61426C61426C610A"))
 
     def test_monitorCommand_Target_0(self):

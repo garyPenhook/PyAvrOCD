@@ -18,7 +18,7 @@ from pyavrocd.errors import FatalError
 # 2nd entry: default value
 # 3rd entry: possible option values, '*' means don't care
 monopts: dict[str, tuple[ str | None, str | None, list [ str ] ] ] \
-        = { 'atexit'          : ('cli', 'stayindebugwire', ['stayindebugwire', 'leavedebugwire']),
+        = { 'atexit'          : ('cli', None, ['stay', 'leave']),
             'breakpoints'     : ('cli', 'all', ['all', 'software', 'hardware']),
             'caching'         : ('cli', 'enable', ['enable', 'disable']),
             'debugwire'       : ('cli', None, ['enable', 'disable']),
@@ -26,7 +26,7 @@ monopts: dict[str, tuple[ str | None, str | None, list [ str ] ] ] \
             'help'            : (None, None, []),
             'info'            : (None, None, []),
             'load'            : ('cli', None, ['readbeforewrite', 'writeonly', 'noinitialload']),
-            'onlywhenloaded'  : ('cli', 'enable', ['enable', 'disable']),
+            'onlywhenloaded'  : ('cli', None, ['enable', 'disable']),
             'rangestepping'   : ('cli', 'enable', ['enable', 'disable']),
             'reset'           : (None, None, ['*']),
             'singlestep'      : ('cli', 'safe', ['safe', 'interruptible']),
@@ -103,7 +103,11 @@ class MonitorCommand():
         """
         Set state variables to default values.
         """
-        self._leaveonexit = self._args.atexit[0] == 'l'      # default: atexit stayindebugwire
+        self._leaveonexit = (self._iface == 'debugwire' and self._args.atexit and \
+                                 self._args.atexit[0] == 'l') or \
+                            (self._iface != 'debugwire' and self._args.atexit and \
+                                 self._args.atexit[0] != 's')
+        # default: atexit stayindebugwire
         self._onlyhwbps = self._args.breakpoints[0] == 'h'   # default: breakpoints all
         self._onlyswbps = self._args.breakpoints[0] == 's'   # default: breakpoints all
         self._bpfixed = False                                # only true with ATmega128
@@ -119,7 +123,11 @@ class MonitorCommand():
                                                              # debugWIRE, otherwise: writeonly
         self._only_cache = self._args.load and self._args.load[0] == 'n'
                                                              # 'noinitialload' only if requested
-        self._noload = self._args.onlywhenloaded[0] == 'd'   # default: onlywhenloaded enable
+        self._noload = (self._args.onlywhenloaded and self._args.onlywhenloaded[0] == 'd') or \
+                         (self._args.attach and \
+                              (self._args.onlywhenloaded is None or \
+                                   self._args.onlywhenloaded[0] != 'e'))
+                                                             # default: onlywhenloaded enable (when not --attach)
         self._range = self._args.rangestepping[0] != 'd'     # default: rangestepping enable
         self._safe = self._args.singlestep[0] != 'i'         # default: singlestep safe
         self._timersfreeze = self._args.timers[0] == 'f'     # default: timers run
@@ -146,7 +154,7 @@ class MonitorCommand():
 
     def is_leaveonexit(self) -> bool:
         """
-        Returns True iff the debugger will leave debugWIRE mode on exit
+        Returns True iff the debugger will leave debug mode on exit (i.e.,
         """
         return self._leaveonexit
 
@@ -293,14 +301,12 @@ class MonitorCommand():
         return("", "Ambiguous 'monitor' command string")
 
     def _mon_atexit(self, optix : int) -> tuple[ str, str ]:
-        if self._iface != "debugwire" and 0 <= optix <= 2:
-            return("", "This is not a debugWIRE target")
         if optix == 1 or (optix == 0 and self._leaveonexit is False):
             self._leaveonexit = False
-            return("", "MCU will stay in debugWIRE mode on exit")
+            return("", "MCU will stay in debug mode on exit")
         if optix == 2 or (optix == 0 and self._leaveonexit is True):
             self._leaveonexit = True
-            return("", "MCU will leave debugWIRE mode on exit")
+            return("", "MCU will leave debug mode on exit")
         return self._mon_unknown_arg(0)
 
     def _mon_breakpoints(self, optix : int) -> tuple[ str, str ]:
@@ -415,8 +421,7 @@ If no parameter is specified, the current setting is returned""")
         return ('info',"""PyAvrOCD version:         """ + importlib.metadata.version("pyavrocd") + """
 Target:                   {}
 Debugger:                 """ + self._toolname + """
-Debugging interface:      """ + self._iface + ((" (leave on exit)" if self._leaveonexit else " (stay on exit)") \
-                                                   if self._iface == "debugwire" else "") + """
+Debugging interface:      """ + self._iface + (" (leave on exit)" if self._leaveonexit else " (stay on exit)") + """
 Debugging enabled:        """ + ("yes" if self._debugger_active else "no") + """
 Breakpoints:              """ + ("all types"
                                      if (not self._onlyhwbps and not self._onlyswbps) else

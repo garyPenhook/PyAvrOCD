@@ -28,6 +28,14 @@ With the following command, you generate a coverage report in the folder `cov/`
  poetry run pytest --cov-report=html:cov --cov=pyavrocd/
 ```
 
+### Type checking
+
+Run the static type checker with
+
+```
+poetry run mypy .
+```
+
 
 
 ### End-to-end tests
@@ -41,7 +49,7 @@ serv.sh [<verbosity level>]
 Then start the end-to-end tests in another window (also in the `end-to-end` folder)
 
 ```shell
-poetry run python3 test.py -d <mcu> -c <clock in MHz>
+poetry run python3 e2e_test.py -d <mcu> -c <clock in MHz>
 ```
 
 Afterwards, you need to kill the `serv.sh` script with CTRL-C

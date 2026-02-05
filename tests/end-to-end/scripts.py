@@ -10,7 +10,7 @@ prolog = (
     ("set trace-commands on", ""),
     ("set logging overwrite on", ""),
     ("set logging on",  ""),
-    ("target remote :2000", "__vectors ()", "in ?? ()"),
+    ("target remote :2000", ""),
     ("!rm pyavrocd.options", ""),
     ("monitor debugwire enable", "enabled", "This is not a debugWIRE target"))
 
@@ -252,7 +252,7 @@ all_scripts = {
      ("print 1", ""))
      + epilog),
 
-# C++ program to measure supply voltage
+# Arduino sketch to measure supply voltage
     "measure" : (
     ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino',
          'noautopc'),
@@ -260,7 +260,9 @@ all_scripts = {
     "",
     "",
     (("set logging file log/measure.log", ""),) + prolog + \
-    (("load", "Start address 0x"),
+    (("monitor atexit stay", "MCU will stay in debug mode on exit",
+          "Stay in debugWIRE at exit"),
+     ("load", "Start address 0x"),
      ("break Vcc.cpp:Vcc::setIntref", "Breakpoint 1"),
      ("cont", ""),
      ("p intref", "$1 = 1"),
@@ -270,6 +272,18 @@ all_scripts = {
      ("b success", "Breakpoint 2"),
      ("b fail", "Breakpoint 3"),
      ("cont", "success () at")) + epilog),
+
+# Just attaching to the sketch we left
+    "attach" : (
+    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino',
+         'noautopc'),
+    "",
+    "",
+    "--attach",
+    (("file sketches/measure/measure.ino.elf", ""),
+     ("set logging file log/attach.log", "")) + prolog[0:6] + \
+    (("stepi", "void success(void)"),
+     ("bt", "in setup")) + epilog),
 
 # tests monitor commands across different gdb servers
 # start always with the universal default setting, if it exists
@@ -283,14 +297,12 @@ all_scripts = {
     (("monitor help", "monitor info"),
      ("monitor info", "Target:"),
      ("monitor version", "version"),
-     ("monitor atexit leave", "MCU will leave debugWIRE mode on exit", "Leave debugWIRE at exit",
+     ("monitor atexit leave", "MCU will leave debug mode on exit", "Leave debugWIRE at exit",
           "This is not a debugWIRE target"),
-     ("monitor atexit", "MCU will leave debugWIRE mode on exit", "Leave debugWIRE at exit",
-          "This is not a debugWIRE target"),
-     ("monitor atexit stayindebugwire", "MCU will stay in debugWIRE mode on exit", "Stay in debugWIRE at exit",
-          "This is not a debugWIRE target"),
-     ("monitor atexit", "MCU will stay in debugWIRE mode on exit", "Stay in debugWIRE at exit",
-          "This is not a debugWIRE target"),
+     ("monitor atexit", "MCU will leave debug mode on exit", "Leave debugWIRE at exit"),
+     ("monitor atexit stay", "MCU will stay in debug mode on exit",
+          "Stay in debugWIRE at exit"),
+     ("monitor atexit", "MCU will stay in debug mode on exit", "Stay in debugWIRE at exit"),
      ("monitor breakpoints", "All breakpoints are allowed",
           "On this MCU, only hardware breakpoints are allowed"),
      ("monitor breakpoints software", "Only software breakpoints",
@@ -376,10 +388,8 @@ all_scripts = {
     "",
     "--atexit=l --break=s --cach d --era d --load noinitialload --onlywhen=d --ra=d --single=i --ti f --verify disable",
     (("set logging file log/monitor-options.log", ""),) + prolog + \
-    (("monitor atexit",  "MCU will leave debugWIRE mode on exit", "Leave debugWIRE at exit",
-          "This is not a debugWIRE target"),
-     ("monitor atexit stay", "MCU will stay in debugWIRE mode on exit", "Stay in debugWIRE at exit",
-          "This is not a debugWIRE target"),
+    (("monitor atexit",  "MCU will leave debug mode on exit", "Leave debugWIRE at exit"),
+     ("monitor atexit stay", "MCU will stay in debug mode on exit", "Stay in debugWIRE at exit"),
      ("monitor breakpoints", "Only software breakpoints",
           "On this MCU, only hardware breakpoints are allowed"),
      ("monitor caching", "Flash memory will not be cached",

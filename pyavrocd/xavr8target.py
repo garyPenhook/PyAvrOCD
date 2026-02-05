@@ -535,7 +535,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
 
 
 
-    def regfile_read(self) -> bytes:
+    def regfile_read(self) -> bytearray:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -552,7 +552,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0, regs)
 
-    def statreg_read(self) -> bytes:
+    def statreg_read(self) -> bytearray:
         """
         Reads out SREG
 
@@ -569,7 +569,7 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         """
         return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x5F, data)
 
-    def stack_pointer_read(self) -> bytes:
+    def stack_pointer_read(self) -> bytearray:
         """
         Reads the stack pointer
 
@@ -647,7 +647,7 @@ class XXmegaAvrTarget(XmegaAvrTarget):
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
     # the registers as part of their SRAM address space.
-    def regfile_read(self) -> bytes:
+    def regfile_read(self) -> bytearray:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -656,7 +656,7 @@ class XXmegaAvrTarget(XmegaAvrTarget):
         self.logger_loc.debug("Reading register file")
         return self.protocol.regfile_read()
 
-    def regfile_write(self, regs : bytes) -> bytes:
+    def regfile_write(self, regs : bytes) -> bytearray:
         """
         Writes the AVR register file (R0::R31)
 

@@ -97,14 +97,13 @@ class RspServer():
         finally:
             self.logger.info("Leaving GDB server")
             if self.avrdebugger and self.avrdebugger.device:
-                if self.avrdebugger.get_iface() == "debugwire" and \
-                  self.handler is not None and \
-                  self.handler.mon is not None and \
-                  self.handler.mon.is_debugger_active() and \
-                  self.handler.mon.is_leaveonexit():
-                    self.avrdebugger.dw_disable()
-                    self.handler.mon.set_debug_mode_active(enable=False)
-                self.avrdebugger.stop_debugging(graceful=True)
+                leave : bool = self.avrdebugger.get_iface() != 'debugwire'
+                if self.handler is not None and \
+                    self.handler.mon is not None:
+                    leave = self.handler.mon.is_leaveonexit()
+                if self.handler is None or self.handler.mon is None or \
+                    self.handler.mon.is_debugger_active():
+                    self.avrdebugger.stop_debugging(leave=leave, graceful=True)
             # sleep 0.5 seconds before closing in order to allow the client to close first
             if platform.system() != "Windows":
                 time.sleep(0.5) # under Windows, a system exception is raised

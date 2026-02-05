@@ -286,10 +286,10 @@ class TestMonitorCommand(TestCase):
     def test_dispatch_atexit(self):
         self.set_up()
         self.assertFalse(self.mo._leaveonexit)
-        self.assertEqual(self.mo.dispatch(['atexit']), ("", "MCU will stay in debugWIRE mode on exit"))
-        self.assertEqual(self.mo.dispatch(['at', 'leave']), ("",  "MCU will leave debugWIRE mode on exit"))
+        self.assertEqual(self.mo.dispatch(['atexit']), ("", "MCU will stay in debug mode on exit"))
+        self.assertEqual(self.mo.dispatch(['at', 'leave']), ("",  "MCU will leave debug mode on exit"))
         self.assertTrue(self.mo._leaveonexit)
-        self.assertEqual(self.mo.dispatch(['a', 'stay']), ("",   "MCU will stay in debugWIRE mode on exit"))
+        self.assertEqual(self.mo.dispatch(['a', 'stay']), ("",   "MCU will stay in debug mode on exit"))
         self.assertFalse(self.mo._leaveonexit)
         self.assertEqual(self.mo.dispatch(['atexit', 'bla']), ("", "Unknown argument in 'monitor' command"))
 

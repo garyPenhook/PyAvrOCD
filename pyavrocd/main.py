@@ -50,6 +50,10 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             action='store_true',
                             help="Open web page with help text")
 
+    parser.add_argument("-a", "--attach",
+                            action='store_true',
+                            help="Start without resetting the MCU")
+
     parser.add_argument("-c", "--command",
                             action='append',
                             dest='cmd',

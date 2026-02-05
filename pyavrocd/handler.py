@@ -121,8 +121,8 @@ class GdbHandler():
         except (EndOfSession, KeyboardInterrupt):
             raise
         except Exception as e:
-            self.logger.critical(e)
-            if not self.critical:
+            self.logger.critical(str(e))
+            if self.critical is None:
                 self.critical = str(e)
             self.send_signal(SIGABRT)
 
@@ -168,7 +168,7 @@ class GdbHandler():
             if "debugwire" == self.dbg.get_iface():
                 self.send_debug_message("Enable debugWIRE first: 'monitor debugwire enable'")
             elif "jtag" in self.dbg.get_iface():
-                self.send_debug_message("JTAG pins are not enabled")
+                self.send_debug_message("JTAG pins are not enabled or OCDEN is not programmed")
             else:
                 self.send_debug_message("No connection to OCD. Enable debugging first")
             self.send_signal(SIGHUP)
@@ -413,9 +413,9 @@ class GdbHandler():
                                                recognition=self._send_ready_message)
                 self.dbg.start_debugging()
                 # will only be called if there was no error in connecting to OCD:
-                self.mon.set_debug_mode_active()
+                self.mon.set_debug_mode_active(True)
             elif response[0] == 'dwoff':
-                self.dbg.dw_disable()
+                self.dbg.stop_debugging(leave=True, graceful=False)
                 self.mon.set_debug_mode_active(False)
             elif response[0] == 'reset':
                 if self.mon.is_debugger_active():
@@ -434,7 +434,7 @@ class GdbHandler():
                 self.logger.info("Commands: %s", resp)
             elif 'info' in response[0]:
                 error_line = ""
-                if self.critical:
+                if self.critical is not None:
                     error_line = "\nLast critical error:      " + str(self.critical)
                 response = ("",
                             response[1].format(dev_name[self.dbg.device_info['device_id']],
@@ -445,12 +445,12 @@ class GdbHandler():
                 self.dbg.device.avr.reactivate()
         except AvrIspProtocolError:
             self.logger.critical("ISP programming failed. Wrong connection or wrong MCU?")
-            if self.critical is not None:
+            if self.critical is None:
                 self.critical = "ISP programming failed. Wrong connection or wrong MCU?"
             self.send_reply_packet("ISP programming failed. Wrong connection or wrong MCU?")
         except (FatalError, PymcuprogNotSupportedError, PymcuprogError) as e:
             self.logger.critical(str(e))
-            if self.critical is not None:
+            if self.critical is None:
                 self.critical = str(e)
             self.send_reply_packet("Fatal error: %s" % str(e))
         else:
@@ -508,7 +508,7 @@ class GdbHandler():
                 self.mon.set_debug_mode_active()
         except FatalError as e:
             self.logger.critical("Error while connecting to target OCD: %s", str(e))
-            if not self.critical:
+            if self.critical is None:
                 self.critical = str(e)
             self.dbg.stop_debugging(graceful=True)
         self.logger.debug("debugger_active=%d",self.mon.is_debugger_active())

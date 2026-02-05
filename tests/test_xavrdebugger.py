@@ -2,7 +2,7 @@
 The test suit for the XAvrDebugger class
 """
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
-from unittest.mock import MagicMock, patch,  Mock, call
+from unittest.mock import MagicMock, patch,  Mock, call, ANY
 from unittest import TestCase
 from types import SimpleNamespace
 
@@ -28,6 +28,7 @@ class TestXAvrDebugger(TestCase):
         args.clkdeb = 4000
         args.timers = 'r'
         args.load = 'n'
+        args.attach = False
         args.skipsig = False
         # a debugWIRE target
         self.xa = XAvrDebugger(mock_transport, "attiny85", "debugwire", args)
@@ -65,6 +66,7 @@ class TestXAvrDebugger(TestCase):
         self.xaj._wait_for_break = Mock()
         self.xaj._wait_for_break.return_value = False
         # a UPDI target
+        args.manage = []
         self.xau = XAvrDebugger(mock_transport, "atmega4809", "updi", args)
         self.xau.logger = MagicMock()
         self.xau.transport = mock_transport
@@ -111,7 +113,7 @@ class TestXAvrDebugger(TestCase):
         self.xa.device.avr.protocol.activate_physical.assert_called_once()
         self.xa.device.avr.switch_to_progmode.assert_called_once()
         self.xa.device.avr.switch_to_debmode.assert_called_once()
-        self.assertEqual(self.xa.device.avr.protocol.reset.call_count,0)
+        self.assertEqual(self.xa.device.avr.protocol.reset.call_count,1)
         self.xa.device.avr.protocol.program_counter_read.assert_called_once()
 
     @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())
@@ -155,7 +157,7 @@ class TestXAvrDebugger(TestCase):
         self.xaj.device.avr.protocol.activate_physical.assert_called_once()
         self.xaj.device.avr.switch_to_progmode.assert_called_once()
         self.xaj.device.avr.switch_to_debmode.assert_called_once()
-        self.assertEqual(self.xaj.device.avr.protocol.reset.call_count, 0)
+        self.assertEqual(self.xaj.device.avr.protocol.reset.call_count, 1)
         self.xaj.device.avr.protocol.program_counter_read.assert_called_once()
 
     @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())
@@ -164,27 +166,7 @@ class TestXAvrDebugger(TestCase):
         self.xaj.device.avr.activate_physical.return_value = bytearray([0x3E, 0x93, 0, 0])
         self.assertRaises(FatalError, self.xaj.start_debugging)
 
-    def test_stop_debugging_dw(self):
-        self.set_up()
-        self.xa.stop_debugging(graceful=False)
-        self.xa.device.avr.switch_to_debmode.assert_called_once()
-        self.xa.device.avr.protocol.stop.assert_called_once()
-        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
-        self.xa.device.avr.breakpoint_clear.assert_called_once()
-        self.xa.device.avr.switch_to_progmode.assert_not_called()
-        self.xa.device.avr.protocol.detach.assert_called_once()
-        self.xa.device.avr.deactivate_physical.assert_called_once()
 
-    def test_stop_debugging_jtag(self):
-        self.set_up()
-        self.xaj.stop_debugging(graceful=False)
-        self.xaj.device.avr.switch_to_debmode.assert_called_once()
-        self.xaj.device.avr.protocol.stop.assert_called_once()
-        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
-        self.xaj.device.avr.breakpoint_clear.assert_called_once()
-        self.xaj.device.avr.switch_to_progmode.assert_called_once() # diff to dw!
-        self.xaj.device.avr.protocol.detach.assert_called_once()
-        self.xaj.device.avr.deactivate_physical.assert_called_once()
 
     def test__post_process_after_start_jtag(self):
         self.set_up()
@@ -436,14 +418,14 @@ class TestXAvrDebugger(TestCase):
         self.set_up()
         self.xa.spidevice = Mock()
         self.xa.spidevice.read.side_effect=[bytes([0x00])]
-        self.assertRaises(FatalError, self.xa._check_atmega48_and_88, 0x1E9025)
+        self.assertRaises(FatalError, self.xa._check_atmega48_and_88, 0x1E9205)
 
     @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
     def test__check_atmega48_and_88_atmega48_ok(self):
         self.set_up()
         self.xa.spidevice = Mock()
         self.xa.spidevice.read.side_effect=[bytes([0xFF])]
-        self.xa._check_atmega48_and_88(0x1E9025)
+        self.xa._check_atmega48_and_88(0x1E9205)
 
     @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
     def test__check_atmega48_and_88_atmega88_fail(self):
@@ -468,26 +450,154 @@ class TestXAvrDebugger(TestCase):
         self.xa._power_cycle()
         self.xa.logger.info.assert_has_calls([call("Signed on to tool again")])
 
+    def test_stop_debugging_dw_no_leave(self):
+        self.set_up()
+        self.xa.stop_debugging(leave=False,graceful=False)
+        self.xa.device.avr.switch_to_debmode.assert_called_once()
+        self.xa.device.avr.protocol.stop.assert_called_once()
+        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xa.device.avr.breakpoint_clear.assert_called_once()
+        self.xa.device.avr.switch_to_progmode.assert_not_called()
+        self.xa.device.avr.protocol.debugwire_disable.assert_not_called()
+        self.xa.device.avr.protocol.detach.assert_called_once()
+        self.xa.device.avr.deactivate_physical.assert_called_once()
+        self.xa.housekeeper.end_session.assert_called_once()
+
+    def test_stop_debugging_dw_error_stopping_leave(self):
+        self.set_up()
+        self.xa.device.avr.protocol.stop.side_effect = FatalError("bla")
+        self.xa.stop_debugging(leave=True,graceful=False)
+        self.xa.logger.error.assert_has_calls([
+            call("Error during stopping core and removing BPs: %s", "bla")])
+        self.xa.device.avr.protocol.stop.assert_called_once()
+        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_not_called()
+        self.xa.device.avr.breakpoint_clear.assert_not_called()
+        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+        self.xa.device.avr.switch_to_progmode.assert_not_called()
+        self.xa.device.avr.protocol.detach.assert_called_once()
+        self.xa.device.avr.deactivate_physical.assert_called_once()
+
+    def test_stop_debugging_dw_error_dw_disable_leave(self):
+        self.set_up()
+        self.xa.device.avr.protocol.debugwire_disable.side_effect = FatalError("bla")
+        self.xa.stop_debugging(leave=True,graceful=False)
+        self.xa.logger.error.assert_has_calls([
+            call("Error during disabling debugWIRE mode: %s", "bla")])
+        self.xa.device.avr.protocol.stop.assert_called_once()
+        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xa.device.avr.breakpoint_clear.assert_called_once()
+        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+        self.xa.device.avr.switch_to_progmode.assert_not_called()
+        self.xa.device.avr.protocol.detach.assert_called_once()
+        self.xa.device.avr.deactivate_physical.assert_called_once()
+
+    def test_stop_debugging_jtag(self):
+        self.set_up()
+        self.xaj.stop_debugging(leave=True, graceful=False)
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_called_once() # diff to dw!
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+
+    def test_stop_debugging_jtag_error_ocden(self):
+        self.set_up()
+        self.xaj.device.avr.switch_to_progmode.side_effect = FatalError("bla")
+        self.xaj.stop_debugging(leave=True, graceful=False)
+        self.xaj.logger.error.assert_has_calls([call("Error during unprogramming OCDEN: %s", "bla")])
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_called_once() # diff to dwen
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+
+    def test_stop_debugging_jtag_no_leave(self):
+        self.set_up()
+        self.xaj.stop_debugging(leave=False, graceful=False)
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_not_called()
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+
+    def test_stop_debugging_jtag_leave(self):
+        self.set_up()
+        self.xaj.stop_debugging(leave=False, graceful=False)
+        self.xaj.logger.info.assert_has_calls([
+            call("OCDEN is not cleared because 'atexit' is set to 'stay'")])
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_not_called()
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+
+
+    def test_stop_debugging_jtag_error_deactivate_interface(self):
+        self.set_up()
+        self.xaj.device.avr.deactivate_physical.side_effect = FatalError("blabla")
+        self.xaj.stop_debugging(leave=True, graceful=False)
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_called_once() # diff to dw!
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+        self.xaj.logger.error.assert_has_calls([
+            call("Error during deactivating interface: %s", "blabla")])
+
+    def test_stop_debugging_jtag_error_housekeeper(self):
+        self.set_up()
+        self.xaj.housekeeper.end_session.side_effect = FatalError("blablabla")
+        self.xaj.stop_debugging(leave=True, graceful=False)
+        self.xaj.device.avr.switch_to_debmode.assert_called_once()
+        self.xaj.device.avr.protocol.stop.assert_called_once()
+        self.xaj.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
+        self.xaj.device.avr.breakpoint_clear.assert_called_once()
+        self.xaj.device.avr.switch_to_progmode.assert_called_once() # diff to dw!
+        self.xaj.device.avr.protocol.detach.assert_called_once()
+        self.xaj.device.avr.deactivate_physical.assert_called_once()
+        self.xaj.housekeeper.end_session.assert_called_once()
+        self.xaj.logger.error.assert_has_calls([
+            call("Error while signing off from tool: %s", "blablabla")])
+
     def test_dw_disable_nodwen(self):
         self.set_up()
         self.xa.manage = []
-        self.xa.dw_disable()
-        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
-        self.xa.device.avr.protocol.stop.assert_called_once()
-        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
-        self.xa.housekeeper.end_session.assert_called_once()
+        self.xa._dwen_unprogramming(True)
+        self.xa.housekeeper.start_session.assert_not_called()
+        self.xa.housekeeper.end_session.assert_not_called()
+        self.xa.logger.warning.assert_called_with(ANY)
 
-    @patch('pyavrocd.xavrdebugger.time.sleep',Mock())
+    def test_ocden_unprogramming_not_managed(self):
+        self.set_up()
+        self.xaj.manage = []
+        self.xaj._ocden_unprogramming(True)
+        self.xaj.logger.warning.assert_has_calls([
+            call("OCDEN cannot be disabled since this fuse is not managed by PyAvrOCD")])
+
     @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())
     @patch('pyavrocd.xavrdebugger.NvmAccessProviderCmsisDapSpi', MagicMock())
-    def test_dw_disable_dwen(self):
+    def test_dwen_unprogramming(self):
         self.set_up()
         self.xa.manage = ['dwen']
-        self.xa.dw_disable()
-        self.xa.logger.info.assert_called_with("... disabling debugWIRE mode done")
-        self.xa.device.avr.protocol.software_breakpoint_clear_all.assert_called_once()
-        self.xa.device.avr.protocol.stop.assert_called_once()
-        self.xa.device.avr.protocol.debugwire_disable.assert_called_once()
+        self.xa._dwen_unprogramming(True)
+        self.xa.logger.info.assert_called_with("Signed off from tool")
+        self.xa.housekeeper.start_session.assert_called_once()
+        self.xa.housekeeper.end_session.assert_called_once()
         self.xa.spidevice.isp.enter_progmode.assert_called_once()
         self.xa.spidevice.isp.write_fuse_byte.assert_called_once()
         self.xa.spidevice.isp.leave_progmode.assert_called_once()

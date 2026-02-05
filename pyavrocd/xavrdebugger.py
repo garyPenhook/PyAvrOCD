@@ -165,68 +165,10 @@ class XAvrDebugger(AvrDebugger):
         self.logger.info("Switched to debugging mode")
         self._check_stuck_at_one_pc()
         self.logger.info("... debug session startup done")
+        if not self.args.attach:
+            self.reset()
         return True
 
-    # Cleanup code for detaching from target
-    def stop_debugging(self, graceful : bool = True) -> None:
-        """
-        Stop the debug session and clean up in a safe way
-        """
-        self.logger.info("Terminating debugging session ...")
-        try:
-            # Switch to debugging mode
-            self.switch_to_debmode()
-            self.logger.info("Switched to debugging mode")
-            # Halt the core
-            self.device.avr.protocol.stop()
-            self.logger.info("AVR core stopped")
-            # Remove all software breakpoints
-            self.device.avr.protocol.software_breakpoint_clear_all()
-            self.logger.info("All software breakpoints removed")
-            # Remove all hardware  breakpoints
-            self.device.avr.breakpoint_clear()
-            self.logger.info("All hardware breakpoints removed")
-        except Exception as e:
-            if not graceful:
-                self.logger.info("Error during stopping core and removing BPs: %s", e)
-        try:
-            # Disable OCDEN
-            if 'ocden_base' in self.device_info and 'ocden' in self.manage:
-                self.switch_to_progmode()
-                self.logger.info("Switched to programming mode")
-                fuses = self.read_fuse(0, 3)
-                self.logger.debug("Fuses read: %X %X %X",fuses[0], fuses[1], fuses[2])
-                ofuse_addr = self.device_info['ocden_base']
-                ofuse_mask = self.device_info['ocden_mask']
-                self.write_fuse(ofuse_addr, bytearray([fuses[ofuse_addr] | ofuse_mask]))
-                self.logger.info("OCDEN unprogrammed")
-        except Exception as e:
-            if not graceful:
-                self.logger.error("Error during unprogramming OCDEN: %s", e)
-        try:
-            # Detach from the OCD
-            self.device.avr.protocol.detach()
-            self.logger.info("Detached from OCD")
-        except Exception as e:
-            if not graceful:
-                self.logger.error("Error during detaching from OCD: %s", e)
-        try:
-            # De-activate physical interface
-            self.device.avr.deactivate_physical()
-            self.logger.info("Physical interface deactivated")
-        except Exception as e:
-            if not graceful:
-                self.logger.error("Error during deactivating interface: %s", e)
-        try:
-            # Sign off device
-            if self.use_events_for_run_stop_state:
-                if self.housekeeper is not None:
-                    self.housekeeper.end_session()
-                    self.logger.info("Signed off from tool")
-        except Exception as e:
-            if not graceful:
-                self.logger.info("Error while signing off from tool: %s", e)
-        self.logger.info("... terminating debugging session done")
 
     def _post_process_after_start(self) -> None:
         """
@@ -351,8 +293,9 @@ class XAvrDebugger(AvrDebugger):
         """
 
         try:
-            not_edbg : bool = 'edbg' not in self.transport.device.product_string.lower()
-            dev_id : bytes = self.device.avr.protocol.activate_physical(use_reset=not_edbg)
+            use_reset : bool = 'edbg' not in self.transport.device.product_string.lower() and \
+              not self.args.attach
+            dev_id : bytes = self.device.avr.protocol.activate_physical(use_reset=use_reset)
             dev_code : int = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
             self.logger.info("Physical interface activated: 0x%X", dev_code)
         except Jtagice3ResponseError as error:
@@ -361,7 +304,7 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.warning("Physical state out of sync. Retrying.")
                 self.device.avr.deactivate_physical()
                 self.logger.info("Physical interface deactivated")
-                dev_id = self.device.avr.protocol.activate_physical(use_reset=not_edbg)
+                dev_id = self.device.avr.protocol.activate_physical(use_reset=use_reset)
                 dev_code = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
                 self.logger.info("Physical interface activated. MCU id=0x%X", dev_code)
             elif error.code == Avr8Protocol.AVR8_FAILURE_DW_PHY_ERROR:
@@ -371,7 +314,7 @@ class XAvrDebugger(AvrDebugger):
                   from error
             elif error.code == Avr8Protocol.AVR8_FAILURE_CLOCK_ERROR:
                 self.logger.warning("Communication clock failure. Retrying.")
-                dev_id = self.device.avr.protocol.activate_physical(use_reset=not_edbg)
+                dev_id = self.device.avr.protocol.activate_physical(use_reset=use_reset)
                 dev_code = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
                 self.logger.info("Physical interface activated. MCU id=0x%X", dev_code)
             else:
@@ -604,49 +547,114 @@ class XAvrDebugger(AvrDebugger):
             time.sleep(0.1)
         raise FatalError("Timed out waiting for power-cycle")
 
-    def dw_disable(self) -> None:
+    # Cleanup code for detaching from target
+    def stop_debugging(self, leave : bool = False, graceful : bool = True) -> None:
         """
-        Disables debugWIRE and unprograms the DWEN fusebit. After this call,
-        there is no connection to the target anymore. For this reason all critical things
-        needs to be done before, such as cleaning up breakpoints.
+        Stop the debug session and clean up in a safe way
         """
-        # stop core
-        self.logger.info("Disabling debugWIRE mode...")
-        self.device.avr.protocol.stop()
-        self.logger.info("AVR core stopped")
-        # clear all breakpoints
-        self.software_breakpoint_clear_all()
-        self.logger.info("All software breakpoints removed")
-        # disable DW
-        self.device.avr.protocol.debugwire_disable()
-        self.logger.info("DebugWIRE mode disabled")
-        # stop all debugging activities
-        self.device.avr.protocol.detach()
-        self.logger.info("Detached from OCD")
-        self.device.avr.deactivate_physical()
-        self.logger.info("Physical interface deactivated")
-        if 'dwen' not in self.manage:
-            self.logger.warning("Cannot unprogram DWEN since this fuse is not managed by PyAvrOCD")
-            self.logger.warning("Unprogram this fuse before switching the power of the MCU off!")
-            self.logger.warning("In order to let payavrocd manage this fuse use: '-m dwen'.")
-        else:
-            # sign off
+        self.logger.info("Terminating debugging session ...")
+        try:
+            # Switch to debugging mode
+            self.switch_to_debmode()
+            self.logger.info("Switched to debugging mode")
+            # Halt the core
+            self.device.avr.protocol.stop()
+            self.logger.info("AVR core stopped")
+            # Remove all software breakpoints
+            self.device.avr.protocol.software_breakpoint_clear_all()
+            self.logger.info("All software breakpoints removed")
+            # Remove all hardware  breakpoints
+            self.device.avr.breakpoint_clear()
+            self.logger.info("All hardware breakpoints removed")
+        except Exception as e:
+            if not graceful:
+                self.logger.error("Error during stopping core and removing BPs: %s", str(e))
+        # if JTAG, disable OCDEN fuse
+        if self._iface == 'jtag':
+            self._ocden_unprogramming(leave)
+        # if debugWIRE, disable dw mode
+        try:
+            if self._iface == "debugwire" and leave:
+                self.device.avr.protocol.debugwire_disable()
+                self.logger.info("DebugWIRE mode disabled")
+        except Exception as e:
+            if not graceful:
+                self.logger.error("Error during disabling debugWIRE mode: %s", str(e))
+        # Detach from the OCD
+        try:
+            self.device.avr.protocol.detach()
+            self.logger.info("Detached from OCD")
+        except Exception as e:
+            if not graceful:
+                self.logger.error("Error during detaching from OCD: %s", str(e))
+        # De-activate physical interface
+        try:
+            self.device.avr.deactivate_physical()
+            self.logger.info("Physical interface deactivated")
+        except Exception as e:
+            if not graceful:
+                self.logger.error("Error during deactivating interface: %s", str(e))
+        # Sign off device
+        try:
             if self.housekeeper is not None:
                 self.housekeeper.end_session()
                 self.logger.info("Signed off from tool")
-            # start housekeeping again
-            time.sleep(0.5)
+        except Exception as e:
+            if not graceful:
+                self.logger.error("Error while signing off from tool: %s", str(e))
+        # if debugWIRE, disable DWEN
+        if self._iface == 'debugwire':
+            self._dwen_unprogramming(leave)
+        self.logger.info("... terminating debugging session done")
+
+
+    def _ocden_unprogramming(self, leave : bool) -> None:
+        """
+        Unprogram OCDEN fuse if allowed and possible
+        """
+        if not leave:
+            self.logger.info("OCDEN is not cleared because 'atexit' is set to 'stay'")
+            return
+        if 'ocden' not in self.manage:
+            self.logger.warning("OCDEN cannot be disabled since this fuse is not managed by PyAvrOCD")
+            self.logger.warning("In order to let payavrocd manage this fuse use: '-m ocden'.")
+            return
+        try:
+            # Disable OCDEN
+            self.switch_to_progmode()
+            self.logger.info("Switched to programming mode")
+            fuses : bytearray = self.read_fuse(0, 3)
+            self.logger.debug("Fuses read: %X %X %X",fuses[0], fuses[1], fuses[2])
+            ofuse_addr : int = self.device_info['ocden_base']
+            ofuse_mask : int = self.device_info['ocden_mask']
+            self.write_fuse(ofuse_addr, bytearray([fuses[ofuse_addr] | ofuse_mask]))
+            self.logger.info("OCDEN unprogrammed")
+        except Exception as e:
+            self.logger.error("Error during unprogramming OCDEN: %s", str(e))
+
+    def _dwen_unprogramming(self, leave : bool) -> None:
+        """
+        Unprogram DWEN fuse if allowed and possible
+        """
+        if not leave:
+            return
+        if 'dwen' not in self.manage:
+            self.logger.warning("DWEN cannot be disabled since this fuse is not managed by PyAvrOCD")
+            self.logger.warning("Disable this fuse before switching the power of the MCU off!")
+            self.logger.warning("In order to let payavrocd manage this fuse use: '-m dwen'.")
+            return
+        try:
             self.housekeeper = housekeepingprotocol.Jtagice3HousekeepingProtocol(self.transport)
             self.housekeeper.start_session()
             self.logger.info("Signed on to tool again")
             # now open an ISP programming session again
-            self.logger.info("Reconnecting in ISP mode")
+            self.logger.info("Reconnecting in SPI programming mode")
             self.spidevice = NvmAccessProviderCmsisDapSpi(self.transport, self.device_info)
             self.spidevice.isp.enter_progmode()
             self.logger.info("Entered SPI programming mode")
-            dwen_addr = self.device_info['dwen_base']
-            dwen_mask = self.device_info['dwen_mask']
-            dwen_byte = self.spidevice.isp.read_fuse_byte(dwen_addr)
+            dwen_addr : int = self.device_info['dwen_base']
+            dwen_mask : int = self.device_info['dwen_mask']
+            dwen_byte : bytearray = self.spidevice.isp.read_fuse_byte(dwen_addr)
             self.logger.debug("DWEN byte: 0x%X", dwen_byte[0])
             dwen_byte[0] |= dwen_mask
             self.logger.debug("New DWEN byte: 0x%X", dwen_byte[0])
@@ -654,11 +662,10 @@ class XAvrDebugger(AvrDebugger):
             self.logger.info("Unprogrammed DWEN fuse")
             self.spidevice.isp.leave_progmode()
             self.logger.info("SPI programming terminated")
-        # we do not interact with the tool anymore after this
-        if self.housekeeper is not None:
             self.housekeeper.end_session()
             self.logger.info("Signed off from tool")
-        self.logger.info("... disabling debugWIRE mode done")
+        except Exception as e:
+            self.logger.error("Error during unprogramming DWEN: %s", str(e))
 
     def cold_dw_disable(self) -> None:
         """
@@ -671,7 +678,7 @@ class XAvrDebugger(AvrDebugger):
             self.logger.error("Cannot connect to target using the debugWIRE command")
             self.logger.error("MCU is probably already in normal state")
             return
-        self.dw_disable()
+        self.stop_debugging(leave=True, graceful=False)
 
     def switch_to_debmode(self) -> bool:
         """
@@ -723,7 +730,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Writing stack pointer")
         self.device.avr.stack_pointer_write(data)
 
-    def status_register_read(self) -> bytes:
+    def status_register_read(self) -> bytearray:
         """
         Reads the status register from the AVR
 
@@ -743,7 +750,7 @@ class XAvrDebugger(AvrDebugger):
         self.logger.debug("Write status register: %s", data)
         self.device.avr.statreg_write(data)
 
-    def register_file_read(self) -> bytes:
+    def register_file_read(self) -> bytearray:
         """
         Reads out the AVR register file (R0::R31)
 
@@ -772,13 +779,13 @@ class XAvrDebugger(AvrDebugger):
         self.device.avr.protocol.reset()
         self._wait_for_break()
 
-    def read_fuse(self, addr : int, size : int) -> bytes:
+    def read_fuse(self, addr : int, size : int) -> bytearray:
         """
         Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, size)
 
-    def read_fuse_one_byte(self, addr : int) -> bytes:
+    def read_fuse_one_byte(self, addr : int) -> bytearray:
         """
         Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
         """
@@ -791,13 +798,13 @@ class XAvrDebugger(AvrDebugger):
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, data)
 
-    def read_lock(self, addr : int, size : int) -> bytes:
+    def read_lock(self, addr : int, size : int) -> bytearray:
         """
         Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, size)
 
-    def read_lock_one_byte(self) -> bytes:
+    def read_lock_one_byte(self) -> bytearray:
         """
         Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
         """
@@ -809,7 +816,7 @@ class XAvrDebugger(AvrDebugger):
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, data)
 
-    def read_sig(self, addr : int, size : int) -> bytes:
+    def read_sig(self, addr : int, size : int) -> bytearray:
         """
         Read signature in a liberal way, i.e., throwing no errors
         """
@@ -818,7 +825,7 @@ class XAvrDebugger(AvrDebugger):
             resp += [0xFF]*(addr+size)
         return bytearray(resp[addr:addr+size])
 
-    def read_usig(self, addr : int, size : int) -> bytes:
+    def read_usig(self, addr : int, size : int) -> bytearray:
         """
         Read contents of user signature (does not work with debugWIRE)
         """
@@ -830,7 +837,7 @@ class XAvrDebugger(AvrDebugger):
         """
         return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, data)
 
-    def flash_read(self, address : int, numbytes : int, prog_mode : bool = False) -> bytes:
+    def flash_read(self, address : int, numbytes : int, prog_mode : bool = False) -> bytearray:
         """
         Read flash content from the AVR
 

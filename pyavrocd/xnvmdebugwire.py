@@ -39,7 +39,7 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
     # reason for the difference: read and write are declared as staticmethod in the base class,
     # which is an oversight, I believe
     def read(self, memory_info : dict[ str, Any ], offset : int,
-                 numbytes : int, prog_mode : bool=False) -> bytes:
+                 numbytes : int, prog_mode : bool=False) -> bytearray:
         """
         Read the memory in chunks
 
@@ -70,7 +70,7 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
 
         self.logger.debug("Reading from %s at %X %d bytes", memory_info['name'], offset, numbytes)
 
-        data : bytes = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
+        data : bytearray = self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
         return data
 
     def write(self, memory_info : dict[ str, Any ], offset : int,
