@@ -54,6 +54,8 @@ jobs:
       - name: Run unit-tests
         if: ${{ github.event.release.tag_name != '' }}
         run: |
+          mypy .
+          pylint pyavrocd
           pytest
 
   build-binaries:
