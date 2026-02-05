@@ -1,15 +1,25 @@
 # Changelog
 
-### 1.0.1
+### 1.1.0
 
 - **Fixed:**
      - Adaptation of `--debugwire` handling in dwlink.py
      - Added "https://" to `webbrowse`r call so that webhelp (option `-H`) works with Python versions <3.14
-     - Termination code in `RspServer` fixed: `__del__` is not used any longer
+     - Termination code in all classes fixed: `__del__` is not used any longer
 
 - **Added:**
-     - Added type annotations and checked everything with mypy
-     - Distinguishing ATiny2313 from ATtiny2313A when verifying the chip signature
+     - Added option `--attach`: Try to reattach to an MCU that is in debug mode. This will automatically set `onlywhenloaded` to `disable`.
+     - Added option `--skip-signature-verification`: Only for internal purposes
+     - Added type annotations for the PyAvrOCD package and checked everything with mypy
+     - Distinguishing ATiny2313 from ATtiny2313A after verifying the chip signature
+
+- **Changed:**
+     - `stop_debugging` in `XAvrDebug` will now also stop the debugging process for debugWIRE
+     - The `atexit` monitor command now has the options `leave` and `stay`,  and applies to all targets. This has become necessary because of the `--attach` option. For debugWIRE, the default is `stay`, for all others `leave`.
+
+- **Removed:**
+     - `dw_disable` in `XAvrDebug` has been removed
+
 
 
 ### 1.0.0 (24-Jan-2022)
@@ -31,6 +41,7 @@
 - **Removed:**
      - The special case method `_check_atmega16` is not needed anymore.
      - The monitor option `NoXML`has been removed because we have now the CLI option `--memory-map-disable` .
+     - The `reset` call during initialization in `_check_stuck_at_one_pc` has been removed. This means that in principle one could re-attach.
 - **Changed:**
      - The option value `onlycaching`has been changed to `noinitialload`.
      - The stuck-at-1 PC bit routine has been simplified because of a fix submitted to GDB. Unused bits in return addresses are now masked out in GDB.
