@@ -10,10 +10,13 @@ PyAvrOCD will then look for a debug probe, establish a connection to it, and wai
 
 If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, the command line options may be interesting to you because you may want to change some of them using a [configuration file](install-link.md#configuration).
 
+## Command line options
+
 | Option&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `--help`<br/> `-h`                                           | Gives help text and exits.                                   |
 | `--webhelp`<br/>`-H`                                         | Opens web page with help text.                               |
+| `--attach`<br/>`-a`                                          | Connect to the target without a `RESET`, if possible. This does not work when one connects to a target initially. However, if one had a debugging session before, and one has not disconnected with `atexit leave` or with `debugwire disable`, then one should be able to attach to the running process. |
 | `--command`<br>`-c`                                          | Command to set the gdb port (OpenOCD style), which is used in the Arduino IDE 2 interface. This is an alternative to the `--port` option. |
 | `--device` <br>`-d`                                          | The argument to this option specifies the MCU type of the target chip in lower case.  This option is mandatory. If a '?' mark is given, all supported MCUs are listed. |
 | `--debug-clock`<br>`-D`                                      | JTAG clock frequency for debugging in kHz. This value should be less than a quarter of the MCU clock frequency. The default is min(2000, `F_CPU`/5000) in kHz. |
@@ -30,7 +33,10 @@ If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, 
 | `--xargs`<br> `-x`                                           | Extra arguments for `simavr`.                                |
 | `--reboot-debugger`                                          | Will reboot the debugger before starting the debug session. This can take up to 10 seconds on a PICkit4. |
 | `--dw-link-baud`                                             | Communication speed for the serial line to dw-link, default is 115200. Needs only be specified if dw-link is compiled with a different value. |
-| `--memory-map-disable`                                       | This option will disable the usage of the XML memory map. This option is only there for testing purposes. |
+| `--memory-map-disable`                                       | This option, which does not take a value, will disable the usage of the XML memory map. This option is only there for testing purposes. |
+| `--skip-signature-verification`                              | Do not perform chip signature verification. This is another option for testing purposes. |
+
+## Additional command line options derived from monitor commands
 
 You can also use the [monitor command options](monitor-commands.md) as command-line options when invoking PyAvrOCD. For example, you may specify `--verify enable,` which has the same effect as issuing the command `monitor verify enable` in the debugger after a connection to the GDB server has been established. One-character abbreviations for such option values are possible, and with the usual abbreviation rules for options, one can shorten this to `--veri e`.
 
