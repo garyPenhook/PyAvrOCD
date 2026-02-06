@@ -105,8 +105,8 @@ class MonitorCommand():
         """
         self._leaveonexit = (self._iface == 'debugwire' and self._args.atexit and \
                                  self._args.atexit[0] == 'l') or \
-                            (self._iface != 'debugwire' and self._args.atexit and \
-                                 self._args.atexit[0] != 's')
+                            (self._iface != 'debugwire' and (self._args.atexit is None or \
+                                 self._args.atexit[0] != 's'))
         # default: atexit stayindebugwire
         self._onlyhwbps = self._args.breakpoints[0] == 'h'   # default: breakpoints all
         self._onlyswbps = self._args.breakpoints[0] == 's'   # default: breakpoints all
@@ -301,6 +301,7 @@ class MonitorCommand():
         return("", "Ambiguous 'monitor' command string")
 
     def _mon_atexit(self, optix : int) -> tuple[ str, str ]:
+        assert self._leaveonexit is True or self._leaveonexit is False, "self._leaveonexit violates LEM"
         if optix == 1 or (optix == 0 and self._leaveonexit is False):
             self._leaveonexit = False
             return("", "MCU will stay in debug mode on exit")
@@ -388,34 +389,25 @@ class MonitorCommand():
         return self._mon_unknown_arg(0)
 
     def _mon_help(self, _ : int) -> tuple[ str, str ]:
-        return("", """monitor help                       - this help text
-monitor version                    - print version
-monitor info                       - print info about target and debugger
-monitor reset                      - reset MCU
-monitor atexit [stayindebugwire|leavedebugwire]
-                                   - stay in debugWIRE on exit (def.) or leave
-monitor breakpoints [all|software|hardware]
-                                   - allow breakpoints of a certain kind
-monitor caching [enable|disable]   - use loaded executable as cache (default)
-monitor debugwire [enable|disable] - activate/deactivate debugWIRE mode,
-monitor erasebeforeload [enable|disable]
-                                   - erase flash memory before load (default)
-                                     except for debugWIRE
-monitor load [readbeforewrite|writeonly|noinitialload]
-                                   - optimize loading by first reading flash
-                                     before writing (default only for
-                                     debugWIRE), write blindly, or fill only
-                                     cache at first load action, later
-                                     do read-before-write
-monitor onlywhenloaded [enable|disable]
-                                   - execute only with loaded executable
-monitor rangestepping [enable|disable]
-                                   - allow range stepping
-monitor singlestep [safe|interruptible]
-                                   - single stepping mode; safe is default
-monitor timers [run|freeze]        - run (default) or freeze timers when stopped
-monitor verify [enable|disable]    - verify that loading was successful (def.)
-If no parameter is specified, the current setting is returned""")
+        return("", """help                                - this help text
+version                             - print version
+info                                - print info about target and debugger
+reset                               - reset MCU
+atexit [stay|leave]                 - stay in debug mode on exit (def.) or leave
+breakpoints [all|software|hardware] - allow breakpoints of a certain kind
+caching [enable|disable]            - use loaded executable as cache (default)
+debugwire [enable|disable]          - activate/deactivate debugWIRE mode,
+erasebeforeload [enable|disable]    - erase flash memory before load (default
+                                      except for debugWIRE)
+load [readbeforewrite|writeonly|noinitialload]
+                                    - read flash before writing (default for
+                                      debugWIRE), write blindly, or read
+                                      w/o flashing initially
+onlywhenloaded [enable|disable]     - execute only with loaded executable
+rangestepping [enable|disable]      - allow range stepping
+singlestep [safe|interruptible]     - single stepping mode; safe is default
+timers [run|freeze]                 - run (def.) or freeze timers when stopped
+verify [enable|disable]             - verify that loading was successful (def.)""")
 
     def _mon_info(self, _ : int) -> tuple[ str, str ]:
         return ('info',"""PyAvrOCD version:         """ + importlib.metadata.version("pyavrocd") + """

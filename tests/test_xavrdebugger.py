@@ -111,8 +111,8 @@ class TestXAvrDebugger(TestCase):
         self.xa.device.avr.setup_debug_session.assert_called_once()
         self.xa.device.avr.setup_config.assert_called_once()
         self.xa.device.avr.protocol.activate_physical.assert_called_once()
-        self.xa.device.avr.switch_to_progmode.assert_called_once()
-        self.xa.device.avr.switch_to_debmode.assert_called_once()
+        self.xa.device.avr.switch_to_progmode.assert_not_called()
+        self.xa.device.avr.switch_to_debmode.assert_not_called()
         self.assertEqual(self.xa.device.avr.protocol.reset.call_count,1)
         self.xa.device.avr.protocol.program_counter_read.assert_called_once()
 
@@ -139,16 +139,19 @@ class TestXAvrDebugger(TestCase):
         self.xaj.device_info['bootrst_mask'] = 0x08
         self.xaj.device_info['ocden_base'] = 0x02
         self.xaj.device_info['ocden_mask'] = 0x04
-        self.xaj.device.avr.protocol.activate_physical.return_value = bytearray([0x3F, 0x93, 0, 0])
-        self.xaj.device.avr.memory_read.side_effect = [ bytearray([0x1E, 0x96, 0x09]), # signature
-                                                            bytearray([0xFF]),  # lockbits
-                                                            bytearray([0xFF]),  # bootrst
-                                                            bytearray([0x04]),  # ocden
-                                                            bytearray([0x00])  # ocden after programming
-                                                            ]
+        self.xaj.device.avr.protocol.activate_physical.return_value = \
+                                                   bytearray([0x3F, 0x90, 0x60, 0x09])
+        self.xaj.device.avr.memory_read.side_effect = [ bytearray([0xFF]),  # lockbits
+                                                        bytearray([0xFF]),  # bootrst
+                                                        bytearray([0x04]),  # ocden
+                                                        bytearray([0x00]),  # ocden after programming
+                                                        bytearray([0x1E, 0x96, 0x09]) # signature
+                                                       ]
         self.xaj.device.avr.protocol.program_counter_read.return_value = 0x0
         self.xaj.memory_info.memory_info_by_name.return_value={'size': 0x1000, 'address': 0x200}
         self.xaj.device.read.return_value = [0]
+        self.xaj.device.avr.protocol.stop.side_effect = \
+          Jtagice3ResponseError(code=Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS, msg="bla")
         self.assertTrue(self.xaj.start_debugging())
         self.assertEqual(self.xaj.device.avr.memory_read.call_count, 5)
         self.xaj.housekeeper.start_session.assert_called_once()
@@ -168,7 +171,7 @@ class TestXAvrDebugger(TestCase):
 
 
 
-    def test__post_process_after_start_jtag(self):
+    def test__manage_fuses_jtag(self):
         self.set_up()
         self.xaj._iface = 'jtag'
         self.xaj.manage = ['bootrst', 'lockbits', 'ocden']
@@ -178,46 +181,96 @@ class TestXAvrDebugger(TestCase):
         self.xaj.device_info['ocden_mask'] = 0x04
         # read lockbits and fuses: lockbits before and after, bootrst (not set), ocden before and after
         self.xaj.device.avr.memory_read.side_effect = [bytearray([0x0F]), bytearray([0xFF]),
-                                                          bytearray([0xFF]), bytearray([0x04]),
-                                                          bytearray([0x00]), bytearray([0x00])]
-        self.xaj._post_process_after_start()
+                                                       bytearray([0x00]), bytearray([0x08]),
+                                                       bytearray([0x04]), bytearray([0x00]),
+                                                       bytearray([0x1E, 0x96, 0x09])]
+        self.xaj._manage_fuses()
         self.xaj.device.erase.assert_called_once()
-        self.xaj.device.avr.memory_read.assert_has_calls([call(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1),
-                                                         call(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1),
-                                                         call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 1, 1),
-                                                         call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 2, 1),
-                                                         call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 2, 1)])
+        self.xaj.device.avr.memory_read.assert_has_calls(
+            [call(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 1, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 1, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 2, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 2, 1),
+             call(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)])
         self.xaj.device.avr.memory_write.assert_has_calls([call(Avr8Protocol.AVR8_MEMTYPE_FUSES, 2,
                                                               bytearray([0]))])
 
     @patch('pyavrocd.xavrdebugger.logging.getLogger', MagicMock())
-    def test__post_process_after_start_not_managed(self):
+    def test__manage_fuses_lockbits_not_managed(self):
         self.set_up()
-        self.xaj.device.avr.memory_read.return_value = bytes([0xFF])
+        self.xaj.device.avr.memory_read.return_value = bytes([0x0F])
         self.xaj._iface = 'jtag'
-        self.xaj.manage = ['bootrst', 'lockbits']
+        self.xaj.manage = ['bootrst']
         self.xaj.device_info['bootrst_base'] = 0x01
         self.xaj.device_info['bootrst_mask'] = 0x08
         self.xaj.device_info['ocden_base'] = 0x02
         self.xaj.device_info['ocden_mask'] = 0x04
-        self.assertRaises(FatalError, self.xaj._post_process_after_start)
+        self.assertRaises(FatalError, self.xaj._manage_fuses)
+        self.xaj.logger.warning.assert_has_calls([
+            call("Alternatively, let PyAvrOCD manage it: '-m lockbits'")])
+
+    @patch('pyavrocd.xavrdebugger.logging.getLogger', MagicMock())
+    def test__manage_fuses_ocden_not_managed(self):
+        self.set_up()
+        self.xaj.device.avr.memory_read.side_effect = [ bytearray([0xFF]),
+                                                        bytearray([0xFF]),
+                                                        bytearray([0xFF]) ]
+        self.xaj._iface = 'jtag'
+        self.xaj.manage = ['bootrst']
+        self.xaj.device_info['bootrst_base'] = 0x01
+        self.xaj.device_info['bootrst_mask'] = 0x08
+        self.xaj.device_info['ocden_base'] = 0x02
+        self.xaj.device_info['ocden_mask'] = 0x04
+        self.assertRaises(FatalError, self.xaj._manage_fuses)
         self.xaj.logger.warning.assert_has_calls([
             call("Or let payavrocd manage this fuse: '-m ocden'.")])
-        self.xaj.manage = ['bootrst', 'lockbits', 'ocden']
+
+    @patch('pyavrocd.xavrdebugger.logging.getLogger', MagicMock())
+    def test__manage_fuses_sig_ok(self):
+        self.set_up()
+        self.xaj.device.avr.memory_read.side_effect = [ bytearray([0xFF]),
+                                                        bytearray([0x00]),
+                                                        bytearray([0x00]),
+                                                        bytearray([0x1E, 0x96, 0x09])]
+        self.xaj._iface = 'jtag'
+        self.xaj.manage = []
+        self.xaj.device_info['bootrst_base'] = 0x01
+        self.xaj.device_info['bootrst_mask'] = 0x08
+        self.xaj.device_info['ocden_base'] = 0x02
+        self.xaj.device_info['ocden_mask'] = 0x04
+        self.xaj._manage_fuses()
+        self.xaj.logger.info.assert_has_calls([
+            call("Switched to debugging mode")])
+
+    def test__manage_fuses_sig_fail(self):
+        self.set_up()
+        self.xaj.device.avr.memory_read.side_effect = [ bytearray([0xFF]),
+                                                        bytearray([0x00]),
+                                                        bytearray([0x00]),
+                                                        bytearray([0x1E, 0x96, 0x0A])]
+        self.xaj._iface = 'jtag'
+        self.xaj.manage = []
+        self.xaj.device_info['bootrst_base'] = 0x01
+        self.xaj.device_info['bootrst_mask'] = 0x08
+        self.xaj.device_info['ocden_base'] = 0x02
+        self.xaj.device_info['ocden_mask'] = 0x04
+        self.assertRaises(FatalError, self.xaj._manage_fuses)
 
 
     @patch('pyavrocd.xavrdebugger.logging.getLogger', MagicMock())
-    def test__post_process_after_start_nothing_to_do(self):
+    def test__manage_fuses_nothing_to_do(self):
         self.set_up()
         self.xaj.device.avr.memory_read.side_effect = [
-            bytes([0xFF]), bytes([0xFF]), bytes([0x00]) ]
+            bytes([0xFF]), bytes([0x08]), bytes([0x00]), bytearray([0x1E, 0x96, 0x09]) ]
         self.xaj._iface = 'jtag'
         self.xaj.manage = ['bootrst', 'lockbits', 'ocden']
         self.xaj.device_info['bootrst_base'] = 0x01
         self.xaj.device_info['bootrst_mask'] = 0x08
         self.xaj.device_info['ocden_base'] = 0x02
         self.xaj.device_info['ocden_mask'] = 0x04
-        self.xaj._post_process_after_start()
+        self.xaj._manage_fuses()
         self.xaj.logger.info.assert_has_calls([
             call("OCDEN is already programmed")])
 
@@ -349,7 +402,7 @@ class TestXAvrDebugger(TestCase):
                MagicMock(side_effect = [bytearray([0x0F]), bytearray([0x0FF])]))
     @patch('pyavrocd.xavrdebugger.AvrIspProtocol.read_fuse_byte',
                MagicMock(side_effect = [bytearray([0x00]), bytearray([0x08]),
-                                        bytearray([0x14])]))
+                                        bytearray([0x04]) ]))
     @patch('pyavrocd.xavrdebugger.AvrIspProtocol.write_fuse_byte', MagicMock())
     #pylint: disable=no-member
     def test_prepare_debugging_debugWIRE(self):
@@ -360,11 +413,11 @@ class TestXAvrDebugger(TestCase):
         self.xa.device_info['dwen_base'] = 0x02
         self.xa.device_info['dwen_mask'] = 0x04
         self.xa.housekeeper = Mock()
-        self.xa.prepare_debugging(callback=lambda: True)
+        self.xa.prepare_debugging(callback=lambda: True, recognition=lambda: None)
         self.xa.spidevice.isp.read_lockbits.assert_has_calls([call(), call()])
         self.xa.spidevice.isp.read_fuse_byte.assert_has_calls([call(1), call(1), call(2)])
         self.xa.spidevice.isp.write_fuse_byte.assert_has_calls([call(1,bytearray([0x08])),
-                                                                    call(2,bytearray([0x10]))])
+                                                                    call(2,bytearray([0x00]))])
         self.xa.housekeeper.start_session.assert_called()
         self.xa.spidevice.isp.enter_progmode.assert_called()
         self.xa.spidevice.isp.leave_progmode.assert_called()

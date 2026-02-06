@@ -6,17 +6,16 @@
      - Adaptation of `--debugwire` handling in dwlink.py
      - Added "https://" to `webbrowse`r call so that webhelp (option `-H`) works with Python versions <3.14
      - Termination code in all classes fixed: `__del__` is not used any longer
-
 - **Added:**
      - Added option `--attach`: Try to reattach to an MCU that is in debug mode. This will automatically set `onlywhenloaded` to `disable`.
      - Added option `--skip-signature-verification`: Only for internal purposes
      - Added type annotations for the PyAvrOCD package and checked everything with mypy
      - Distinguishing ATiny2313 from ATtiny2313A after verifying the chip signature
-
 - **Changed:**
-     - `stop_debugging` in `XAvrDebug` will now also stop the debugging process for debugWIRE
+     - `stop_debugging` in `XAvrDebug` will now also stop the debugging process for debugWIRE (it used to be `dw_disable`)
      - The `atexit` monitor command now has the options `leave` and `stay`,  and applies to all targets. This has become necessary because of the `--attach` option. For debugWIRE, the default is `stay`, for all others `leave`.
-
+     - `start_debugging` reorganised so that for JTAG targets one does not necessarily have to switch to prog_mode.
+     - `_post_processing_after_start` has been renamed to `_manage_fuses`. It will only be called if `OCDEN` is not activated, which one notes when `avr.protocol.stop` fails
 - **Removed:**
      - `dw_disable` in `XAvrDebug` has been removed
 

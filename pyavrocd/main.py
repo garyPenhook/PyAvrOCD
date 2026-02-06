@@ -164,7 +164,7 @@ def options(cmd: list[str]) -> argparse.Namespace:
     for option_name, option_type in monopts.items():
         if option_type[0] == 'cli':
             default : str | None = option_type[1]
-            choices : list[str] = option_type[2][1:] # copy all options after the None entry
+            choices : list[str] = option_type[2][:] # copy all options after the None entry
             choices += [ opt[0] for opt in choices ]
             parser.add_argument("--" + option_name, help=argparse.SUPPRESS,
                                     type=str, choices=choices, default=default)
@@ -527,7 +527,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         if args.debugwire:
             if intf != 'debugwire':
                 logger.warning("Ignoring --debugwire option for %s target", intf)
-            else: 
+            else:
                 if args.debugwire[0] == 'd' and intf == 'debugwire':
                     avrdebugger.cold_dw_disable()
                     return 0

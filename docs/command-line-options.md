@@ -16,7 +16,7 @@ If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, 
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `--help`<br/> `-h`                                           | Gives help text and exits.                                   |
 | `--webhelp`<br/>`-H`                                         | Opens web page with help text.                               |
-| `--attach`<br/>`-a`                                          | Connect to the target without a `RESET`, if possible. This does not work when one connects to a target initially. However, if one had a debugging session before, and one has not disconnected with `atexit leave` or with `debugwire disable`, then one should be able to attach to the running process. |
+| `--attach`<br/>`-a`                                          | Connect to the target without a `RESET`, if possible. This works only if the debugging mode has been activated in a previous session, i.e., you need to have terminated the previous session with `monitor atexit stay`, or fuses are not managed by PyAvrOCD. |
 | `--command`<br>`-c`                                          | Command to set the gdb port (OpenOCD style), which is used in the Arduino IDE 2 interface. This is an alternative to the `--port` option. |
 | `--device` <br>`-d`                                          | The argument to this option specifies the MCU type of the target chip in lower case.  This option is mandatory. If a '?' mark is given, all supported MCUs are listed. |
 | `--debug-clock`<br>`-D`                                      | JTAG clock frequency for debugging in kHz. This value should be less than a quarter of the MCU clock frequency. The default is min(2000, `F_CPU`/5000) in kHz. |
@@ -43,6 +43,3 @@ You can also use the [monitor command options](monitor-commands.md) as command-l
 In addition to options, one can specify file names prefixed with a '@'-sign. Such files can contain additional arguments. Arguments read from such a file must be one per line and are treated as if they were in the same place as the original file referencing argument on the command line. If the file does not exist, no error is raised.
 
 The argument `@pyavrocd.options` is always added to the end of the command line. In other words, if there is such a file in the folder where the GDB server is invoked, then the arguments in this file will have precedence over the arguments on the command line. This is the way to override options on a per-project basis in an IDE, where the IDE invokes the GDB server.
-
-
-

@@ -62,7 +62,7 @@ The `OCDEN`, `BOOTRST`, and `EESAVE` fuses and the `lockbits` will be taken care
 When you want complete control over the fuses, make sure that the fuses are set as follows before you invoke the debugger. Make sure that the JTAG pins are enabled. Afterward, use avrdude and a JTAG programmer as follows:
 
 1. If `lockbits` are set, clear them by erasing the entire chip. This is necessary because otherwise, debugging is impossible. This will erase any bootloader as well.
-2. Unprogram the `BOOTRST` fuse, if programmed. Otherwise, execution will not start at address 0x000, but in the bootloader area that has been cleared.
+2. Unprogram the `BOOTRST` fuse, if programmed. Otherwise, execution will not start at address 0x0000, but in the bootloader area that has been cleared.
 
 3. Program the `OCDEN` fuse.
 

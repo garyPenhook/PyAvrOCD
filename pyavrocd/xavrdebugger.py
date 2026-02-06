@@ -92,7 +92,7 @@ class XAvrDebugger(AvrDebugger):
         # Edbg protocol instance, necessary to access target power control
         if transport and transport.hid_device is not None:
             self.edbg_protocol = EdbgProtocol(transport)
-            self.logger.debug("EdbgProtcol instance created")
+            self.logger.debug("EdbgProtocol instance created")
 
         # Now attach the right NVM device
         if iface == "updi":
@@ -145,24 +145,27 @@ class XAvrDebugger(AvrDebugger):
             self.logger.info("Session configuration communicated to tool")
             self.device.avr.setup_config(self.device_info)
             self.logger.info("Device configuration communicated to tool")
-            dev_id = self._activate_interface(graceful=warmstart)
+            dev_id : int = self._activate_interface(graceful=warmstart)
+            if dev_id in [0,  0xFFFFFFFF]:
+                raise FatalError("Could  not connect to target.")
             if self._iface == 'jtag' and dev_id & 0xFF != 0x3F:
                 raise FatalError("Not a Microchip JTAG target")
         except Exception as e:
             if warmstart:
-                self.logger.warning("Debug session not started: %s",e)
+                self.logger.warning("Debug session not started: %s", str(e))
                 self.logger.warning("Try later with 'monitor debugwire enable'")
                 return False
-            raise FatalError("Debug session not started: %s" % e) #pylint: disable=raise-missing-from
+            raise FatalError("Debug session not started: %s" % str(e)) #pylint: disable=raise-missing-from
         self.device.avr.attach()
-        self.switch_to_progmode()
-        self.logger.info("Switched to programming mode")
+        try:
+            self.device.avr.protocol.stop() # If successful, OCDEN is already activated
+        except Jtagice3ResponseError as e:
+            if e.code == Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS: # we need to set OCDEN
+                self._manage_fuses()
+            else:
+                raise e
         self._verify_target(dev_id)
         self._check_attiny2313()
-        self._post_process_after_start()
-        self.logger.info("Postprocessing finished")
-        self.switch_to_debmode()
-        self.logger.info("Switched to debugging mode")
         self._check_stuck_at_one_pc()
         self.logger.info("... debug session startup done")
         if not self.args.attach:
@@ -170,14 +173,14 @@ class XAvrDebugger(AvrDebugger):
         return True
 
 
-    def _post_process_after_start(self) -> None:
+    def _manage_fuses(self) -> None:
         """
-        After having attached to the OCD, do a bit of post processing
-        (for JTAG targets only): Clear lockbits, unprogram BOOTRST, and program OCDEN.
-        We assume that we are in progmode.
+        After having attached to the OCD, set fuses if the
+        MCU is not in debugging mode yet: Clear lockbits, unprogram BOOTRST,
+        and program OCDEN. This function will never be called by debugWIRE targets!
         """
-        if self._iface != 'jtag':
-            return
+        self.switch_to_progmode()
+        self.logger.info("Switched to programming mode")
         # clear lockbits if necessary
         self._handle_lockbits(self.read_lock_one_byte, self.device.erase)
         # unprogram BOOTRST fuse if necessary
@@ -187,7 +190,7 @@ class XAvrDebugger(AvrDebugger):
         ofuse_addr : int = self.device_info['ocden_base']
         ofuse_mask : int = self.device_info['ocden_mask']
         ofuse : bytes = self.read_fuse_one_byte(ofuse_addr)
-        self.logger.info("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
+        self.logger.debug("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
         if ofuse[0] & ofuse_mask == ofuse_mask: # only if OCDEN is not yet programmed
             if 'ocden' not in self.manage:
                 self.logger.warning("The fuse OCDEN is not managed by PyAvrOCD and will therefore not be programmed.")
@@ -200,6 +203,18 @@ class XAvrDebugger(AvrDebugger):
             self.logger.info("OCDEN fuse has been programmed.")
         else:
             self.logger.info("OCDEN is already programmed")
+        # now verify signature using signature bytes (they do not lie!)
+        if not self.args.skipsig:
+            idbytes : bytes = self.read_sig(0,3)
+            sig : int = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
+            self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
+            self.logger.debug("Device signature of connected chip: %X", sig)
+            if sig != self.device_info['device_id']:
+                raise FatalError("Wrong MCU: '%s', expected: '%s'" %
+                        (dev_name.get(sig,"Unknown"),
+                        dev_name[self.device_info['device_id']]))
+        self.switch_to_debmode()
+        self.logger.info("Switched to debugging mode")
 
     def _verify_target(self, dev_id : int) -> None:
         """
@@ -212,16 +227,15 @@ class XAvrDebugger(AvrDebugger):
         if self.args.skipsig:
             return
         if self._iface == 'debugwire':
-            sig = (0x1E<<16)+dev_id # The id returned from activate_physical
+            sig = (0x1E<<16)+dev_id # The id returned from activate_physical for debugWIRE
         else:
-            idbytes : bytes = self.read_sig(0,3)
-            sig = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
+            sig = (0x1E<<16)+((dev_id >> 12)&0xFFFF)
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
         self.logger.debug("Device signature of connected chip: %X", sig)
         if sig != self.device_info['device_id']:
             # Some funny special cases of chips pretending to be someone else
-            # when in debugWIRE mode
-            if (
+            # when in debugWIRE mode / JTAG mode
+            if (#pylint: disable=too-many-boolean-expressions
                 # pretends to be a 48P, but is 48
                 (not (sig == 0x1E920A and self.device_info['device_id'] == 0x1E9205)) and
                 # pretends to be a 88P, but is 88
@@ -233,9 +247,37 @@ class XAvrDebugger(AvrDebugger):
                 # pretends to be a 328PB, but is a 328
                 (not (sig == 0x1E9516 and self.device_info['device_id'] == 0x1E9514)) and
                 # pretends to be a 328PB, but is a 328P
-                (not (sig == 0x1E95016 and self.device_info['device_id'] == 0x1E950F))):
-                raise FatalError("Wrong MCU: '%s', expected: '%s'" %
-                        (dev_name.get(sig,"Unknown"),
+                (not (sig == 0x1E9516 and self.device_info['device_id'] == 0x1E950F)) and
+                # pretends to be a 164PA, but is a 164A
+                (not (sig == 0x1E940A and self.device_info['device_id'] == 0x1E940F)) and
+                # pretends to be a 324PA but is a 324A
+                (not (sig == 0x1E9511 and self.device_info['device_id'] == 0x1E9515)) and
+                # pretends to be a 644PA, but is a 644A
+                (not (sig == 0x1E960A and self.device_info['device_id'] == 0x1E9609)) and
+                # pretends to be a 1284P, but is a 1284
+                (not (sig == 0x1E9705 and self.device_info['device_id'] == 0x1E9706)) and
+                # pretends to be a 169PA, but is a 169A
+                (not (sig == 0x1E9405 and self.device_info['device_id'] == 0x1E9411)) and
+                # pretends to be a 329PA but is a 329A
+                (not (sig == 0x1E950B and self.device_info['device_id'] == 0x1E9503)) and
+                # pretends to be a 649P, but is a 649A
+                (not (sig == 0x1E960B and self.device_info['device_id'] == 0x1E9603)) and
+                # pretends to be a 3290PA but is a 3290A
+                (not (sig == 0x1E950C and self.device_info['device_id'] == 0x1E9504)) and
+                # pretends to be a 6490P, but is a 6490A
+                (not (sig == 0x1E960C and self.device_info['device_id'] == 0x1E9604)) and
+                # pretends to be a 165PA, but is a 165A
+                (not (sig == 0x1E9407 and self.device_info['device_id'] == 0x1E9410)) and
+                # pretends to be a 325PA but is a 325A
+                (not (sig == 0x1E950D and self.device_info['device_id'] == 0x1E9505)) and
+                # pretends to be a 645P, but is a 645A
+                (not (sig == 0x1E960D and self.device_info['device_id'] == 0x1E9605)) and
+                # pretends to be a 3250PA but is a 3250A
+                (not (sig == 0x1E950E and self.device_info['device_id'] == 0x1E9506)) and
+                # pretends to be a 6450P, but is a 6450A
+                (not (sig == 0x1E960E and self.device_info['device_id'] == 0x1E9606))):
+                raise FatalError("Wrong MCU: '%s' (signature: 0x%X), expected: '%s'" %
+                        (dev_name.get(sig,"Unknown"), sig,
                         dev_name[self.device_info['device_id']]))
         self.logger.info("Device signature checked")
 
@@ -369,7 +411,7 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.debug("Lockbits after write: 0x%X", lockbits[0])
                 assert lockbits[0] == 0xFF, "Lockbits could not be cleared"
                 self.logger.info("MCU has been erased and lockbits have been cleared.")
-                if self.args.load[0] == 'n':     # the 'no initial load' option value
+                if self.args.load and self.args.load[0] == 'n':     # the 'no initial load' option value
                     if self._iface == 'debugwire':
                         self.args.load = 'r'     # for dbugWIRE, the right one is 'read before write'
                     elif self._iface == 'jtag':
