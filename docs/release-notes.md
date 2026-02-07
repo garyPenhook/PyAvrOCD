@@ -1,5 +1,15 @@
 # Release Notes
 
+## Release v1.1.0
+
+- Fixed a bug in avr-gdb 17.1.1 which made display of SRAM contents in the UI impossible
+- Fixed a problem in the webbrowser call so that webhelp (`-H`) also works with Python < 3.14
+- `--debugwire enable` and `--debugwire disable` work now with dw-link as well
+- Added the option `--attach,` which makes it possible to re-attach to an MCU that is in debugging mode
+- In connection with that, the `atexit` monitor command has been generalized from debugWIRE targets to all targets. One can now specify `monitor atexit stay` meaning that when PyAvrOCD is terminated, debugging mode will not be stopped, so that later on one can re-attach.
+- An explicit test to distinguish between ATtiny2313 and ATtiny2313, which have the same chip signature but have their OCD register at a different location. This leads to strange errors when one ignores that.
+- Added all possible alternative chip signatures MCUs may present when in debugging mode. For instance, an ATmega1284 pretends to be an ATmega1284P when in debugging mode. This became necessary because when re-attaching to an MCU, one cannot switch to programming mode in order to read out the true chip signature, but one must rely on the device ID returned by `activate_physical`.
+
 ## Release v1.0.0
 
 - First stable release (covering all classic parts)
