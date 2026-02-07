@@ -52,7 +52,7 @@ class MonitorCommand():
         self._debugger_activated_once : bool = False
         self.logger : logging.Logger = logging.getLogger('pyavrocd.monitor')
         # state variables (will be set by set_default_values)
-        self._leaveonexit : bool = False # leave debugWIRE on exit
+        self._leaveonexit : bool = False # leave debugging mode on exit
         self._onlyhwbps : bool = False # only hardware breakpoints permitted
         self._onlyswbps : bool = False # only software breakpoints permitted
         self._bpfixed : bool = False # It is possible to change

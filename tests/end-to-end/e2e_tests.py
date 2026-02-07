@@ -12,8 +12,8 @@ from time import sleep
 import os
 import pexpect
 
-from scripts import all_scripts
-from devices import test_devices
+from scripts import all_scripts #pylint: disable=import-error
+from devices import test_devices  #pylint: disable=import-error
 
 #pylint: disable=too-many-statements
 def main():

@@ -153,6 +153,8 @@ class XAvrDebugger(AvrDebugger):
         except Exception as e:
             if warmstart:
                 self.logger.warning("Debug session not started: %s", str(e))
+                if self.args.attach:
+                    raise FatalError("Could not attach to OCD because debugWIRE is not yet activated") #pylint: disable=raise-missing-from
                 self.logger.warning("Try later with 'monitor debugwire enable'")
                 return False
             raise FatalError("Debug session not started: %s" % str(e)) #pylint: disable=raise-missing-from
@@ -161,15 +163,17 @@ class XAvrDebugger(AvrDebugger):
             self.device.avr.protocol.stop() # If successful, OCDEN is already activated
         except Jtagice3ResponseError as e:
             if e.code == Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS: # we need to set OCDEN
+                if self.args.attach:
+                    raise FatalError("Could not attach to OCD because debugging is not yet activated") #pylint: disable=raise-missing-from
                 self._manage_fuses()
             else:
                 raise e
         self._verify_target(dev_id)
         self._check_attiny2313()
         self._check_stuck_at_one_pc()
-        self.logger.info("... debug session startup done")
         if not self.args.attach:
             self.reset()
+        self.logger.info("... debug session startup done")
         return True
 
 
@@ -218,64 +222,46 @@ class XAvrDebugger(AvrDebugger):
 
     def _verify_target(self, dev_id : int) -> None:
         """
-        Check that the MCU we connected to has a signature that is compatible with the
-        one given as an argument when calling the server. The prerequisite for this method is
-        that the signature is readable in the mode, in which this method is called
-        (progmode or debmode).
+        Check that the MCU we connected to has a device id returned by activate physical that is compatible with the
+        type given as an argument when calling the server.
         """
+        # list of pairs, where the first entry is a signature computed from the device id and the second one
+        # is a possible alternative identity. For example, the first pair signifies that a chip returning a
+        # device id corresponding to an atmega48pa could well be an atmega48a.
+        comp_ids : tuple[ tuple[ int, int], ... ] = \
+               ((0x1E920A, 0x1E9205), # pretends to be a 48P, but is 48a
+                (0x1E930F, 0x1E930A), # pretends to be a 88P, but is 88a
+                (0x1E940B, 0x1E9406), # pretends to be a 168P, but is 168a
+                (0x1E950F, 0x1E9514), # pretends to be a 328P, but is 328
+                (0x1E9516, 0x1E9514), # pretends to be a 328PB, but is a 328
+                (0x1E9516, 0x1E950F), # pretends to be a 328PB, but is a 328P
+                (0x1E940A, 0x1E940F), # pretends to be a 164PA, but is a 164A
+                (0x1E9511, 0x1E9515), # pretends to be a 324PA but is a 324A
+                (0x1E960A, 0x1E9609), # pretends to be a 644PA, but is a 644A
+                (0x1E9705, 0x1E9706), # pretends to be a 1284P, but is a 1284
+                (0x1E9405, 0x1E9411), # pretends to be a 169PA, but is a 169A
+                (0x1E950B, 0x1E9503), # pretends to be a 329PA but is a 329A
+                (0x1E960B, 0x1E9603), # pretends to be a 649P, but is a 649A
+                (0x1E950C, 0x1E9504), # pretends to be a 3290PA but is a 3290A
+                (0x1E960C, 0x1E9604), # pretends to be a 6490P, but is a 6490A
+                (0x1E9407, 0x1E9410), # pretends to be a 165PA, but is a 165A
+                (0x1E950D, 0x1E9505), # pretends to be a 325PA but is a 325A
+                (0x1E960D, 0x1E9605), # pretends to be a 645P, but is a 645A
+                (0x1E950E, 0x1E9506), # pretends to be a 3250PA but is a 3250A
+                (0x1E960E, 0x1E9606)) # pretends to be a 6450P, but is a 6450A
         sig : int
         if self.args.skipsig:
             return
         if self._iface == 'debugwire':
-            sig = (0x1E<<16)+dev_id # The id returned from activate_physical for debugWIRE
+            sig = (0x1E<<16)+dev_id # derive a signature from the id returned from activate_physical for debugWIRE
         else:
-            sig = (0x1E<<16)+((dev_id >> 12)&0xFFFF)
+            sig = (0x1E<<16)+((dev_id >> 12)&0xFFFF) # same thing for JTAG
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
         self.logger.debug("Device signature of connected chip: %X", sig)
         if sig != self.device_info['device_id']:
             # Some funny special cases of chips pretending to be someone else
             # when in debugWIRE mode / JTAG mode
-            if (#pylint: disable=too-many-boolean-expressions
-                # pretends to be a 48P, but is 48
-                (not (sig == 0x1E920A and self.device_info['device_id'] == 0x1E9205)) and
-                # pretends to be a 88P, but is 88
-                (not (sig == 0x1E930F and self.device_info['device_id'] == 0x1E930A)) and
-                # pretends to be a 168P, but is 168
-                (not (sig == 0x1E940B and self.device_info['device_id'] == 0x1E9406)) and
-                # pretends to be a 328P, but is 328
-                (not (sig == 0x1E950F and self.device_info['device_id'] == 0x1E9514)) and
-                # pretends to be a 328PB, but is a 328
-                (not (sig == 0x1E9516 and self.device_info['device_id'] == 0x1E9514)) and
-                # pretends to be a 328PB, but is a 328P
-                (not (sig == 0x1E9516 and self.device_info['device_id'] == 0x1E950F)) and
-                # pretends to be a 164PA, but is a 164A
-                (not (sig == 0x1E940A and self.device_info['device_id'] == 0x1E940F)) and
-                # pretends to be a 324PA but is a 324A
-                (not (sig == 0x1E9511 and self.device_info['device_id'] == 0x1E9515)) and
-                # pretends to be a 644PA, but is a 644A
-                (not (sig == 0x1E960A and self.device_info['device_id'] == 0x1E9609)) and
-                # pretends to be a 1284P, but is a 1284
-                (not (sig == 0x1E9705 and self.device_info['device_id'] == 0x1E9706)) and
-                # pretends to be a 169PA, but is a 169A
-                (not (sig == 0x1E9405 and self.device_info['device_id'] == 0x1E9411)) and
-                # pretends to be a 329PA but is a 329A
-                (not (sig == 0x1E950B and self.device_info['device_id'] == 0x1E9503)) and
-                # pretends to be a 649P, but is a 649A
-                (not (sig == 0x1E960B and self.device_info['device_id'] == 0x1E9603)) and
-                # pretends to be a 3290PA but is a 3290A
-                (not (sig == 0x1E950C and self.device_info['device_id'] == 0x1E9504)) and
-                # pretends to be a 6490P, but is a 6490A
-                (not (sig == 0x1E960C and self.device_info['device_id'] == 0x1E9604)) and
-                # pretends to be a 165PA, but is a 165A
-                (not (sig == 0x1E9407 and self.device_info['device_id'] == 0x1E9410)) and
-                # pretends to be a 325PA but is a 325A
-                (not (sig == 0x1E950D and self.device_info['device_id'] == 0x1E9505)) and
-                # pretends to be a 645P, but is a 645A
-                (not (sig == 0x1E960D and self.device_info['device_id'] == 0x1E9605)) and
-                # pretends to be a 3250PA but is a 3250A
-                (not (sig == 0x1E950E and self.device_info['device_id'] == 0x1E9506)) and
-                # pretends to be a 6450P, but is a 6450A
-                (not (sig == 0x1E960E and self.device_info['device_id'] == 0x1E9606))):
+            if (sig, self.device_info['device_id']) not in comp_ids:
                 raise FatalError("Wrong MCU: '%s' (signature: 0x%X), expected: '%s'" %
                         (dev_name.get(sig,"Unknown"), sig,
                         dev_name[self.device_info['device_id']]))
@@ -287,8 +273,7 @@ class XAvrDebugger(AvrDebugger):
         Currently, I only know of ATmega48, ATmega88, ATmega329, and ATmega3250. The two
         former ones cause other issues as well and are therefore considered undebuggable.
         For the latter two (and perhaps others), we simply remember the stuck bits
-        and either apply when (when setting a hardeware breakpoint) or mask them out
-        otherwise.
+        and either apply them (when setting a hardeware breakpoint) or mask them out.
 
         There are a few others, such as ATmega16 and ATmega64, which push non-zero
         unused PC bits on the stack, but this will now be handled by GDB. So, when
@@ -309,24 +294,24 @@ class XAvrDebugger(AvrDebugger):
 
     def _check_attiny2313(self) -> None:
         """
-        Distinguishes ATtiny2313 and ATtiny2313A by probing the OCD register.
-        Will raise error if it is not the correct type.
+        Distinguishes ATtiny2313 and ATtiny2313A by probing GIMSK. If a
+        write of 0xFF reads b ack as 0xE0, it is a 2313, if it reads 0xF8,
+        it is a 2313A.
         """
         if not self.device_info['name'].startswith("attiny2313") or self.args.skipsig:
             return
-        try:
-            pair : tuple[ str, str ]
-            _ : bytes = self.sram_read(self.device_info['ocd_base'], 1)
-            # if we are past this point, it must be the wrong type
-            if self.device_info['name'] == "attiny2313":
-                pair = ("attiny2313a", "attiny2313")
-            else:
-                pair = ("attiny2313", "attiny2313a")
-            raise FatalError("Wrong MCU: %s. Expected: %s" % pair)
-        except Jtagice3ResponseError as error: # This should happen if it is the right chip!
-            if error.code == Avr8Protocol.AVR8_FAILURE_INVALID_ADDRESS:
-                return
-            raise
+        savebyte : bytearray = self.sram_read(0x5B, 1)
+        self.sram_write(0x5B, bytearray([0xFF]))
+        readback : bytearray = self.sram_read(0x5B, 1)
+        self.sram_write(0x5B, savebyte)
+        if readback[0] == 0xE0 and self.device_info['name'] == "attiny2313a":
+            pair = ("attiny2313", "attiny2313a")
+        elif  readback[0] == 0xF8 and self.device_info['name'] == "attiny2313":
+            pair = ("attiny2313a", "attiny2313")
+        else:
+            self.logger.info("Checked: Connected indeed to %s", self._devicename)
+            return
+        raise FatalError("Wrong MCU: %s. Expected: %s" % pair)
 
     def _activate_interface(self, graceful : bool = False) -> int:
         """
@@ -590,9 +575,12 @@ class XAvrDebugger(AvrDebugger):
         raise FatalError("Timed out waiting for power-cycle")
 
     # Cleanup code for detaching from target
-    def stop_debugging(self, leave : bool = False, graceful : bool = True) -> None:
+    def stop_debugging(self, skip : bool = False, leave : bool = False, graceful : bool = True) -> None:
         """
-        Stop the debug session and clean up in a safe way
+        Stop the debug session and clean up in a safe way.
+        skip: if true, skip the debugging leave and fuse programming parts (when we could not connect)
+        leave: if true, leave debugging mode and unprogram the respective fuse
+        graceful: do not talk about occurring exceptions
         """
         self.logger.info("Terminating debugging session ...")
         try:
@@ -612,11 +600,11 @@ class XAvrDebugger(AvrDebugger):
             if not graceful:
                 self.logger.error("Error during stopping core and removing BPs: %s", str(e))
         # if JTAG, disable OCDEN fuse
-        if self._iface == 'jtag':
+        if self._iface == 'jtag' and not skip:
             self._ocden_unprogramming(leave)
         # if debugWIRE, disable dw mode
         try:
-            if self._iface == "debugwire" and leave:
+            if self._iface == "debugwire" and leave and not skip:
                 self.device.avr.protocol.debugwire_disable()
                 self.logger.info("DebugWIRE mode disabled")
         except Exception as e:
@@ -645,7 +633,7 @@ class XAvrDebugger(AvrDebugger):
             if not graceful:
                 self.logger.error("Error while signing off from tool: %s", str(e))
         # if debugWIRE, disable DWEN
-        if self._iface == 'debugwire':
+        if self._iface == 'debugwire' and not skip:
             self._dwen_unprogramming(leave)
         self.logger.info("... terminating debugging session done")
 

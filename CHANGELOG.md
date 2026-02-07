@@ -1,16 +1,17 @@
 # Changelog
 
-### 1.1.0
+### 1.1.0 (07-Feb-2025)
 
 - **Fixed:**
      - Adaptation of `--debugwire` handling in dwlink.py
      - Added "https://" to `webbrowse`r call so that webhelp (option `-H`) works with Python versions <3.14
-     - Termination code in all classes fixed: `__del__` is not used any longer
+     - avr-gdb 17.1.1 had a strange bug resulting from my patch to mask out non-zero bits, which resulted in the fact that you could not inspect SRAM anymore. In version 17.1.2, masking is strictly restricted to the point when return addresses are fetched from the stack.
 - **Added:**
      - Added option `--attach`: Try to reattach to an MCU that is in debug mode. This will automatically set `onlywhenloaded` to `disable`.
      - Added option `--skip-signature-verification`: Only for internal purposes
      - Added type annotations for the PyAvrOCD package and checked everything with mypy
-     - Distinguishing ATiny2313 from ATtiny2313A after verifying the chip signature
+     - Distinguishing ATiny2313 from ATtiny2313A by probing GIMSK. This is necessary because the OCD register addresses differ and may otherwise lead to strange errors.
+     - Added many entries to the list of possible alternative chip signatures that the Microchip MCUs sometimes use.
 - **Changed:**
      - `stop_debugging` in `XAvrDebug` will now also stop the debugging process for debugWIRE (it used to be `dw_disable`)
      - The `atexit` monitor command now has the options `leave` and `stay`,  and applies to all targets. This has become necessary because of the `--attach` option. For debugWIRE, the default is `stay`, for all others `leave`.
@@ -18,6 +19,7 @@
      - `_post_processing_after_start` has been renamed to `_manage_fuses`. It will only be called if `OCDEN` is not activated, which one notes when `avr.protocol.stop` fails
 - **Removed:**
      - `dw_disable` in `XAvrDebug` has been removed
+     - Termination code in all classes fixed: `__del__` is not used any longer
 
 
 

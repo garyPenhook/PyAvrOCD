@@ -130,6 +130,64 @@ all_scripts = {
      ("$SUCCESS_IF", "Range stepping is not yet implemented"),
      ("next", "clearBit(LED1_PORT, LED1);")) + epilog),
 
+# set/read memory cells (small MCUs, ram start = 0x60)
+    "smallpeekpoke" : (
+    ('small', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+         'noautopc'),
+    "",
+    "",
+    "",
+    (("set logging file log/peekpoke.log", ""),) + prolog + \
+    (("x/i 0x0", "0x0:\trjmp\t.+"),
+     ("set {char}0x800000=0xcd",""),
+     ("set {char}0x800001=0xab",""),
+     ("x/hx 0x800000", "0x800000:\t0xabcd"),
+     ("set {char}0x800060=0x34",""),
+     ("set {char}0x800061=0x12",""),
+     ("x/hx 0x800060", "0x800060:\t0x1234"),
+     ("set {char}0x810000=0xdc",""),
+     ("set {char}0x810001=0xfe",""),
+     ("x/hx 0x810000", "0x810000:\t0xfedc")) + epilog),
+
+# set/read memory cells (medium/large MCUs, some ram at 0x100)
+    "mediumpeekpoke" : (
+    ('medium', 'large', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+         'noautopc'),
+    "",
+    "",
+    "",
+    (("set logging file log/peekpoke.log", ""),) + prolog + \
+    (("x/i 0x0", "0x0:\trjmp\t.+","0x0:\tjmp"),
+     ("set {char}0x800000=0xcd",""),
+     ("set {char}0x800001=0xab",""),
+     ("x/hx 0x800000", "0x800000:\t0xabcd"),
+     ("set {char}0x800100=0x34",""),
+     ("set {char}0x800101=0x12",""),
+     ("x/hx 0x800100", "0x800100:\t0x1234"),
+     ("set {char}0x810000=0xdc",""),
+     ("set {char}0x810001=0xfe",""),
+     ("x/hx 0x810000", "0x810000:\t0xfedc")) + epilog),
+
+# set/read memory cells (huge MCUs, some ram at 0x200)
+    "hugepeekpoke" : (
+    ('huge', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+         'noautopc'),
+    "",
+    "",
+    "",
+    (("set logging file log/peekpoke.log", ""),) + prolog + \
+    (("x/i 0x0", "0x0:\tjmp"),
+     ("set {char}0x800000=0xcd",""),
+     ("set {char}0x800001=0xab",""),
+     ("x/hx 0x800000", "0x800000:\t0xabcd"),
+     ("set {char}0x800200=0x34",""),
+     ("set {char}0x800201=0x12",""),
+     ("x/hx 0x800200", "0x800200:\t0x1234"),
+     ("set {char}0x810000=0xdc",""),
+     ("set {char}0x810001=0xfe",""),
+     ("x/hx 0x810000", "0x810000:\t0xfedc")) + epilog),
+
+
 # Tests all ways how signals are raised
 # SIGHUP will be tested in the "off" script, SIGABRT cannot be tested
      "signals" : (

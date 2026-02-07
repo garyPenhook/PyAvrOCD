@@ -27,7 +27,6 @@ from pyavrocd.breakexec import BreakAndExec, NOSIG, SIGHUP, SIGINT, SIGILL, SIGT
 from pyavrocd.monitor import MonitorCommand
 from pyavrocd.livetests import LiveTests
 from pyavrocd.errors import  EndOfSession, FatalError
-from pyavrocd.deviceinfo.devices.alldevices import dev_name
 
 RECEIVE_BUFFER = 1024
 
@@ -437,8 +436,7 @@ class GdbHandler():
                 if self.critical is not None:
                     error_line = "\nLast critical error:      " + str(self.critical)
                 response = ("",
-                            response[1].format(dev_name[self.dbg.device_info['device_id']],
-                                                   error_line))
+                            response[1].format(self._devicename, error_line))
             elif 'live_tests' in response[0]:
                 self._live_tests.run_tests()
             elif 'test' == response[0]:
@@ -507,10 +505,10 @@ class GdbHandler():
             if self.dbg.start_debugging(warmstart=self.dbg.get_iface()=='debugwire'):
                 self.mon.set_debug_mode_active()
         except FatalError as e:
-            self.logger.critical("Error while connecting to target OCD: %s", str(e))
+            self.logger.critical("%s", str(e))
             if self.critical is None:
                 self.critical = str(e)
-            self.dbg.stop_debugging(graceful=True)
+            self.dbg.stop_debugging(skip=True,graceful=True)
         self.logger.debug("debugger_active=%d",self.mon.is_debugger_active())
         self.send_packet(answer)
 

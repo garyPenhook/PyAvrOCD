@@ -306,16 +306,17 @@ class TestXAvrDebugger(TestCase):
 
     def test__check_attiny2313_ok(self):
         self.set_up()
-        self.xa23.device.read.side_effect = Jtagice3ResponseError("Invalid address",
-                                            code=Avr8Protocol.AVR8_FAILURE_INVALID_ADDRESS)
+        self.xa23.device.read.retun_value = bytearray([0xE0])
         self.assertEqual(self.xa23._check_attiny2313(), None)
-        self.xa23.device.read.assert_called_once()
+        self.assertEqual(self.xa23.device.read.call_count, 2)
+        self.assertEqual(self.xa23.device.write.call_count, 2)
 
     def test__check_attiny2313_fail(self):
         self.set_up()
-        self.xa23.device.read.return_value = bytearray([0])
+        self.xa23.device.read.return_value = bytearray([0xF8])
         self.assertRaises(FatalError,self.xa23._check_attiny2313)
-        self.xa23.device.read.assert_called_once()
+        self.assertEqual(self.xa23.device.read.call_count, 2)
+        self.assertEqual(self.xa23.device.write.call_count, 2)
 
 
     def test__check_attiny2313_no2313(self):
