@@ -62,3 +62,7 @@ This sometimes happens when AVR-GDB is not able to figure out the stack frame. I
 When using the dw-link debug probe, internal errors are reported directly by the dw-link firmware.
 
 If the LED blinks furiously (0.1 seconds on/ 0.1 seconds off), then the debug server has hit an unrecoverable error. This might not be immediately reported by GDB, but one can get information about the specific error by using the `monitor info` command. The errors are only reported by number. {!../../dw-link/docs/internal_errors.md!}
+
+## Reporting bugs
+
+If the problematic behavior you have encountered looks like a bug, please send an issue report as described in the [section on contributing](contributing.md#reporting-an-issue).

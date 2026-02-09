@@ -10,8 +10,8 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
 
      ```
      # Optimization flags for debugging
-     compiler.optimization_flags=-Os -ggdb3 -DNDBEUG
-     compiler.optimization_flags.release=-Os -ggdb3 -DNDBEUG
+     compiler.optimization_flags=-Os -ggdb3 -DNDEBUG
+     compiler.optimization_flags.release=-Os -ggdb3 -DNDEBUG
      compiler.optimization_flags.debug=-Og -ggdb3 -DDEBUG
      ```
 
@@ -53,7 +53,7 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
      #debug.cortex-debug.custom.serverArgs.8=--atexit
      #debug.cortex-debug.custom.serverArgs.9=leavedebugwire
      # For JTAG MCUs the next one is a good thing
-     debug.cortex-debug.custom.serverArgs.8=--progclk
+     debug.cortex-debug.custom.serverArgs.8=--prog-clock
      debug.cortex-debug.custom.serverArgs.9=2000
      # The next line is only necessary for debugWIRE targets (but will not hurt)
      debug.cortex-debug.custom.preLaunchCommands.0=monitor debugwire enable
@@ -75,11 +75,11 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
 1. The following menus are necessary (if appropriate):
 
 ```
-menu.jtag=JTAG pins
+menu.JTAG=JTAG pins
 menu.lto=Compiler LTO
 ```
 
-2. Add specifications for the two menu entries above.
+2. Add specifications for the two menu entries above. For JTAG, fuse bits must be set or cleared. For LTO, compiler switches need to be set.
 
 ## `programmers.txt`
 
@@ -108,7 +108,7 @@ atmel_ice.program.protocol=atmelice_isp
 atmel_ice.program.tool=avrdude
 atmel_ice.program.extra_params=
 
-atmel_powerdebugger.name=Power Debugger (AVR) ISP
+atmel_powerdebugger.name=Power Debugger ISP
 atmel_powerdebugger.communication=usb
 atmel_powerdebugger.protocol=powerdebugger_isp
 atmel_powerdebugger.program.protocol=powerdebugger_isp
@@ -145,7 +145,7 @@ xplainedmini.program.extra_params=
 
 ### JTAG programmer / debugger
 
-atmel_ice_jtag.name=Atmel-ICE (AVR) JTAG
+atmel_ice_jtag.name=Atmel-ICE JTAG
 atmel_ice_jtag.communication=usb
 atmel_ice_jtag.protocol=atmelice_jtag
 atmel_ice_jtag.program.protocol=atmelice_jtag
@@ -160,7 +160,7 @@ atmel_jtagice3_jtag.program.tool=avrdude
 atmel_jtagice3_jtag.program.extra_params=
 atmel_jtagice3_jtag.program.extra_params=-B0.1
 
-atmel_powerdebugger_jtag.name=Power Debugger (AVR) JTAG
+atmel_powerdebugger_jtag.name=Power Debugger JTAG
 atmel_powerdebugger_jtag.communication=usb
 atmel_powerdebugger_jtag.protocol=powerdebugger_jtag
 atmel_powerdebugger_jtag.program.protocol=powerdebugger_jtag

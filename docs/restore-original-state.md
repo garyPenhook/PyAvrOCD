@@ -6,7 +6,10 @@ If, after debugging, you want to restore a target board to its original state, a
 2. You need to undo the physical changes you have made to the board. This may be to restore a solder bridge (or solder a header in its place). Alternatively, you may need to solder a capacitor again or reconnect a reset circuit. My advice is not to do that, but mark the board instead for **debug use** only.  In this case, you can also ignore step 3.
 3. You may need to reflash the bootloader, if initially present, and likely need to set the correct fuses.
       - To restore the board to its exact original state before debugging, you must get hold of the bootloader and record the fuses before initiating the debugging process. Then you can easily restore the original state using an SPI programmer.
-      - In the Arduino IDE, you can do this by using the `Burn Bootloader` command in the `Tools` menu. This will set the correct fuses and reinstall the bootloader.
+      - In the Arduino IDE, you can do this by using the `Burn Bootloader` command in the `Tools` menu. This will set the correct fuses and reinstall the bootloader (if needed). Note that if you want only to set the fuses without installing a bootloader, you still have to use the `Burn Bootloader` command.
 
 !!! warning "Burning the bootloader using the Arduino AVR Boards core"
     If you have debugged a board using, e.g., `MiniCore`, and now want to restore an Uno R3 board to its previous state under the`Arduino AVR Boards` core as an `Arduino Uno`, you may encounter problems when using one of the Microchip debug probes. Use a cheap USBasp programmer or something similar instead for burning the boot loader. Alternatively, you may consider staying with MiniCore and employing [Urboot](https://github.com/stefanrueger/urboot) as the bootloader.
+
+!!! warning "Burning the bootloader on JTAG Mega targets"
+    If you have debugged a JTAG mega target, e.g., the ATmega2560, and you want to disable the JTAG pins, you must set all relevant parameters in the `Tools` menu before using the `Burn Bootloader` command. In particular, make sure that the right `Clock` value is selected! Otherwise, it can happen that you need to apply an external clock to reanimate your chip.

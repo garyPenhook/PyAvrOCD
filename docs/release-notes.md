@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release v1.1.1
+
+- Fixed: Removed dependence of non-system dynamic libraries from macOS avr-gdb executables.
+
 ## Release v1.1.0
 
 - Fixed a bug in avr-gdb 17.1.1 which made display of SRAM contents in the UI impossible

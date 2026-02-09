@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.1.1 (09-Feb-2025)
+
+- **Fixed:**
+     - The included avr-gdb executables for macOS still contained  non-system dynamically linked libraries. This has been remedied by uninstalling some homwbrew packages on the GitHub runners before building GDB.
+
 ### 1.1.0 (07-Feb-2025)
 
 - **Fixed:**
