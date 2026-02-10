@@ -471,6 +471,9 @@ class XAvrDebugger(AvrDebugger):
             # now you need to power-cycle
             self._power_cycle(callback=callback, recognition=recognition)
             # end current tool session and start a new one
+        except Exception as e:
+            self.logger.critical("%s", str(e))
+            raise e
         finally:
             try:
                 if self.spidevice is not None:
@@ -495,16 +498,17 @@ class XAvrDebugger(AvrDebugger):
         if self.args.skipsig:
             return
         self.logger.info("Test for dirty PC on ATmega48/88")
-        if self.spidevice is None:
-            raise FatalError("SPI module not initialized")
-        if self.memory_info is None:
-            raise FatalError("No memory info available")
         # erase flash (and maybe EEPROM)
+        if self.spidevice is None or  self.spidevice.isp is None:
+            raise FatalError("SPI module is not initialized")
         self.spidevice.isp.erase()
         # change option value of 'load' option if necessary
-        if self.args.load[0] == 'n': # the 'no initial load' option value
-            self.args.load = 'r'     # for dbugWIRE, the right one is 'read before write'
+        if self.args.load is None or self.args.load[0] == 'n': # the 'no initial load' option value
+            self.args.load = 'r'     # for debugWIRE, the right one is 'read before write'
         # program flash with test program, depending on MCU type
+        self.logger.debug("Flash test program")
+        if self.memory_info is None:
+            raise FatalError("No memory info")
         if device_id == 0x1E9205: # ATmega48(A)
             self.spidevice.write(self.memory_info.memory_info_by_name('flash'), 0,
                     bytearray.fromhex("19C02CC02BC02AC029C028C027C026C025C024C023C022C021C020C01FC01EC0" +
@@ -525,11 +529,13 @@ class XAvrDebugger(AvrDebugger):
         time.sleep(0.1)
         # start programming mode again and read result
         self.spidevice.isp.enter_progmode()
+        self.logger.debug("Now check result")
         result_lockbits : bytes = self.spidevice.read(self.memory_info.memory_info_by_name('lockbits'), 0, 1)
         # Check result
         self.logger.debug("Result from lockbits: 0x%X",   result_lockbits[0])
         # Now erase chip again to clear lock bits
         self.spidevice.isp.erase()
+        self.logger.debug("Chip erased!")
         # Check results
         if result_lockbits[0] != 0xFF:
             raise FatalError("MCU cannot be debugged because of stuck-at-1 bit in the PC")

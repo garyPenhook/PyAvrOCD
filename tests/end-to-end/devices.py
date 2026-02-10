@@ -70,6 +70,9 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 "atmega48pa" : (mini_clock, ('medium',  'dw', 'noautopc'),
                                     "MiniCore:avr:48:variant=modelP,bootloader=no_bootloader," +
                                     "clock=", "Programmer-ZF"),
+                "atmega48pb" : (mini_clock, ('medium',  'dw', 'noautopc'),
+                                    "MiniCore:avr:48:variant=modelPB,bootloader=no_bootloader," +
+                                    "clock=", "TQFP socket on breadboard"),
                 "atmega88" : (mini_clock, ('dw', 'dirty'),
                                     "MiniCore:avr:88:variant=modelNonP,bootloader=no_bootloader," +
                                     "clock=", "Programmer-ZF"),
@@ -82,6 +85,9 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 "atmega88pa" : (mini_clock, ('large',  'dw', 'noautopc'),
                                     "MiniCore:avr:88:variant=modelP,bootloader=no_bootloader,clock=",
                                     "Programmer-ZF"),
+                "atmega88pb" : (mini_clock, ('large',  'dw', 'noautopc'),
+                                    "MiniCore:avr:88:variant=modelPB,bootloader=no_bootloader,clock=",
+                                    "TQFP socket on breadboard"),
                 "atmega168" : (mini_clock, ('large',  'dw', 'noautopc'),
                                     "MiniCore:avr:168:variant=modelNonP,bootloader=no_bootloader,clock=",
                                     "Programmer-ZF"),
@@ -93,7 +99,7 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                     "Programmer-ZF / XPLAINED Mini Board"),
                 "atmega168pa" : (mini_clock, ('large',  'dw', 'noautopc'),
                                     "MiniCore:avr:168:variant=modelP,bootloader=no_bootloader,clock=",
-                                    "Programmer-ZF / XPLAINED Mini Board"),
+                                    "Programmer-ZF"),
                 "atmega328" : (mini_clock, ('large',  'dw', 'noautopc'),
                                     "MiniCore:avr:328:variant=modelNonP,bootloader=no_bootloader,clock=",
                                     "Programmer-ZF"),
@@ -102,10 +108,10 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                     "Programmer-ZIF"),
                 "atmega328pb" : (mini_clock, ('large',  'dw'),
                                     "MiniCore:avr:328:variant=modelPB,bootloader=no_bootloader,clock=",
-                                     "Programmer-ZIF"),
+                                     "XPLAINED Mini Board"),
                 "atmega168pb" : (mini_clock, ('large',  'dw'),
                                     "MiniCore:avr:168:variant=modelPB,bootloader=no_bootloader,clock=",
-                                    "Programmer-ZIF"),
+                                    "TQFP socket on breadboard / XPLAINED Mini Board"),
 
                 # debugWIRE targets with no Core support
                 "at90usb162" : (c_clock, ('large', 'nonarduino', 'dw', 'noadc', 'noautopc'), "",

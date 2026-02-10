@@ -40,9 +40,9 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 
 - <s>ATmega8</s>
 
-* **<s>ATmega48</s>,** **ATmega48A,** **ATmega48P**, **ATmega48PA,** ATmega48PB,
-* **<s>ATmega88</s>,** **ATmega88A,** ATmega88P, **ATmega88PA,** Atmega88PB,
-* **ATmega168,** **ATmega168A**, **ATmega168P**, ATmega168PA, **ATmega168PB**,
+* **<s>ATmega48</s>,** **ATmega48A,** **ATmega48P**, **ATmega48PA,** **ATmega48PB**,
+* **<s>ATmega88</s>,** **ATmega88A,** **ATmega88P**, **ATmega88PA,** **Atmega88PB**,
+* **ATmega168,** **ATmega168A**, **ATmega168P**, **ATmega168PA**, **ATmega168PB**,
 * **ATmega328,** **ATmega328P**, **ATmega328PB**
 
 The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to debugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
@@ -53,13 +53,13 @@ The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (witho
 - **ATmega168PB**
 - **ATmega328PB**
 
-### ATmegas supported by [*MightyCore*](https://github.com/MCUdude/MightyCore) (soon)
+### ATmegas supported by [*MightyCore*](https://github.com/MCUdude/MightyCore)
 
 * **ATmega16(A)**, **ATmega32(A)**
 * **ATmega164(P)(A)**, **ATmega324(P)(A)**, **ATmega324PB**, **ATmega644(P)(A)**, **ATmega1284(P)**
 * <s>ATmega8535</s>
 
-The ATmega16 MCUs (with and without an A-suffix) have a stuck-at-one-bit in the program counter, which may lead to problems when you use an unpatched version of AVR-GDB. In this case, backtraces are garbled, and line-stepping might not work as expected. Use the AVR-GDB version shipped with PyAvrOCD instead, which can also be downloaded from the [Releases page of the avr-gdb repo](https://github.com/felias-fogg/avr-gdb/releases/latest).
+The ATmega16 MCUs (with and without an A-suffix) have a stuck-at-one-bit in the program counter, which may lead to problems when you use an unpatched version of AVR-GDB. In this case, backtraces are garbled, and line-stepping might not work as expected. Use the AVR-GDB version shipped with PyAvrOCD instead, which can also be downloaded from the [Releases page of my avr-gdb repo](https://github.com/felias-fogg/avr-gdb/releases/latest).
 
 The ATmega8535 does not possess a debug interface.
 

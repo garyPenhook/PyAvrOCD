@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.1.2 (10-Feb-2025)
+
+- **Fixed:**
+     - Recognition of ATtiny48/88 did not work as advertised, but now it does again.
+
 ### 1.1.1 (09-Feb-2025)
 
 - **Fixed:**
