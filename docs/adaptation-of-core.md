@@ -32,7 +32,6 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
      debug.executable={build.path}/{build.project_name}.elf
      debug.toolchain=gcc
      debug.toolchain.path={runtime.tools.avrocd-tools.path}
-
      debug.server=openocd
      debug.server.openocd.path={debug.toolchain.path}/pyavrocd
      #next doesn't matter, but should be specified so that cortex-debug is happy

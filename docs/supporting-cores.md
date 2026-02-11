@@ -32,11 +32,9 @@ This is a core for the ATtiny13(A). You can make it installable by adding the fo
 https://mcudude.github.io/MicroCore/package_MCUdude_MicroCore_index.json
 ```
 
-Currently, this will make a core installable that is debug-enabled by using the GDB server [dw-gdbserver](https://github.com/felias-fogg/dw-gdbserver), but it will be upgraded to work with PyAvrOCD soon.
-
 ### [MiniCore](https://github.com/MCUdude/MiniCore)
 
-This is the core for the small ATmegas with a debugWIRE interface, aka, ATmegaX8. As above, it is already debug-enabled through [dw-gdbserver,](https://github.com/felias-fogg/dw-gdbserver) and it will be upgraded to work with PyAvrOCD soon. You can make it installable by adding the following boards manager URL:
+This is the core for the small ATmegas with a debugWIRE interface, aka, ATmegaX8.  You can make it installable by adding the following boards manager URL:
 
 ```
 https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
@@ -44,13 +42,11 @@ https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
 
 ### [MightyCore](https://github.com/MCUdude/MightyCore)
 
-An Arduino core for ATmega8535, ATmega16, ATmega32, ATmega164, ATmega324, ATmega644, and ATmega1284, whereby ATmega8353 does not have a debugging interface, and the ATmega16 cannot be debugged with GDB because it has a stuck-to-one bit in the program counter. You can make it installable by adding the following boards manager URL:
+An Arduino core for ATmega8535, ATmega16, ATmega32, ATmega164, ATmega324, ATmega644, and ATmega1284, whereby ATmega8353 does not have a debugging interface. You can make it installable by adding the following boards manager URL:
 
 ```
 https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
 ```
-
-The extension of this core is not yet ready.
 
 ### [MegaCore](https://github.com/MCUdude/MegaCore)
 
@@ -60,8 +56,6 @@ A core for most 64 and 100-pin AVRs. All of the listed MCUs are debuggable, but 
 https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json
 ```
 
-The extension of this core is not yet ready.
-
 ### [MajorCore](https://github.com/MCUdude/MajorCore)
 
 This core covers just ATmega8515 and ATmega162, of which only the latter possesses a debugging interface. The additional board manager URL is:
@@ -70,6 +64,6 @@ This core covers just ATmega8515 and ATmega162, of which only the latter possess
 https://mcudude.github.io/MajorCore/package_MCUdude_MajorCore_index.json
 ```
 
-The extension of this core is not yet ready.
+
 
 [^a]: I tried to extend the current development version 2.0.0, but failed. I may give it another try in the near future.
