@@ -394,8 +394,8 @@ def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
     """
     prodids = (0x2140, 0x2141, 0x2144, 0x2111, 0x2169, 0x2145, 0x2175, 0x2FC0, 0x2177, 0x2180)
     try:
-        logger.debug("Microchip debuggers: %s", [d for d in usb.core.find(find_all=True) if
-                        d.idVendor in [0x3EB, 0x4d8]])
+        #logger.debug("Microchip debuggers: %s", [d for d in usb.core.find(find_all=True) if
+        #                d.idVendor in [0x3EB, 0x4d8]])
         if platform.system() == 'Windows':
             return len([d for d in pymcuprog.backend.Backend().get_available_hid_tools() if
                         d.vendor_id == 0x3EB and d.product_id in prodids ])

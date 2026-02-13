@@ -20,6 +20,7 @@ from pymcuprog.deviceinfo.memorynames import MemoryNames
 from pymcuprog import utils
 
 from pyavrocd.xavr8target import XMegaAvrJtagTarget
+from pyavrocd.errors import FatalError
 
 # pylint: disable=consider-using-f-string
 class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag):
@@ -35,6 +36,7 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
         self.logger_local : logging.Logger = logging.getLogger('pyavrocd.nvmjtag')
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
         self.avr : AvrDevice = XMegaAvrJtagTarget(transport)
+        self.logger_local.debug("NVM mega extension initialized")
 
 
     # pylint: disable=arguments-differ
@@ -158,10 +160,13 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
                                           write_chunk_size,
                                           allow_blank_skip=allow_blank_skip)
 
-    def erase_page(self, pageaddr : int, prog_mode : bool) -> bool:
+    def erase_page(self, pageaddr : int, memory_info: dict[ str, Any ], prog_mode : bool) -> bool:
         """
         Erase one page (in debug mode only)
         """
+        memory_name = memory_info[DeviceMemoryInfoKeys.NAME]
+        if memory_name != MemoryNames.FLASH:
+            raise FatalError("Cannot erase non-flash pages")
         if prog_mode:
             self.avr.switch_to_debmode()
         self.avr.protocol.jtagice3_command_response(
@@ -173,17 +178,22 @@ class XNvmAccessProviderCmsisDapMegaAvrJtag(NvmAccessProviderCmsisDapMegaAvrJtag
 
     def erase_chip(self, prog_mode : bool) -> bool :
         """
-        Erasing entire chip. Save EEPROM by, potentially, reprogramming EESAVE fuse
+        Erasing entire chip. Save EEPROM by, potentially, reprogramming EESAVE fuse.
+        Lockbits will never be set when this function is called since this is handled
+        in _manage_fuses.
         """
         eesave_fuse_byte = None
         eesave_mask = self.device_info.get('eesave_mask')
         eesave_base = self.device_info.get('eesave_base')
+        self.logger_local.debug("Erase Page: Manage:=%s, Mask=0x%X, Base=0x%X", self.manage, eesave_mask, eesave_base)
         if not prog_mode:
             self.avr.switch_to_progmode()
         if eesave_base and eesave_mask and 'eesave' in self.manage:
+            self.logger_local.debug("Trying to preserve EEPROM")
             eesave_fuse_byte = self.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES,
                                                         eesave_base, 1)
             if  eesave_fuse_byte[0] & eesave_mask: # needs to be temporarily programmed
+                self.logger_local.debug("EESAVE will be temporarily programmed")
                 self.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, eesave_base,
                                           bytearray([eesave_fuse_byte[0] & ~eesave_mask & 0xFF]))
                 self.logger_local.debug("Programmed EESAVE fuse temporarily")

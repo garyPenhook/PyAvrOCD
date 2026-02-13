@@ -17,7 +17,6 @@ from pymcuprog.avr8target import TinyXAvrTarget, TinyAvrTarget,\
      MegaAvrJtagTarget, XmegaAvrTarget, AvrDevice
 
 
-
 class XTinyXAvrTarget(TinyXAvrTarget):
     """
     Class handling sessions with TinyX AVR targets using the AVR8 generic protocol
@@ -81,14 +80,10 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         :type address: int
         """
         if num < 1 or num > 1:
-            self.logger.error("Tried to set hardware breakpoint %d at 0x%X on JTAG target",
+            self.logger.error("Tried to set hardware breakpoint %d at 0x%X on UPDI target",
                                 num, address)
             return None
-        resp = self.protocol.jtagice3_command_response(
-            bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_SET, Avr8Protocol.CMD_VERSION0, 1, num]) +
-            binary.pack_le32(address) +
-            bytearray([3]))
-        return self.protocol.check_response(resp)
+        return self.breakpoint_set(address)
 
 
     def hardware_breakpoint_clear(self, num : int) -> bytes | None:
@@ -96,12 +91,40 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         Clears the hardware breakpoint <num>
         """
         if num < 1 or num > 1:
-            self.logger.error("Tried to clear hardware breakpoint %d on JTAG target",
+            self.logger.error("Tried to clear hardware breakpoint %d on UPDI target",
                                 num)
             return None
-        resp = self.protocol.jtagice3_command_response(
-            bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, num]))
-        return self.protocol.check_response(resp)
+        return self.breakpoint_clear()
+
+    def switch_to_progmode(self) -> None:
+        """
+        Simply detach and enter prog mode
+        """
+        self.logger_loc.debug("Detaching...")
+        self.protocol.detach()
+#        self.logger_loc.debug("Deactivating physical...")
+#        self.deactivate_physical()
+#        self.logger_loc.debug("Activating physical...")
+#        self.activate_physical()
+        self.logger_loc.debug("Entering progmode...")
+        self.protocol.enter_progmode()
+        self.logger_loc.debug("Switched to progmode")
+
+    def switch_to_debmode(self) -> None:
+        """
+        Simply leave prog mode and attach again
+        """
+        self.logger_loc.debug("Leaving progmode...")
+        self.protocol.leave_progmode()
+#        self.logger_loc.debug("Deactivating physical...")
+#        self.deactivate_physical()
+#        self.logger_loc.debug("Activating physical...")
+#        self.activate_physical()
+        self.logger_loc.debug("Trying to attach...")
+        self.protocol.attach()
+        self.logger_loc.debug("Switched to debug mode")
+
+
 
 
 

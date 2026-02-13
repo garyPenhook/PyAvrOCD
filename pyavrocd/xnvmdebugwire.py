@@ -144,13 +144,14 @@ class XNvmAccessProviderCmsisDapDebugwire(NvmAccessProviderCmsisDapDebugwire):
                                           write_chunk_size,
                                           allow_blank_skip=allow_blank_skip)
 
-    def erase_page(self, addr : int, prog_mode : bool) -> bool:
+    def erase_page(self, addr : int, memory_info: dict[ str, Any ], prog_mode : bool) -> bool:
         """
         In debugWIRE, we cannot erase single pages. But we also do not need to because this takes
         place while flash programming.
         """
         _dummy1 = addr
         _dummy2 = prog_mode
+        _dummy3 = memory_info
         return False
 
     def erase_chip(self, prog_mode : bool) -> bool:

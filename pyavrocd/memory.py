@@ -288,6 +288,8 @@ class Memory():
         next_mile_stone = 2000
 
         self.logger.info("Flashing at 0x%X, length: %u ...", pgaddr, stopaddr-startaddr)
+        if self.dbg.memory_info is None:
+            raise FatalError("No memory info!")
         while pgaddr < stopaddr:
             self.logger.debug("Flashing page starting at 0x%X", pgaddr)
             pagetoflash = self._flash[pgaddr:pgaddr + self._multi_page_size]
@@ -306,7 +308,8 @@ class Memory():
                   not self.dbg.device.avr.is_blank(currentpage)):
                     # will erase if necessary and return True if it did
                     self.logger.debug("Will now erase ...")
-                    if self.dbg.device.erase_page(pgaddr, self.programming_mode):
+                    if self.dbg.device.erase_page(pgaddr, self.dbg.memory_info.memory_info_by_name('flash'),
+                                                      self.programming_mode):
                         self.logger.debug("Page at 0x%x erased", pgaddr)
                 self.logger.debug("Flashing now from 0x%X to 0x%X", pgaddr, pgaddr+len(pagetoflash))
                 pagetoflash.extend(bytearray([0xFF]*(self._multi_page_size-len(pagetoflash))))

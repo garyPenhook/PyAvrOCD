@@ -154,7 +154,7 @@ class TestXNvmAccessProviderCmsisDapMegaJtag(TestCase):
     def test_erase_page_debmode(self):
         self.set_up()
         self.nvm.avr.protocol = Mock()
-        self.assertTrue(self.nvm.erase_page(0x100, False))
+        self.assertTrue(self.nvm.erase_page(0x100, self.memory_info.memory_info_by_name('flash'), False))
         self.nvm.avr.switch_to_debmode.assert_not_called()
         self.nvm.avr.switch_to_progmode.assert_not_called()
         self.nvm.avr.protocol.jtagice3_command_response.assert_called_once_with(b'P\x00\x00\x01\x00\x00')
@@ -162,7 +162,7 @@ class TestXNvmAccessProviderCmsisDapMegaJtag(TestCase):
     def test_erase_page_progmode(self):
         self.set_up()
         self.nvm.avr.protocol = Mock()
-        self.assertTrue(self.nvm.erase_page(0x100, True))
+        self.assertTrue(self.nvm.erase_page(0x100, self.memory_info.memory_info_by_name('flash'), True))
         self.nvm.avr.switch_to_debmode.assert_called_once()
         self.nvm.avr.switch_to_progmode.assert_called_once()
         self.nvm.avr.protocol.jtagice3_command_response.assert_called_once_with(b'P\x00\x00\x01\x00\x00')

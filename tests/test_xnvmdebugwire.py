@@ -123,7 +123,7 @@ class TestXNvmAccessProviderCmsisDapDebugwire(TestCase):
 
     def test_erase_page(self):
         self.set_up()
-        self.assertFalse(self.nvm.erase_page(0,False))
+        self.assertFalse(self.nvm.erase_page(0,None,False))
 
     def test_erase_chip(self):
         self.set_up()
