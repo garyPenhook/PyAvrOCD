@@ -17,3 +17,7 @@ dist/*
 .theia
 site/**
 gdb.txt
+tests/end-to-end/log/*.log
+build/**
+.coverage
+cov/**
