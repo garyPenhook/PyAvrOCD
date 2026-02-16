@@ -187,7 +187,6 @@ class TestMain(TestCase):
         self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
         self.assertEqual(args.clkdeb, 400)
 
-    
     def test_process_arguments_default_kbps(self):
         args = SimpleNamespace()
         args.cmd = None
