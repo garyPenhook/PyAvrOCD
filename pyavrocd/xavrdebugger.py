@@ -77,7 +77,7 @@ class XAvrDebugger(AvrDebugger):
         self.edbg_protocol : EdbgProtocol | None = None
         self.housekeeper : housekeepingprotocol.Jtagice3HousekeepingProtocol | None = None
         self.use_events_for_run_stop_state =  False # in order to avoid the timing glitch with ATmega32/Atmel-ICE
-        # Caching general registers, will be updated when execution is resumed 
+        # Caching general registers, will be updated when execution is resumed
         self._regfile : bytearray | None = None
         self._regsupd : bool = False
 
@@ -177,6 +177,8 @@ class XAvrDebugger(AvrDebugger):
                 raise FatalError("Could  not connect to target.")
             if self._iface == 'jtag' and dev_id & 0xFF != 0x3F:
                 raise FatalError("Not a Microchip JTAG target")
+            if self._iface == 'updi':
+                self.logger.info("Device ID: %s", self.device.avr.protocol.get_id())
         except Exception as e:
             if warmstart:
                 self.logger.warning("Debug session not started: %s", str(e))
@@ -190,6 +192,7 @@ class XAvrDebugger(AvrDebugger):
             self.device.avr.protocol.stop() # If successful, OCDEN is already activated
         except Jtagice3ResponseError as e:
             if e.code == Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS: # we need to set OCDEN
+                self.logger.debug("Illegal OCD status, need to activate debugging")
                 if self.args.attach:
                     raise FatalError("Could not attach to OCD because debugging is not yet activated") #pylint: disable=raise-missing-from
                 self._manage_fuses()
@@ -215,8 +218,7 @@ class XAvrDebugger(AvrDebugger):
         # clear lockbits if necessary
         self._handle_lockbits(self.read_lock_one_byte, self.device.erase)
         # unprogram BOOTRST fuse if necessary
-        self._handle_bootrst(self.read_fuse_one_byte,
-                self.write_fuse)
+        self._handle_bootrst(self.read_fuse_one_byte, self.write_fuse)
         # program OCDEN
         ofuse_addr : int = self.device_info['ocden_base']
         ofuse_mask : int = self.device_info['ocden_mask']
@@ -281,9 +283,13 @@ class XAvrDebugger(AvrDebugger):
         if self.args.skipsig:
             return
         if self._iface == 'debugwire':
-            sig = (0x1E<<16)+dev_id # derive a signature from the id returned from activate_physical for debugWIRE
+            sig = (0x1E<<16) + dev_id # derive a signature from the id returned from activate_physical for debugWIRE
+        elif self._iface == 'jtag':
+            sig = (0x1E<<16) + ((dev_id >> 12)&0xFFFF) # same thing for JTAG
+        elif self._iface == 'updi':
+            sig = dev_id
         else:
-            sig = (0x1E<<16)+((dev_id >> 12)&0xFFFF) # same thing for JTAG
+            raise FatalError("Unhandled debug interface")
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
         self.logger.debug("Device signature of connected chip: %X", sig)
         if sig != self.device_info['device_id']:
@@ -351,6 +357,7 @@ class XAvrDebugger(AvrDebugger):
             use_reset : bool = 'edbg' not in self.transport.device.product_string.lower() and \
               not self.args.attach
             dev_id : bytes = self.device.avr.protocol.activate_physical(use_reset=use_reset)
+            self.logger.info("%s", dev_id)
             dev_code : int = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
             self.logger.info("Physical interface activated: 0x%X", dev_code)
         except Jtagice3ResponseError as error:
@@ -374,6 +381,9 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.info("Physical interface activated. MCU id=0x%X", dev_code)
             else:
                 raise
+        if self._iface == 'updi':
+            dev_code = int.from_bytes(self.device.read_device_id(),'little')
+            self.logger.debug("UPDI dev_code: 0x%X", dev_code)
         return dev_code
 
     def _handle_bootrst(self, read : Callable[[int], bytes],
@@ -827,7 +837,7 @@ class XAvrDebugger(AvrDebugger):
             self._regsupd = False
         return self._regfile[:]
 
-    def register_file_write(self, regs : bytes) -> None:
+    def register_file_write(self, regs : bytearray) -> None:
         """
         Writes the AVR register file (R0::R31)
 
@@ -839,7 +849,7 @@ class XAvrDebugger(AvrDebugger):
         self._regsupd = True
 
     def register_read(self, addr : int, size : int) -> bytearray:
-        """ 
+        """
         Returns register contents (from cached regfile)
         """
         self.logger.debug("Reading %d bytes starting at r%d", size, addr)
@@ -966,7 +976,7 @@ class XAvrDebugger(AvrDebugger):
         """
         self._update_regfile_in_target()
         super().run()
-        
+
     def run_to(self, address : int) -> None:
         """
         Update register file, if changes in register.

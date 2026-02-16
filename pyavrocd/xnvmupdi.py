@@ -10,13 +10,15 @@ import logging
 from pyedbglib.protocols.jtagice3protocol import Jtagice3ResponseError
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
+from pyedbglib.util import binary
 
 from pymcuprog.nvmupdi import NvmAccessProviderCmsisDapUpdi
 from pymcuprog.nvm import NvmAccessProviderCmsisDapAvr
 from pymcuprog.pymcuprog_errors import PymcuprogError
 from pymcuprog.avr8target import AvrDevice
 
-from pymcuprog.deviceinfo.deviceinfokeys import DeviceMemoryInfoKeys
+from pymcuprog.deviceinfo.deviceinfo import DeviceMemoryInfo
+from pymcuprog.deviceinfo.deviceinfokeys import DeviceMemoryInfoKeys, DeviceInfoKeysAvr
 from pymcuprog.deviceinfo.memorynames import MemoryNames
 
 from pymcuprog import utils
@@ -109,3 +111,27 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         if not prog_mode:
             self.avr.switch_to_debmode()
         return True
+
+    def read_device_id(self) -> bytearray:
+        """
+        Read the device info
+
+        :returns: Device ID raw bytes (little endian)
+        """
+        device_memory_info = DeviceMemoryInfo(self.device_info)
+        signatures_info = device_memory_info.memory_info_by_name(MemoryNames.SIGNATURES)
+        signatures_address = signatures_info[DeviceMemoryInfoKeys.ADDRESS]
+        sig = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
+                                   signatures_address,
+                                   3)
+        device_id_read = binary.unpack_be24(sig)
+
+        self.logger.info("Device ID: '%06X'", device_id_read)
+
+        revision = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
+                                        self.device_info.get(DeviceInfoKeysAvr.SYSCFG_BASE) + 1, 1)
+        self.logger.debug("Device revision: 0x%02x", revision[0])
+        self.logger.info("Device revision: '%x.%x'", revision[0] >> 4, revision[0] & 0x0F)
+
+        # Return the raw signature bytes, but swap the endianness as target sends ID as Big endian
+        return bytearray([sig[2], sig[1], sig[0]])

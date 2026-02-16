@@ -262,7 +262,7 @@ class GdbHandler():
         self.logger.debug("Data received: %s", packet)
         if self.mon.is_debugger_active():
             newdata : bytes = binascii.unhexlify(packet)
-            self.dbg.register_file_write(newdata[:32])
+            self.dbg.register_file_write(bytearray(newdata[:32]))
             self.dbg.status_register_write(newdata[32:33])
             self.dbg.stack_pointer_write(newdata[33:35])
             self.dbg.program_counter_write((int(binascii.hexlify(
