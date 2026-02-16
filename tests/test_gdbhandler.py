@@ -331,8 +331,9 @@ class TestGdbHandler(TestCase):
     def test_get_one_register_handler_reg(self):
         self.set_up()
         self.gh.mon.is_debugger_active.return_value = True
-        self.gh.dbg.sram_read.return_value = bytearray([0x23])
+        self.gh.dbg.register_read.return_value = bytearray([0x23])
         self.gh.dispatch('p', b'07')
+        self.gh.dbg.register_read.assert_called_with(0x07, 1)
         self.gh._comsocket.sendall.assert_called_with(rsp("23"))
 
     def test_set_one_register_handler_impossible(self):
@@ -366,7 +367,7 @@ class TestGdbHandler(TestCase):
         self.set_up()
         self.gh.mon.is_debugger_active.return_value = True
         self.gh.dispatch('P', b'10=ee')
-        self.gh.dbg.sram_write.assert_called_with(0x10, bytearray([0xee]))
+        self.gh.dbg.register_write.assert_called_with(0x10, bytearray([0xee]))
         self.gh._comsocket.sendall.assert_called_with(rsp("OK"))
 
     def test_attached_handler(self):

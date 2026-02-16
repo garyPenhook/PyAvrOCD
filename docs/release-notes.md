@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release v1.1.2
+
+- Fixed: Recognition of  ATtiny48/88 did not work as advertised, but now it does again.
+
 ## Release v1.1.1
 
 - Fixed: Removed dependence of non-system dynamic libraries from macOS avr-gdb executables.

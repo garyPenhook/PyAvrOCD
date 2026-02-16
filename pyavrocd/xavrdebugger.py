@@ -61,12 +61,15 @@ class XAvrDebugger(AvrDebugger):
         self._iface : str = iface
         self.bad_pc_bit_mask : int = 0
         self.manage : list[ str ] = args.manage
-        self.clkprg : int = args.clkprg
-        self.clkdeb : int = args.clkdeb
+        self.clkprg : int = args.clkprg # JTAG programming clock frequency
+        self.clkdeb : int = args.clkdeb # JTAG debug clock frequency
+        self.kbps : int = args.kbps # UPDI/PDI communication speed
         self.timers_run : bool = args.timers[0]=='r'
         self.args : argparse.Namespace = args
         self._hwbpnum : int = 0
         self._architecture : str = ""
+        self._sregaddr : int = 0
+        self._iooffset : int = 0
         self.device_info : dict[str, Any ] = {}
         self.memory_info : deviceinfo.DeviceMemoryInfo | None = None
         self.spidevice : NvmAccessProviderCmsisDapSpi | None = None
@@ -74,6 +77,9 @@ class XAvrDebugger(AvrDebugger):
         self.edbg_protocol : EdbgProtocol | None = None
         self.housekeeper : housekeepingprotocol.Jtagice3HousekeepingProtocol | None = None
         self.use_events_for_run_stop_state =  False # in order to avoid the timing glitch with ATmega32/Atmel-ICE
+        # Caching general registers, will be updated when execution is resumed 
+        self._regfile : bytearray | None = None
+        self._regsupd : bool = False
 
         # Gather device info
         # moved here so that we have mem + device info before the debug process starts
@@ -96,14 +102,20 @@ class XAvrDebugger(AvrDebugger):
 
         # Now attach the right NVM device
         if iface == "updi":
-            self.device = XNvmAccessProviderCmsisDapUpdi(self.transport, self.device_info)
+            self.device = XNvmAccessProviderCmsisDapUpdi(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 2
+            self._sregaddr = 0x3F
+            self._iooffset = 0
         elif iface == "debugwire":
-            self.device = XNvmAccessProviderCmsisDapDebugwire(self.transport, self.device_info)
+            self.device = XNvmAccessProviderCmsisDapDebugwire(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 1
+            self._sregaddr = 0x5F
+            self._iooffset = 0x20
         elif iface == "jtag" and self._architecture =="avr8":
             self.device = XNvmAccessProviderCmsisDapMegaAvrJtag(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 4
+            self._sregaddr = 0x5F
+            self._iooffset = 0x20
 
         self.logger.info("Nvm instance created, iface: %s, HWBPs: %d, arch: %s",
                               self._iface, self._hwbpnum, self._architecture)
@@ -129,6 +141,18 @@ class XAvrDebugger(AvrDebugger):
         """
         return self._hwbpnum
 
+    def get_sregaddr(self) -> int:
+        """
+        Address of SREG
+        """
+        return self._sregaddr
+
+    def get_iooffset(self) -> int:
+        """
+        Returns offset to I/O registers, i.e., 0x20 for dw and JTAG, 0x00 for UPDI
+        """
+        return self._iooffset
+
     def start_debugging(self, flash_data : bytes | None = None, warmstart : bool = False) -> bool:
         """
         Start the debug session, i.e., initialize everything and start the debug engine.
@@ -141,7 +165,10 @@ class XAvrDebugger(AvrDebugger):
             self.housekeeper = housekeepingprotocol.Jtagice3HousekeepingProtocol(self.transport)
             self.housekeeper.start_session()
             self.logger.info("Signed on to tool")
-            self.device.avr.setup_debug_session(clkprg=self.clkprg, clkdeb=self.clkdeb, timers_run=self.timers_run)
+            self.device.avr.setup_debug_session(kbps=self.kbps,
+                                                    clkprg=self.clkprg,
+                                                    clkdeb=self.clkdeb,
+                                                    timers_run=self.timers_run)
             self.logger.info("Session configuration communicated to tool")
             self.device.avr.setup_config(self.device_info)
             self.logger.info("Device configuration communicated to tool")
@@ -222,16 +249,17 @@ class XAvrDebugger(AvrDebugger):
 
     def _verify_target(self, dev_id : int) -> None:
         """
-        Check that the MCU we connected to has a device id returned by activate physical that is compatible with the
-        type given as an argument when calling the server.
+        Check that the MCU we connected to has a device id returned by activate physical that
+        is compatible with the type given as an argument when calling the server.
         """
-        # list of pairs, where the first entry is a signature computed from the device id and the second one
-        # is a possible alternative identity. For example, the first pair signifies that a chip returning a
-        # device id corresponding to an atmega48pa could well be an atmega48a.
+        # list of pairs, where the first entry is a signature computed from the device id
+        # and the second one is a possible alternative identity. For example, the first
+        # pair signifies that a chip returning a device id corresponding to an atmega48p
+        # could well be an atmega48a.
         comp_ids : tuple[ tuple[ int, int], ... ] = \
-               ((0x1E920A, 0x1E9205), # pretends to be a 48P, but is 48a
-                (0x1E930F, 0x1E930A), # pretends to be a 88P, but is 88a
-                (0x1E940B, 0x1E9406), # pretends to be a 168P, but is 168a
+               ((0x1E920A, 0x1E9205), # pretends to be a 48PA, but is 48A
+                (0x1E930F, 0x1E930A), # pretends to be a 88PA, but is 88A
+                (0x1E940B, 0x1E9406), # pretends to be a 168PA, but is 168A
                 (0x1E950F, 0x1E9514), # pretends to be a 328P, but is 328
                 (0x1E9516, 0x1E9514), # pretends to be a 328PB, but is a 328
                 (0x1E9516, 0x1E950F), # pretends to be a 328PB, but is a 328P
@@ -794,7 +822,10 @@ class XAvrDebugger(AvrDebugger):
         :rtype: bytearray
         """
         self.logger.debug("Reading register file")
-        return self.device.avr.regfile_read()
+        if self._regfile is None:
+            self._regfile = self.device.avr.regfile_read()
+            self._regsupd = False
+        return self._regfile[:]
 
     def register_file_write(self, regs : bytes) -> None:
         """
@@ -804,7 +835,32 @@ class XAvrDebugger(AvrDebugger):
         :raises ValueError: if 32 bytes are not given
         """
         self.logger.debug("Writing register file")
-        self.device.avr.regfile_write(regs)
+        self._regfile = regs[:]
+        self._regsupd = True
+
+    def register_read(self, addr : int, size : int) -> bytearray:
+        """ 
+        Returns register contents (from cached regfile)
+        """
+        self.logger.debug("Reading %d bytes starting at r%d", size, addr)
+        if addr + size > 32 or addr < 0:
+            raise FatalError("Illegal addressing while reading from registers")
+        if self._regfile is None:
+            self._regfile = self.device.avr.regfile_read()
+            self._regsupd = False
+        return self._regfile[addr:addr+size]
+
+    def register_write(self, addr : int, data : bytes) -> None:
+        """
+        Writes to registers
+        """
+        self.logger.debug("Writing %d bytes starting at r%d", len(data), addr)
+        if addr + len(data) > 32 or addr < 0:
+            raise FatalError("Illegal addressing while writing to registers")
+        if self._regfile is None:
+            self._regfile = self.device.avr.regfile_read()
+        self._regfile[addr:addr+len(data)] = data
+        self._regsupd = True
 
     def reset(self) -> None:
         """
@@ -891,12 +947,37 @@ class XAvrDebugger(AvrDebugger):
 
     def program_counter_read(self) -> int:
         """
-        Apply the bad PC bit mask (which is for addressing bates, so shift one one to the right)
+        Apply the bad PC bit mask (which is for addressing bytes, so shift one to the right)
         """
         return super().program_counter_read() & ~(self.bad_pc_bit_mask >> 1)
 
+    def _update_regfile_in_target(self) -> None:
+        """
+        Write back the register file if changes have happened
+        """
+        if self._regfile is not None and self._regsupd:
+            self.device.avr.regfile_write(self._regfile)
+        self._regfile = None
+        self._regsupd = False
+
+    def run(self) -> None:
+        """
+        Update register file, then execute
+        """
+        self._update_regfile_in_target()
+        super().run()
+        
     def run_to(self, address : int) -> None:
         """
-        Apply bad bit (if present) when starting execution
+        Update register file, if changes in register.
+        Apply bad bit (if present) to cursor address when starting execution.
         """
+        self._update_regfile_in_target()
         super().run_to(address | self.bad_pc_bit_mask)
+
+    def step(self) -> None:
+        """
+        Update register file, then make a single step
+        """
+        self._update_regfile_in_target()
+        super().step()

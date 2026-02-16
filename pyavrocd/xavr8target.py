@@ -49,27 +49,35 @@ class XTinyXAvrTarget(TinyXAvrTarget):
 
     def statreg_read(self) -> bytearray:
         """
-        Reads SREG
+        Reads out SREG
 
-        :returns: 1 Byte of SREG
-        :rtype: bytearray
+        :return: 1 byte of status register
         """
-        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                             Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, 1)
+        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3F, 1)
 
-    def statreg_write(self, data : bytes) -> None:
+
+    def statreg_write(self, data : bytes) -> bytearray:
         """
-        Writes SREG
+        Writes byte to SREG
+        :param: 1 byte of data
 
         """
-        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                       Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, data)
-
+        return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3F, data)
+    
     def stack_pointer_write(self, data : bytes) -> None:
         """
         Writes the stack pointer
         """
-        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD, 0x18, data)
+        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3D, data)
+
+    def stack_pointer_read(self) -> bytearray:
+        """
+        Reads the stack pointer
+
+        :returns: Stack pointer
+        :rtype: bytearray
+        """
+        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3D, 0x02)
 
     def hardware_breakpoint_set(self, num : int, address : int) -> bytes | None:
         """
@@ -124,9 +132,28 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.protocol.attach()
         self.logger_loc.debug("Switched to debug mode")
 
+    
+    #pylint: disable=arguments-differ
+    def setup_debug_session(self, timers_run : bool = True, 
+                            kbps : int = 100,
+                            **kwargs : Any) -> None:
+        """
+        Sets up a debug session for a tinyX AVR device
 
-
-
+        :param kbps: Communication speed in kbps
+        :param timers_run: whether timers should run while execution is suspended
+        """
+        _dummy = kwargs
+        self.logger_loc.info("Setting up debug session for UPDI target")
+        self.protocol.set_variant(Avr8Protocol.AVR8_VARIANT_TINYX)
+        self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                                   Avr8Protocol.AVR8_OPT_RUN_TIMERS,
+                                   timers_run)
+        self.logger_loc.info("Configured timers as running: %d", timers_run)
+        self.protocol.set_function(Avr8Protocol.AVR8_FUNC_DEBUGGING)
+        self.protocol.set_interface(Avr8Protocol.AVR8_PHY_INTF_PDI_1W)
+        self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_XM_PDI_CLK, kbps)
+        self.logger_loc.info("UPDI communication speed: %d kbps", kbps)
 
 class XTinyAvrTarget(TinyAvrTarget):
     """
@@ -436,10 +463,14 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
         self.protocol.reset()
         self.logger_loc.info("Physical interface re-activated")
 
-    def setup_debug_session(self, clkprg : int=200, clkdeb : int=1000, timers_run : bool=True) -> None:
+    def setup_debug_session(self, clkprg : int = 200,
+                                clkdeb : int = 1000,
+                                timers_run : bool = True,
+                                **kwargs : Any) -> None:
         """
         Sets up a programming session on an Mega AVR (JTAG)
         """
+        _dummy = kwargs
         self.logger_loc.info("Setting up debug session for JTAG target")
         self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_MEGA_DBG_CLK, clkdeb)
         self.logger_loc.info("Debugging JTAG frequency: %d kHz", clkdeb)

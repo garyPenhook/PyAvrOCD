@@ -85,6 +85,12 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             choices= ['?'] + interface_choices,
                             help="Debugging interface to use, use '?' for list")
 
+    parser.add_argument("-K", "--kbps",
+                            metavar="KB",
+                            dest='kbps',
+                            type=int,
+                            help="UPDI/PDI communication speed (kbps)")
+
     manage_choices : list [str] = ['all', 'none', 'bootrst', 'nobootrst', 'dwen', 'nodwen',
                           'ocden', 'noocden', 'lockbits', 'nolockbits', 'eesave', 'noeesave']
     parser.add_argument("-m", "--manage",
@@ -300,8 +306,11 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     if args.clkdeb is None:
         args.clkdeb = min(2000, args.F_CPU//5000)
 
-    if args.clkprg < 0 or args.clkdeb < 0:
-        print("Negative frequency values are discouraged")
+    if args.kbps is None:
+        args.kbps = min(900, args.F_CPU//17777)
+
+    if args.clkprg < 0 or args.clkdeb < 0 or args.kbps < 0:
+        print("Negative frequency or communication speed values are discouraged")
         return 1, "", ""
 
     device : str = args.dev

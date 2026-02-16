@@ -215,7 +215,7 @@ class LiveTests():
         self.logger.info("Running 'get register' test ...")
         newdata : bytes = bytearray(list(range(32,64))) + \
           bytearray([0x99, 0x77, 0x00, 0x46, 0x34, 0x00, 0x00 ])
-        self.dbg.register_file_write(newdata[:32])
+        self.dbg.write_register_file(newdata[:32])
         self.dbg.status_register_write(newdata[32:33])
         self.dbg.stack_pointer_write(newdata[33:35])
         self.dbg.program_counter_write(0x000003446 >> 1)

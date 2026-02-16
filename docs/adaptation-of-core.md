@@ -1,6 +1,6 @@
 # How to enable a core for debugging
 
-Extending a core to enable it for debugging (using PyAvrOCD) is almost always the same. There are a few variations, though.
+Extending a core to enable it for debugging (using PyAvrOCD) is almost always the same. 
 
 ## `platform.txt`
 

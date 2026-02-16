@@ -39,8 +39,6 @@ SIGSYS  : int = 12    # Bad system call means in our case "Too many breakpoints"
 SWBP : int = 1
 HWBP : int = -1
 
-SREGADDR :int = 0x5F
-
 class BreakAndExec():
     """
     This class manages breakpoints, supports flashwear minimizing execution, and
@@ -65,6 +63,8 @@ class BreakAndExec():
         self._big_sram : bool = self.dbg.memory_info.memory_info_by_name('internal_sram')['size'] \
                                    > 64*1024
         self._sram_start :int  = self.dbg.memory_info.memory_info_by_name('internal_sram')['address']
+        self._sregaddr : int = self.dbg.get_sregaddr()
+        self._iooffset : int = self.dbg.get_iooffset()
         self._range_start : int | None = None
         self._range_end : int = 0
         self._range_word : list[int] = []
@@ -419,7 +419,7 @@ class BreakAndExec():
         # LDS and STS
         if self._long_load_or_store_instr(opcode):
             secondword = self._read_filtered_flash_word(addr + 2)
-            if secondword != SREGADDR:
+            if secondword != self._sregaddr:
                 return False
             self._load_or_store_reg(opcode, self._is_store_instr)
             return self._sim_done(addr+2)
@@ -431,16 +431,16 @@ class BreakAndExec():
                 base_reg = 28
             else:
                 base_reg = 30
-            iaddr = int.from_bytes(self.dbg.sram_read(base_reg, 2), byteorder='little')
+            iaddr = int.from_bytes(self.dbg.register_read(base_reg, 2), byteorder='little')
             if self._is_pre_decr(opcode):
                 iaddr -= 1
-            if iaddr != SREGADDR:
+            if iaddr != self._sregaddr:
                 return False
             self._load_or_store_reg(opcode, self._is_store_instr)
             if self._is_post_incr(opcode):
                 iaddr += 1
             if self._is_change_ix(opcode):
-                self.dbg.sram_write(base_reg, iaddr.to_bytes(2, byteorder='little'))
+                self.dbg.register_write(base_reg, iaddr.to_bytes(2, byteorder='little'))
             return self._sim_done(addr)
         # LD r, Y/Z and ST Y/Z, r with displacement
         if self._indirect_load_or_store_with_displacement_instr(opcode):
@@ -449,14 +449,14 @@ class BreakAndExec():
                 base_reg = 28
             else:
                 base_reg = 30
-            iaddr = int.from_bytes(self.dbg.sram_read(base_reg, 2), byteorder='little') + disp
-            if iaddr != SREGADDR:
+            iaddr = int.from_bytes(self.dbg.register_read(base_reg, 2), byteorder='little') + disp
+            if iaddr != self._sregaddr:
                 return False
             self._load_or_store_reg(opcode, self._is_store_instr)
             return self._sim_done(addr)
         # IN and OUT
         if self._in_or_out_instr(opcode):
-            if self._extract_io_addr(opcode) == SREGADDR - 0x20:
+            if self._extract_io_addr(opcode) == self._sregaddr - self._iooffset:
                 self._load_or_store_reg(opcode, self._is_out_instr)
                 return self._sim_done(addr)
             return False
@@ -485,11 +485,11 @@ class BreakAndExec():
             # the avr8 architecture does not support these instructions
             if self.dbg.get_architecture() != "avr8e":
                 return False
-            if int.from_bytes(self.dbg.sram_read(30, 2), byteorder='little') != SREGADDR:
+            if int.from_bytes(self.dbg.register_read(30, 2), byteorder='little') != self._sregaddr:
                 return False
             tempval = self.dbg.status_register_read()
             regnum = self._extract_register(opcode)
-            regval = self.dbg.sram_read(regnum, 1)
+            regval = self.dbg.register_read(regnum, 1)
             if self._exchange_instr(opcode):
                 self.dbg.status_register_write(regval)
             elif self._lac_instr(opcode):
@@ -500,7 +500,7 @@ class BreakAndExec():
                 self.dbg.status_register_write(bytearray([regval[0]^tempval[0]]))
             else:
                 raise FatalError("Instruction decoding error in filter_unsafe_instructions")
-            self.dbg.sram_write(regnum, tempval)
+            self.dbg.register_write(regnum, tempval)
             return self._sim_done(addr)
         return False
 
@@ -511,9 +511,9 @@ class BreakAndExec():
         """
         reg = self._extract_register(opcode)
         if do_store_check(opcode):
-            self.dbg.status_register_write(bytearray(self.dbg.sram_read(reg,1)))
+            self.dbg.status_register_write(bytearray(self.dbg.register_read(reg,1)))
         else:
-            self.dbg.sram_write(reg, self.dbg.status_register_read())
+            self.dbg.register_write(reg, self.dbg.status_register_read())
 
 
     def _sim_done(self, addr : int) -> bool:
@@ -665,20 +665,26 @@ class BreakAndExec():
         if (opcode & ~0x1F0) == 0x9000: # lds
             register = (opcode & 0x1F0) >> 4
             try:
-                val = self.dbg.sram_read(secondword, 1)
+                if secondword < self._iooffset: # if the source address is a register address 
+                    val = self.dbg.register_read(secondword, 1)
+                else:
+                    val = self.dbg.sram_read(secondword, 1)
             except Jtagice3ResponseError as error:
                 if error.code == Avr8Protocol.AVR8_FAILURE_INVALID_ADDRESS:
                     self.logger.error("Read access to invalid address: 0x%X", secondword)
                     val = bytearray([0])
                 else:
                     raise error
-            self.dbg.sram_write(register, val)
+            self.dbg.register_write(register, val)
             self.logger.debug("Simulating lds")
             addr += 4
         elif (opcode & ~0x1F0) == 0x9200: # sts
             register = (opcode & 0x1F0) >> 4
-            val = self.dbg.sram_read(register, 1)
-            self.dbg.sram_write(secondword, val)
+            val = self.dbg.register_read(register, 1)
+            if secondword < self._iooffset: # if destination is a register address
+                self.dbg.register_write(secondword, val)
+            else:
+                self.dbg.sram_write(secondword, val)
             self.logger.debug("Simulating sts")
             addr += 4
         elif (opcode & 0x0FE0E) == 0x940C: # jmp

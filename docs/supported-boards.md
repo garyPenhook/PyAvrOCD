@@ -40,7 +40,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **Arduino Leonardo**: JTAG pins are A0-A3, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag)
 - Arduino Leonardo ETH
 - <u>Arduino Micro</u>
-- <s>Arduino Esplora</s>
+- <s>Arduino Esplora</s>: JTAG pins are not accessible
 - Arduino Mini: [MiniCore](supporting-cores.md#minicore) (if Mini 05); do not connect DTR pin of FTDI header
 - Arduino Ethernet: [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
 - <u>Arduino Fio</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header and do not connect XBee

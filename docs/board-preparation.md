@@ -73,20 +73,15 @@ If the PDI interface is used, then the RESET line will be employed as a clock li
 
 The `SPIEN` fuse could be disabled. In this case, the above comments apply. Otherwise, there is no need to change any fuses before beginning the debugging process.
 
-
+-->
 
 ## Preparing a UPDI target
 
-### Physical preparations
-
-Ensure that there is no capacitive or resistive load or active component on the UPDI line and that the UPDI pin is accessible.
+Again, UPDI targets are easy to deal with. Ensure that there is no capacitive or resistive load or active component on the UPDI line and that the UPDI pin is accessible.
 
 On the **Nano Every**, for example, this pin cannot be accessed through the board pins, but there is a pad on the backside of the PCB that can be used to access the UPDI line. And the USB-UART converter is usually disconnected from this pin.
 
 On the **Uno WIFI Rev2**, again, the UPDI pin is not exposed. But on this board, a mEDBG debugger is implemented. So you can connect to this debugger.
 
-### Fuse settings
+Problems arise when the UPDI pin is used as a GPIO or a RESET line. Consult the [section on fuse preparations for UPDI targets](fuse-preparation.md#preparing-a-updi-target).
 
-If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. If this is not the case, then the pin might have been programmed to act as a GPIO or the RESET line. To enable debugging and programming over this pin again, you will need to use a [high-voltage UPDI programmer.](https://www.adafruit.com/product/5893?srsltid=AfmBOoo5mSe4piu5mrG4wDqql3ubXbUT2IH2BZVAKtZqX9YQiEWx0HX6) Here, you must ensure that the 12 V pulse does not damage any components on your board.
-
--->

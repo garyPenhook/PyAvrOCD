@@ -28,6 +28,8 @@ class TestMain(TestCase):
         self.assertEqual(args.manage, ['none'])
         self.assertEqual(args.port, 2000)
         self.assertEqual(args.clkprg, 1000)
+        self.assertEqual(args.clkdeb, None)
+        self.assertEqual(args.kbps, None)
         self.assertEqual(args.tool, None)
         self.assertEqual(args.serialnumber, None)
         self.assertEqual(args.verbose, 'info')
@@ -90,7 +92,8 @@ class TestMain(TestCase):
                                                      interface="debugwire",
                                                      manage=[],
                                                      tool='dwlink',
-                                                     verbose='all')
+                                                     verbose='all',
+                                                     kbps=None)
         options(["-d", "atmega328p"])
         mockparse.assert_called_with(["-d", "atmega328p", "@pyavrocd.options"])
 
@@ -149,6 +152,7 @@ class TestMain(TestCase):
         args.F_CPU = '1000000L'
         args.clkprg = 1000
         args.clkdeb = 200
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
         self.assertEqual(args.manage, ['ocden', 'lockbits', 'eesave'])
 
@@ -163,6 +167,7 @@ class TestMain(TestCase):
         args.manage = ['all', 'nobootrst', 'nodwen', 'none', 'eesave' ]
         args.clkprg = 1000
         args.clkdeb = 200
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
         self.assertEqual(args.manage, ['eesave'])
         self.assertEqual(args.port, 9999)
@@ -177,9 +182,26 @@ class TestMain(TestCase):
         args.tool = None
         args.F_CPU = '2000000L'
         args.clkprg = 1000
+        args.kbps = None
         args.clkdeb = None
         self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
         self.assertEqual(args.clkdeb, 400)
+
+    
+    def test_process_arguments_default_kbps(self):
+        args = SimpleNamespace()
+        args.cmd = None
+        args.manage = []
+        args.dev = 'atmega328p'
+        args.interface = 'debugwire'
+        args.version = None
+        args.tool = None
+        args.F_CPU = '4000000L'
+        args.clkprg = 1000
+        args.kbps = None
+        args.clkdeb = None
+        self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
+        self.assertEqual(args.kbps, 225)
 
     @patch('builtins.print')
     def test_process_arguments_neg_freq(self, mocked_print):
@@ -193,8 +215,9 @@ class TestMain(TestCase):
         args.clkprg = -10
         args.clkdeb = None
         args.F_CPU = '1000000L'
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
-        mocked_print.assert_has_calls([call("Negative frequency values are discouraged")])
+        mocked_print.assert_has_calls([call("Negative frequency or communication speed values are discouraged")])
 
     @patch('builtins.print')
     def test_process_arguments_no_device(self, mocked_print):
@@ -208,6 +231,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Please specify target MCU with -d option")])
 
@@ -223,6 +247,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Device 'atmega328p' does not have the interface 'jtag'")])
 
@@ -238,6 +263,7 @@ class TestMain(TestCase):
         args.clkprg = 1000
         args.clkdeb = None
         args.F_CPU = '1000000L'
+        args.kbps = None
         self.assertEqual(process_arguments(args, MagicMock()), (1, "", ""))
         mocked_print.assert_has_calls([call("Device 'atmega31' is not supported by PyAvrOCD")])
 

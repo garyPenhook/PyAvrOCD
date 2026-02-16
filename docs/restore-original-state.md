@@ -11,5 +11,7 @@ If, after debugging, you want to restore a target board to its original state, a
 !!! warning "Burning the bootloader using the Arduino AVR Boards core"
     If you have debugged a board using, e.g., `MiniCore`, and now want to restore an Uno R3 board to its previous state under the`Arduino AVR Boards` core as an `Arduino Uno`, you may encounter problems when using one of the Microchip debug probes. Use a cheap USBasp programmer or something similar instead for burning the boot loader. Alternatively, you may consider staying with MiniCore and employing [Urboot](https://github.com/stefanrueger/urboot) as the bootloader.
 
-!!! warning "Burning the bootloader on JTAG Mega targets"
-    If you have debugged a JTAG mega target, e.g., the ATmega2560, and you want to disable the JTAG pins, you must set all relevant parameters in the `Tools` menu before using the `Burn Bootloader` command. In particular, make sure that the right `Clock` value is selected! Otherwise, it can happen that you need to apply an external clock to reanimate your chip.
+!!! warning "Burning the bootloader when there are many user-selectable options"
+    If you have debugged a target for which the `Tools` menu offers many different options, make sure that all relevant options have the correct value before you use the `Burn Bootloader` command. In particular, make sure that the right `Clock` value is selected! Otherwise, it can happen that you need to apply an external clock to reanimate your chip.
+
+ 
