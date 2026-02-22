@@ -74,6 +74,7 @@ jobs:
           valColorRange: ${{ env.PYLINT }}
           maxColorRange: 10.0
           minColorRange: 0
+        continue-on-error: true
       - name: Generate Pytest label
         if: ${{ github.event_name != 'pull_request' }}
         uses: schneegans/dynamic-badges-action@v1.7.0
@@ -88,6 +89,7 @@ jobs:
           valColorRange: ${{ env.PYTESTPERCENT }}
           maxColorRange: 100.0
           minColorRange: 30.0
+        continue-on-error: true
       - name: Generate coverage label
         if: ${{ github.event_name != 'pull_request' }}
         uses: schneegans/dynamic-badges-action@v1.7.0
