@@ -14,9 +14,10 @@ After [installing the package](install-link.md), the following steps are necessa
 2. [Preparing the target board for debugging](board-preparation.md)
 3. [Setting the right fuses](fuse-preparation.md)
 4. [Connecting the debug probe to the target](connect-to-target.md)
-5. [Invoking the GDB server](command-line-options.md)
-6. [Debugging a program on the target](debugging.md)
-7. [Restoring the target board to its original state](restore-original-state.md)
+5. [Compiling the program to be tested](compilation-options.md)
+6. [Invoking the GDB server](command-line-options.md)
+7. [Debugging a program on the target](debugging.md)
+8. [Restoring the target board to its original state](restore-original-state.md)
 
 Once you have a symbolic debugger connected to the GDB server, you can control the server's behavior using [`monitor` commands](monitor-commands.md).
 
