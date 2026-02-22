@@ -4,23 +4,15 @@
 
 ## Debugging using the Arduino IDE 2
 
-You must load the sketch you want to debug into the editor and select a board as usual. Before you can debug your code, you need to compile it, which will be done when you click on the Verify button in the upper left corner of the Arduino IDE window (see below).
-
-![ide2-1](https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/ide2-1.png)
-
-Before clicking the `Verify` button in the upper left corner, choose `Optimize for Debugging` in the `Sketch` menu.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/optimize-for-debug.png" width="30%"></p>
-
-This is necessary so that the compiler optimizes the code in a way that makes debugging straightforward. Otherwise, the compiler may rearrange source code lines, which can be confusing when single-stepping through the code.
+Before you start debugging, you first need to [compile the sketch](compilation-options.md#compiling-an arduino-sketch-in-the-arduino-ide-2), preferably with the `Optimize for Debugging` option enabled.
 
 ### Simulating or connecting to a target
 
-As mentioned, instead of connecting to a target, it is also possible to run a simulator (for some MCU types). This is done by choosing `Simulator (simavr)` as the `Programmer` in the `Tools` menu.  When you request to start debugging (see below), the simulator is chosen instead of making a connection to the target board.
+Instead of connecting to a target, it is also possible to run a simulator (for some MCU types). This is done by choosing `Simulator (simavr)` as the `Programmer` in the `Tools` menu.  When you request to start debugging (see below), the simulator is chosen instead of making a connection to the target board.
 
 ### Starting the debugger
 
-After compiling the sketch, it is time to start debugging by clicking the debug button in the top row. This will start the GDB server.
+After c[ompiling the sketch](compilation-options.md#compiling-an arduino-sketch-in-the-arduino-ide-2), it is time to start debugging by clicking the debug button in the top row. This will start the GDB server.
 
 Instead of the message shown in the following screenshot, an error message "No compatible tool" may be displayed. The reason may be that the Arduino IDE 2 reserved the debugger's serial line for the `Serial Monitor`. Simply close the `Serial Monitor` console and try again. On Linux, another reason could be that the udev rules have not yet been installed (see [installation instructions](install-link.md#installation)). Or maybe you forgot to connect a debug probe altogether.
 
@@ -28,7 +20,7 @@ Instead of the message shown in the following screenshot, an error message "No c
 
 If there is a connection to the debugger and the target, the GDB server will start up. When you deal with a debugWIRE target, you may be asked to power-cycle the target, i.e., to disconnect and reconnect power to the target. As mentioned above, power cycling is only necessary once. The next time you start a debugging session, the MCU will already be in debugWIRE mode, and the GDB server will not stop at this point.
 
-After power-cycling the target, the symbolic debugger starts. Eventually, execution is stopped in the first line of the internal `main` function at an initial internal breakpoint, indicated by the yellow triangle left of line 35 in the following screenshot. It may take some time before we reach that point, as the debugger must also load the program.
+After power-cycling the target, the symbolic debugger starts. Eventually, execution is stopped in the first line of the internal `main` function at an initial internal breakpoint, indicated by the yellow triangle (not on Windows) left of line 35 in the following screenshot. It may take some time before we reach that point, as the debugger must also load the program.
 
 After stopping, the IDE rearranges the layout, showing the debugging panes on the left and the sketch and other relevant source files on the right. It will also switch from displaying the `gdb-server` console to the `Debug Console`, which displays the output of the GDB debugger. In the last line of this console, a prompt symbol`>` is shown, where you can enter any GDB command, in particular the [`monitor` commands](monitor-commands.md) to control the GDB server.
 
@@ -88,9 +80,7 @@ Clicking on OK, you start a debugging session. The startup may take a while beca
 
 If you are more into command-line interface programming, simply using avr-gdb may be the right approach for you.
 
-After compiling your program, e.g., varblink0.ino, you can start the GDB server and the GDB debugger. When invoking the compiler, you should provide the following two options: `-Og` and `-ggdb3`. The first one optimizes for debugging (instead of size or speed), the second requires including as many symbols from the source program as possible.
-
-When starting the GDB server from the command line, you need to specify the MCU you want to connect to. In addition, you should specify the option `-m all`, so that the GDB server manages the debug-related fuses (see [Setting the right fuses](fuse-preparation.md#general-considerations)):
+After [compiling your program](compilation-otions.md#compiling-in-other-environments), e.g., varblink0.ino, you can start the GDB server and the GDB debugger. When starting the GDB server from the command line, you need to specify the MCU you want to connect to. In addition, you should specify the option `-m all`, so that the GDB server manages the debug-related fuses (see [Setting the right fuses](fuse-preparation.md#general-considerations)):
 
 ```log
 > pyavrocd -d atmega328p -m all

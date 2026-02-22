@@ -36,7 +36,7 @@ https://downloads.pyavrocd.io/package_debug_enabled_index.json
 ```
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/additional-board-urls.png" width="50%">
+<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/additional-board-urls-xmini.png" width="50%">
 </p>
 
 You close the dialog by clicking on two `OK` buttons in succession.
@@ -45,7 +45,7 @@ You close the dialog by clicking on two `OK` buttons in succession.
 
 Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "Debug" into the search line (2). After that, all cores with the word "Debug" in their description are displayed. Scroll down until you see one with the title "Atmel AVR Xplained-minis (Debug enabled)." Install this core by clicking on `Install` (3).
 
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager.png" width="90%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager-xmini.png" width="90%"></p>
 
 Loading the core and all the necessary tools might take a while.
 

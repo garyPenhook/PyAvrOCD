@@ -1,6 +1,8 @@
 # Monitor commands
 
-PyAvrOCD implements several `monitor` commands. These can be used to control important aspects of the GDB server. One important command is the `monitor debugwire enable` command, which enables debugWIRE mode on MCUs supporting this interface.
+PyAvrOCD implements several `monitor` commands. These can be used to control important aspects of the GDB server. Two important commands are the `monitor debugwire enable` and `monitor debugwire disable` commands, which enable and disable, respectively, debugWIRE mode on MCUs supporting this interface. When using Arduino IDE 2, you can type such commands into the last line of the `Debug Console`.
+
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-5.png" width="70%"></p>
 
 | Command                                                      | Action                                                       |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |

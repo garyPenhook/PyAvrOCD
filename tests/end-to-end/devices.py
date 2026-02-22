@@ -30,7 +30,7 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                    "ATTinyCore:avr:attinyx4:chip=44,clock=", "Dev Board"),
                 "attiny84" : (attiny_clock, ('large',   'dw', 'noautopc'),
                                    "ATTinyCore:avr:attinyx4:chip=84,clock=", "Dev Board"),
-                "attiny841" : (attiny_rc_clock, ('large',   'dw', 'noautopc'),
+                "attiny841" : (new_attiny_rc_clock, ('large',   'dw', 'noautopc'),
                                    "ATTinyCore:avr:attinyx41:chip=841,clock=", "Breakout Board"),
                 "attiny441" : (attiny_rc_clock, ('medium',  'dw', 'noautopc'),
                                    "ATTinyCore:avr:attinyx41:chip=441,clock=", "Breadboard setup"),

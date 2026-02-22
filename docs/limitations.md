@@ -40,7 +40,7 @@ The Arduino IDE 2 has the feature of displaying all the global variables, togeth
 
 ## Compiler optimizations
 
-When trying to debug a program compiled with the 'usual' compiler options, one often ends up in unexpected places or receives warnings.
+When trying to debug a program compiled with the 'usual' compiler optimization option `-Os`, one often ends up in unexpected places or receives warnings.
 
 Usually, the compiler optimizes for space, trying to fit as much program code as possible into the limited amount of flash memory. This, however, might imply that some code is reordered and inlined. This means that single-stepping can be confusing, that one cannot stop at some places, or that a `finish` command will lead to an error message.
 
@@ -56,13 +56,19 @@ Another effect of using the `-Og` compiler optimization could be that all of a s
 
 ## Link-time optimization
 
-Link-time optimization can optimize away important structural debug information about C++ objects and global variables.
+Link-time optimization (`-flto`) can optimize away important structural debug information about C++ objects and global variables.
 
 Link-time optimization is a relatively new technique and was introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
 
 The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.
 
 All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed.
+
+## Link-time jump relaxation
+
+When using the optimization option `-mrelax`, the line number information gets distorted.
+
+The optimization option `-mrelax` is supposed to merely replace absolute jumps and calls with relative ones, saving two bytes and one cycle of computation time. Unfortunately, in its current implementation, it distorts the line number information for debugging significantly, making debugging impossible.
 
 ## Breakpoints in interrupt routines
 

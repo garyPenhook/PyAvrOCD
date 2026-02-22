@@ -1,7 +1,7 @@
 """
 Device Specific Classes which use AVR8Protocol implementation
 """
-from typing import Any
+from typing import Any, Tuple
 
 import logging
 
@@ -19,11 +19,61 @@ from pymcuprog.avr8target import TinyXAvrTarget, TinyAvrTarget,\
 
 class XTinyXAvrTarget(TinyXAvrTarget):
     """
-    Class handling sessions with TinyX AVR targets using the AVR8 generic protocol
+    Class handling sessions with TinyX (UPDI) AVR targets using the AVR8 generic protocol
     """
-    def __init__(self, transport : HidTransportBase) -> None:
+    def __init__(self, transport : HidTransportBase, device_info :  dict[ str, Any ] = dict()) -> None:
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.tinyxtarget')
+        self._fusebase : int = device_info.get('fuses_address_byte', 0)
+        self._lockbase : int = device_info.get('lockbits_address_byte', 0)
+        self._sigbase : int =  device_info.get('signatures_address_byte', 0)
+        self._usbase : int =   device_info.get('user_row_address_byte', 0)
+        self._nvmcbase : int = device_info.get('nvmctrl_base', 0)
+        self._syscbase : int = device_info.get('syscfg_base', 0)
+
+    # The next two methods redirect reading/writing of special memory types to reading/writing of SRAM
+    def memory_read(self, memory_name : int, start_address : int, numbytes : int) -> bytearray:
+        """
+        Read device memory
+
+        :param memory_name: Memory type identifier as defined in the protocol
+        :type memory_name: int
+        :param start_address: First address to read
+        :type start_address: int
+        :param numbytes: Number of bytes to read
+        :type numbytes: int
+        :returns: Data read out
+        :rtype: bytearray
+        """
+        return self.protocol.memory_read(*self._mem_transform(memory_name, start_address), numbytes)
+
+    def memory_write(self, memory_name : int, start_address : int , data : bytes) -> bytearray | None:
+        """
+        Write device memory
+
+        :param memory_name: Memory type identifier as defined in the protocol
+        :type memory_name: int
+        :param start_address: First address to write
+        :type start_address: int
+        :param data: Data to write
+        :type data: bytearray
+        """
+        return self.protocol.memory_write(*self._mem_transform(memory_name, start_address), data)
+
+    def _mem_transform(self, memory_name : int, start_address : int) -> Tuple[ int, int ]:
+        """
+        Transforms memory type to another one and changes start_address on the way
+        """
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_FUSES:
+            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._fusebase)
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_LOCKBITS:
+            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._lockbase)
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_SIGNATURE:
+            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._sigbase)
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE:
+            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._usbase)
+        return (memory_name, start_address)
+
 
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
@@ -49,7 +99,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
 
     def statreg_read(self) -> bytearray:
         """
-        Reads out SREG
+        Reads out SREG (for this type of MCU not at 0x5F, but at 0x3F)
 
         :return: 1 byte of status register
         """
@@ -160,7 +210,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
                                    Avr8Protocol.AVR8_OPT_HV_UPDI_ENABLE,
                                    0)
-        self.logger_loc.debug("UPDI HV preogramming disabled")
+        self.logger_loc.debug("UPDI HV programming disabled")
         self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
                                    Avr8Protocol.AVR8_OPT_RUN_TIMERS,
                                    timers_run)
@@ -268,7 +318,8 @@ class XTinyAvrTarget(TinyAvrTarget):
     Implements Tiny AVR (debugWIRE) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport : HidTransportBase) -> None:
+    def __init__(self, transport : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc = logging.getLogger('pyavrocd.tinytarget')
 
@@ -503,7 +554,8 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
     Implements Mega AVR (JTAG) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport  : HidTransportBase) -> None:
+    def __init__(self, transport  : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.megatarget')
 
@@ -793,7 +845,8 @@ class XXmegaAvrTarget(XmegaAvrTarget):
     Implements XMEGA (PDI) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport : HidTransportBase):
+    def __init__(self, transport : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.xmegatarget')
 

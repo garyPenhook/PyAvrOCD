@@ -8,9 +8,7 @@ One thing you have to be aware of is that it may be necessary to enable the JTAG
 <img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/JTAG-enabled.png" width="50%">
 </p>
 !!! warning "Make sure that all option values are correct before using the Burn Bootloader command"
-    When you use the `Burn Bootloader` command, all fuses corresponding to the specified options in the `Tools` menu are set. In particular, the `Clock` parameter is crucial because setting it to an External clock source while you use the internal RC oscillator means that your chip will not respond to the outside world any longer. You need to provide an external clock to reanimate your chip!
-
-When you are done with debugging, you may want to re-enable the original functionality, which means that you should employ the `Burn Bootloader` action---with JTAG disabled, if it is a JTAG target. When you are dealing with a debugWIRE target, you have to remember to type the line `monitor debugwire disable` into the Debug Console before you terminate the debugger. And then you can also use the `Burn Bootloader` action.
+    When you use the `Burn Bootloader` command, all fuses corresponding to the specified options in the `Tools` menu are set. In particular, the `Clock` parameter is crucial because setting it to an External clock source while you use the internal RC oscillator means that your chip will not respond to the outside world any longer. In this case, you need to provide an external clock to reanimate your chip!
 
 And this is all you have to know when you use the Arduino IDE 2. In general, the story is a bit more complex, however.
 
@@ -75,7 +73,7 @@ After you have finished debugging, you should unprogram `OCDEN` because otherwis
 
 ## Preparing a UPDI target
 
-If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. If it is a pin with UPDI/GPIO/RESET functionality and the UPDI functionality has been disabled,  things become a bit complicated. 
+If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. If it is a pin with UPDI/GPIO/RESET shared functionality, and the UPDI functionality has been disabled,  things become a bit complicated.
 
 In this case, a high-voltage pulse is necessary to activate the UPDI functionality of the pin, which will need a RESET impulse beforehand, which in turn needs manual or automatic power-cycling. Worse yet, after each RESET, power toggle, and programming mode termination, this procedure needs to be repeated. Adding to this, only one of the compatible debug probes by Microchip is able to perform high-voltage programming.
 
@@ -83,7 +81,7 @@ For this reason, PyAvrOCD does not support high-voltage programming. The advice 
 
 ### Fuse settings when PyAvrOCD manages the fuse
 
-Since UPDI targets do not have a special debugging fuse, you only need to care about `lockbits`. The bootloader setting can mostly be ignored. Either it has been erased when the lockbits are cleared, in which case the MCU will skip over this section, or it is still there, which implies that the bootloader will jump to the application program.  
+Since UPDI targets do not have a special debugging fuse, you only need to care about `lockbits`. The bootloader setting can mostly be ignored. Either it has been erased when the lockbits are cleared, in which case the MCU will skip over this section, or it is still there, which implies that the bootloader will jump to the application program.
 
 In other words, for UPDI targets, PyAvrOCD will manage the `EESAVE` fuse and the `lockbits` for you.
 

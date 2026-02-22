@@ -252,7 +252,7 @@ class TestMemory(TestCase):
     def test_memory_map(self):
         self.set_up()
         self.assertEqual(self.mem.memory_map(), 'l<memory-map><memory type="ram" start="0x800000" length="0x60000"/>' + \
-                             '<memory type="flash" start="0x0" length="0xC">' + \
+                             '<memory type="flash" start="0x0000" length="0xC">' + \
                              '<property name="blocksize">0x6</property>' + \
                              '</memory></memory-map>')
 

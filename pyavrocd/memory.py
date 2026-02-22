@@ -352,12 +352,12 @@ class Memory():
         Return a memory map in XML format. Include registers, IO regs, and EEPROM in SRAM area
         """
         return ('l<memory-map><memory type="ram" start="0x{0:X}" length="0x{1:X}"/>' + \
-                             '<memory type="flash" start="0x{2:X}" length="0x{3:X}">' + \
-                             '<property name="blocksize">0x{4:X}</property>' + \
+                             '<memory type="flash" start="0x0000" length="0x{2:X}">' + \
+                             '<property name="blocksize">0x{3:X}</property>' + \
                              '</memory></memory-map>').format(0 + 0x800000, \
                               # (0x10000 + self._eeprom_start + self._eeprom_size),
                               0x60000, # is needed to read the other memory areas as well
-                              self._flash_start, self._flash_size, self._multi_page_size)
+                              self._flash_size, self._multi_page_size)
 
     def fuse_read(self, addr : int, size : int) -> bytes:
         """

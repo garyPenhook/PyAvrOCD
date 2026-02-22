@@ -7,7 +7,7 @@
 For UPDI targets, addressing of general registers and I/O registers is a bit different from that of JTAG/dw targets:
 
 1. General registers are not addressable as SRAM locations
-2. I/O registers are addressed in the usual way in In/Out instructions. However, for ordinary LD/ST direct and indirect addressing, the -0x20 offset does not apply!
+2. I/O registers are addressed in the usual way in In/Out instructions. However, for ordinary LD/ST direct and indirect addressing, the -0x20 offset for I/O instructions does not apply!
 
 This means
 

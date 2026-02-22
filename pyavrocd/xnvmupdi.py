@@ -37,7 +37,7 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         self.manage : list[str] = [] if manage is None else manage
         self.logger_local : logging.Logger = logging.getLogger('pyavrocd.nvmupdi')
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
-        self.avr : AvrDevice = XTinyXAvrTarget(transport)
+        self.avr : AvrDevice = XTinyXAvrTarget(transport, device_info=device_info)
 
     def read(self, memory_info : dict[ str, Any ], offset : int,
                  numbytes : int, prog_mode : bool=False) -> bytearray:

@@ -1,8 +1,6 @@
 # Preparing a target board for debugging
 
-When you want to debug a program on a target board, usually some modifications of the hardware is necessary. For this reason, it is a good idea to record the current state and the changes required to enable debugging.
-
-Depending on the type of debugging interface the MCU provides, different actions must be taken to prepare the target board for debugging. The general rule is that the lines used for debugging should not have any resistive or capacitive loads or active components on them.
+When you want to debug a program on a target board, usually some modifications of the hardware are necessary. The general rule is that the lines used for debugging should not have any resistive or capacitive loads or active components on them.
 
 ## Preparing a debugWIRE target
 
@@ -79,9 +77,7 @@ The `SPIEN` fuse could be disabled. In this case, the above comments apply. Othe
 
 Again, UPDI targets are easy to deal with. Ensure that there is no capacitive or resistive load or active component on the UPDI line and that the UPDI pin is accessible.
 
-On the **Nano Every**, for example, this pin cannot be accessed through the board pins, but there is a pad on the backside of the PCB that can be used to access the UPDI line. And the USB-UART converter is usually disconnected from this pin.
+On the **Nano Every**, for example, this pin cannot be accessed through the board pins, but there is a pad on the backside of the PCB that can be used to access the UPDI line. And the USB-UART converter is usually disconnected from this pin. On the **Uno WIFI Rev2**, again, the UPDI pin is not exposed. But on this board, a mEDBG debugger is implemented. So you can connect to this debugger.
 
-On the **Uno WIFI Rev2**, again, the UPDI pin is not exposed. But on this board, a mEDBG debugger is implemented. So you can connect to this debugger.
-
-Problems arise when the UPDI pin is used as a GPIO or a RESET line. Consult the [section on fuse preparations for UPDI targets](fuse-preparation.md#preparing-a-updi-target).
+Problems arise when the UPDI pin is used as a GPIO or a RESET line. For this, consult the [section on fuse preparations for UPDI targets](fuse-preparation.md#preparing-a-updi-target).
 

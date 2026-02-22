@@ -40,11 +40,11 @@ def options(cmd: list[str]) -> argparse.Namespace:
     Option processing. Returns processed options.
     """
     parser : argparse.ArgumentParser
-    parser = argparse.ArgumentParser(usage="%(prog)s [options]",
+    parser = argparse.ArgumentParser(prog="pyavrocd",
+            usage="%(prog)s [options]\nThis is a GDB server for classic AVR8 MCUs",
             fromfile_prefix_chars='@',
-            #formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            #epilog="Monitor options can also be specified, e.g. '--verify enable'",
-            description='GDB server for debugWIRE and JTAG AVR MCUs'
+            formatter_class=argparse.RawTextHelpFormatter, #ArgumentDefaultsHelpFormatter,
+            #description='GDB server for debugWIRE and JTAG AVR MCUs'
                                          )
     parser.add_argument("-H", "--webhelp",
                             action='store_true',

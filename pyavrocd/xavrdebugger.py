@@ -60,7 +60,7 @@ class XAvrDebugger(AvrDebugger):
         self._devicename : str = devicename
         self._iface : str = iface
         self.bad_pc_bit_mask : int = 0
-        self.manage : list[ str ] = args.manage
+        self.manage : list[ str ] = [ ]
         self.clkprg : int = args.clkprg # JTAG programming clock frequency
         self.clkdeb : int = args.clkdeb # JTAG debug clock frequency
         self.kbps : int = args.kbps # UPDI/PDI communication speed
@@ -70,6 +70,7 @@ class XAvrDebugger(AvrDebugger):
         self._architecture : str = ""
         self._sregaddr : int = 0
         self._iooffset : int = 0
+        self._nolock : int = 0
         self.device_info : dict[str, Any ] = {}
         self.memory_info : deviceinfo.DeviceMemoryInfo | None = None
         self.spidevice : NvmAccessProviderCmsisDapSpi | None = None
@@ -106,16 +107,22 @@ class XAvrDebugger(AvrDebugger):
             self._hwbpnum = 2
             self._sregaddr = 0x3F
             self._iooffset = 0
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'eesave' ]]
+            self._nolock = 0xC5
         elif iface == "debugwire":
             self.device = XNvmAccessProviderCmsisDapDebugwire(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 1
             self._sregaddr = 0x5F
             self._iooffset = 0x20
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'dwen' ]]
+            self._nolock = 0xFF
         elif iface == "jtag" and self._architecture =="avr8":
             self.device = XNvmAccessProviderCmsisDapMegaAvrJtag(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 4
             self._sregaddr = 0x5F
             self._iooffset = 0x20
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'ocden', 'eesave' ]]
+            self._nolock = 0xFF
 
         self.logger.info("Nvm instance created, iface: %s, HWBPs: %d, arch: %s",
                               self._iface, self._hwbpnum, self._architecture)
@@ -177,13 +184,11 @@ class XAvrDebugger(AvrDebugger):
                 raise FatalError("Could  not connect to target.")
             if self._iface == 'jtag' and dev_id & 0xFF != 0x3F:
                 raise FatalError("Not a Microchip JTAG target")
-            if self._iface == 'updi':
-                self.logger.info("Device ID: %s", self.device.avr.protocol.get_id())
         except Exception as e:
             if warmstart:
                 self.logger.warning("Debug session not started: %s", str(e))
                 if self.args.attach:
-                    raise FatalError("Could not attach to OCD because debugWIRE is not yet activated") #pylint: disable=raise-missing-from
+                    raise FatalError("Could not attach to OCD, because debugWIRE is not active.") #pylint: disable=raise-missing-from
                 self.logger.warning("Try later with 'monitor debugwire enable'")
                 return False
             raise FatalError("Debug session not started: %s" % str(e)) #pylint: disable=raise-missing-from
@@ -195,9 +200,9 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.debug("Illegal OCD status, need to activate debugging")
                 if self.args.attach:
                     raise FatalError("Could not attach to OCD because debugging is not yet activated") #pylint: disable=raise-missing-from
-                self._manage_fuses()
             else:
                 raise e
+        self._manage_fuses()
         self._verify_target(dev_id)
         self._check_attiny2313()
         self._check_stuck_at_one_pc()
@@ -219,35 +224,36 @@ class XAvrDebugger(AvrDebugger):
         self._handle_lockbits(self.read_lock_one_byte, self.device.erase)
         # unprogram BOOTRST fuse if necessary
         self._handle_bootrst(self.read_fuse_one_byte, self.write_fuse)
-        # program OCDEN
-        ofuse_addr : int = self.device_info['ocden_base']
-        ofuse_mask : int = self.device_info['ocden_mask']
-        ofuse : bytes = self.read_fuse_one_byte(ofuse_addr)
-        self.logger.debug("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
-        if ofuse[0] & ofuse_mask == ofuse_mask: # only if OCDEN is not yet programmed
-            if 'ocden' not in self.manage:
-                self.logger.warning("The fuse OCDEN is not managed by PyAvrOCD and will therefore not be programmed.")
-                self.logger.warning("In order to allow debugging, you need to program this fuse manually.")
-                self.logger.warning("Or let payavrocd manage this fuse: '-m ocden'.")
-                raise FatalError("Debugging is impossible because OCDEN cannot be programmed")
-            newfuse = ofuse[0] & ~ofuse_mask & 0xFF
-            self.write_fuse(ofuse_addr, bytearray([newfuse]))
-            assert newfuse == self.read_fuse_one_byte(ofuse_addr)[0], "OCDEN could not be programmed"
-            self.logger.info("OCDEN fuse has been programmed.")
-        else:
-            self.logger.info("OCDEN is already programmed")
-        # now verify signature using signature bytes (they do not lie!)
-        if not self.args.skipsig:
-            idbytes : bytes = self.read_sig(0,3)
-            sig : int = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
-            self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
-            self.logger.debug("Device signature of connected chip: %X", sig)
-            if sig != self.device_info['device_id']:
-                raise FatalError("Wrong MCU: '%s', expected: '%s'" %
-                        (dev_name.get(sig,"Unknown"),
-                        dev_name[self.device_info['device_id']]))
-        self.switch_to_debmode()
-        self.logger.info("Switched to debugging mode")
+        if self.device_info.get('ocden_base') is not None:
+            # program OCDEN
+            ofuse_addr : int = self.device_info['ocden_base']
+            ofuse_mask : int = self.device_info['ocden_mask']
+            ofuse : bytes = self.read_fuse_one_byte(ofuse_addr)
+            self.logger.debug("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
+            if ofuse[0] & ofuse_mask == ofuse_mask: # only if OCDEN is not yet programmed
+                if 'ocden' not in self.manage:
+                    self.logger.warning("The fuse OCDEN is not managed by PyAvrOCD and will therefore not be programmed.")
+                    self.logger.warning("In order to allow debugging, you need to program this fuse manually.")
+                    self.logger.warning("Or let payavrocd manage this fuse: '-m ocden'.")
+                    raise FatalError("Debugging is impossible because OCDEN cannot be programmed")
+                newfuse = ofuse[0] & ~ofuse_mask & 0xFF
+                self.write_fuse(ofuse_addr, bytearray([newfuse]))
+                assert newfuse == self.read_fuse_one_byte(ofuse_addr)[0], "OCDEN could not be programmed"
+                self.logger.info("OCDEN fuse has been programmed.")
+            else:
+                self.logger.info("OCDEN is already programmed")
+            # now verify signature using signature bytes (they do not lie!)
+            if not self.args.skipsig:
+                idbytes : bytes = self.read_sig(0,3)
+                sig : int = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
+                self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
+                self.logger.debug("Device signature of connected chip: %X", sig)
+                if sig != self.device_info['device_id']:
+                    raise FatalError("Wrong MCU: '%s', expected: '%s'" %
+                            (dev_name.get(sig,"Unknown"),
+                            dev_name[self.device_info['device_id']]))
+        #self.switch_to_debmode()
+        #self.logger.info("Switched to debugging mode")
 
     def _verify_target(self, dev_id : int) -> None:
         """
@@ -287,7 +293,9 @@ class XAvrDebugger(AvrDebugger):
         elif self._iface == 'jtag':
             sig = (0x1E<<16) + ((dev_id >> 12)&0xFFFF) # same thing for JTAG
         elif self._iface == 'updi':
-            sig = dev_id
+            self.logger.debug("Trying to read device code")
+            sig = int.from_bytes(self.read_sig(0, 3),'big')
+            self.logger.info("UPDI device code: 0x%X", sig)
         else:
             raise FatalError("Unhandled debug interface")
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
@@ -357,7 +365,6 @@ class XAvrDebugger(AvrDebugger):
             use_reset : bool = 'edbg' not in self.transport.device.product_string.lower() and \
               not self.args.attach
             dev_id : bytes = self.device.avr.protocol.activate_physical(use_reset=use_reset)
-            self.logger.info("%s", dev_id)
             dev_code : int = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
             self.logger.info("Physical interface activated: 0x%X", dev_code)
         except Jtagice3ResponseError as error:
@@ -381,13 +388,10 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.info("Physical interface activated. MCU id=0x%X", dev_code)
             else:
                 raise
-        if self._iface == 'updi':
-            dev_code = int.from_bytes(self.device.read_device_id(),'little')
-            self.logger.debug("UPDI dev_code: 0x%X", dev_code)
         return dev_code
 
     def _handle_bootrst(self, read : Callable[[int], bytes],
-                              write : Callable[[int, bytes], bytes]) -> None:
+                              write : Callable[[int, bytearray], bytearray | None]) -> None:
         """
         Unprogram bootrst (if permitted) for different settings (ISP amd JTAG).
         """
@@ -426,13 +430,13 @@ class XAvrDebugger(AvrDebugger):
         """
         lockbits = read()
         self.logger.debug("Lockbits read: 0x%X", lockbits[0])
-        if lockbits[0] != 0xFF:
+        if lockbits[0] != self._nolock:
             if 'lockbits' in self.manage:
                 self.logger.info("MCU is locked.")
                 erase()
                 lockbits = read()
                 self.logger.debug("Lockbits after write: 0x%X", lockbits[0])
-                assert lockbits[0] == 0xFF, "Lockbits could not be cleared"
+                assert lockbits[0] == self._nolock, "Lockbits could not be cleared"
                 self.logger.info("MCU has been erased and lockbits have been cleared.")
                 if self.args.load and self.args.load[0] == 'n':     # the 'no initial load' option value
                     if self._iface == 'debugwire':
@@ -575,7 +579,7 @@ class XAvrDebugger(AvrDebugger):
         self.spidevice.isp.erase()
         self.logger.debug("Chip erased!")
         # Check results
-        if result_lockbits[0] != 0xFF:
+        if result_lockbits[0] != self._nolock:
             raise FatalError("MCU cannot be debugged because of stuck-at-1 bit in the PC")
 
     def _power_cycle(self, callback : Callable[[], bool] | None = None,
@@ -894,7 +898,7 @@ class XAvrDebugger(AvrDebugger):
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, 1)
 
 
-    def write_fuse(self, addr : int, data : bytes) -> bytes:
+    def write_fuse(self, addr : int, data : bytes) -> bytearray | None:
         """
         Write fuses (does not work with debugWIRE and in JTAG only in programming mode)
         """
@@ -912,7 +916,7 @@ class XAvrDebugger(AvrDebugger):
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1)
 
-    def write_lock(self, addr : int , data : bytes) -> bytes | None:
+    def write_lock(self, addr : int , data : bytes) -> bytearray | None:
         """
         Write lock bits (does not work with debugWIRE and in JTAG only in programming mode)
         """
@@ -933,7 +937,7 @@ class XAvrDebugger(AvrDebugger):
         """
         return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, size)
 
-    def write_usig(self, addr : int, data : bytes) -> bytes | None:
+    def write_usig(self, addr : int, data : bytes) -> bytearray | None:
         """
         Write user signature
         """
@@ -963,7 +967,7 @@ class XAvrDebugger(AvrDebugger):
 
     def _update_regfile_in_target(self) -> None:
         """
-        Write back the register file if changes have happened
+        Write back the register file if changes have happened and invalidate cache
         """
         if self._regfile is not None and self._regsupd:
             self.device.avr.regfile_write(self._regfile)

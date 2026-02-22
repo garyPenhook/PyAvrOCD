@@ -36,12 +36,10 @@ If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, 
 | `--memory-map-disable`                                       | This option, which does not take a value, will disable the usage of the XML memory map. This option is only there for testing purposes. |
 | `--skip-signature-verification`                              | Do not perform chip signature verification. This is another option for testing purposes. |
 
-## Additional command-line options derived from monitor commands 
+## Additional command-line options derived from monitor commands
 
 You can also use the [monitor command options](monitor-commands.md) as command-line options when invoking PyAvrOCD. For example, you may specify `--verify enable,` which has the same effect as issuing the command `monitor verify enable` in the debugger after a connection to the GDB server has been established. One-character abbreviations for such option values are possible, and with the usual abbreviation rules for options, one can shorten this to `--veri e`.
 
 ## Providing command-line options in configuration files
 
-In addition to options, one can specify file names prefixed with a '@'-sign. Such [configuration files](install-link.md#configuration) can contain additional arguments. Arguments read from such a file must be one per line and are treated as if they were in the same place as the original file referencing argument on the command line. If the file does not exist, no error is raised.
-
-The argument `@pyavrocd.options` is always added to the end of the command line. In other words, if there is such a file in the folder where the GDB server is invoked, then the arguments in this file will have precedence over the arguments on the command line. This is the way to override options on a per-project basis in an IDE, where the IDE invokes the GDB server. 
+In addition to options, one can specify file names prefixed with a '@'-sign. In particular, the argument `@pyavrocd.options` is always added to the end of the command line. Such [configuration files](install-link.md#configuration) can contain additional arguments to those specified on the command line.
