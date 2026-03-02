@@ -27,14 +27,8 @@ So, why another open-source GDB server for AVR MCUs? The main intention is to pr
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide2-6.png" width="70%">
 </p>
 
-
-When you want to install PyAvrOCD, you can [install it as part of an Arduino core](https://felias-fogg.github.io/PyAvrOCD/install-link/#arduino-ide-2), so that it can be used in the Arduino IDE 2. Furthermore, you can [download binaries](https://felias-fogg.github.io/PyAvrOCD/install-link/#downloading-binaries), you can install PyAvrOCD using [PyPI](https://felias-fogg.github.io/PyAvrOCD/install-link/#pypi), or you can, of course, [clone or download the GitHub repo](https://felias-fogg.github.io/PyAvrOCD/install-link/#github).
-
-[Read the docs](https://felias-fogg.github.io/PyAvrOCD/index.html) for more information.
-
-
 ## What has been done so far, and what to expect in the future
 
-When moving from the earlier version of the GDBserver, called [dw-gdbserver](https://github.com/felias-fogg/dw-gdbserver), to PyAvrOCD, support for JTAG Mega chips has been added. This was more work than anticipated. If you would like to give PyAvrOCD a try, you are welcome. Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
+[PyAvrOCD v1.0.0 has been released](https://arduino-craft-corner.de/index.php/2026/02/10/pyavrocd-1-0-0-released/). If you would like to give it a try, you are welcome to [install](INSTALL.md) it. Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
 
 UPDI MCUs will follow next. I am unsure about Xmegas. One main point missing is an Arduino core for the MegaXU4 chips, similar to MCUdude's MiniCore.
