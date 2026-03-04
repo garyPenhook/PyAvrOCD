@@ -23,7 +23,7 @@ from pymcuprog.deviceinfo import deviceinfo
 from pymcuprog.nvmspi import NvmAccessProviderCmsisDapSpi, NvmAccessProviderCmsisDapAvr
 from pymcuprog.pymcuprog_errors import PymcuprogToolConfigurationError,\
      PymcuprogNotSupportedError
-from pymcuprog.utils import read_target_voltage
+from pymcuprog.utils import read_target_voltage, read_tool_info
 
 
 from pyavrocd.xnvmdebugwire import XNvmAccessProviderCmsisDapDebugwire
@@ -171,7 +171,11 @@ class XAvrDebugger(AvrDebugger):
         try:
             self.housekeeper = housekeepingprotocol.Jtagice3HousekeepingProtocol(self.transport)
             self.housekeeper.start_session()
-            self.logger.info("Signed on to tool")
+            dap_info = read_tool_info(self.housekeeper)
+            self.logger.info("Signed on to: %s FW: %s.%s.%s, HW: %s", dap_info['product'],
+                                 dap_info['firmware_major'],
+                                 dap_info['firmware_minor'],
+                                 dap_info['build'], dap_info['hardware_rev'])
             self.device.avr.setup_debug_session(kbps=self.kbps,
                                                     clkprg=self.clkprg,
                                                     clkdeb=self.clkdeb,
@@ -200,9 +204,9 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.debug("Illegal OCD status, need to activate debugging")
                 if self.args.attach:
                     raise FatalError("Could not attach to OCD because debugging is not yet activated") #pylint: disable=raise-missing-from
+                self._manage_fuses()
             else:
                 raise e
-        self._manage_fuses()
         self._verify_target(dev_id)
         self._check_attiny2313()
         self._check_stuck_at_one_pc()
@@ -232,7 +236,7 @@ class XAvrDebugger(AvrDebugger):
             self.logger.debug("OCDEN read: 0x%X", ofuse[0] & ofuse_mask)
             if ofuse[0] & ofuse_mask == ofuse_mask: # only if OCDEN is not yet programmed
                 if 'ocden' not in self.manage:
-                    self.logger.warning("The fuse OCDEN is not managed by PyAvrOCD and will therefore not be programmed.")
+                    self.logger.warning("The fuse OCDEN is not managed by PyAvrOCD.")
                     self.logger.warning("In order to allow debugging, you need to program this fuse manually.")
                     self.logger.warning("Or let payavrocd manage this fuse: '-m ocden'.")
                     raise FatalError("Debugging is impossible because OCDEN cannot be programmed")
@@ -252,8 +256,8 @@ class XAvrDebugger(AvrDebugger):
                     raise FatalError("Wrong MCU: '%s', expected: '%s'" %
                             (dev_name.get(sig,"Unknown"),
                             dev_name[self.device_info['device_id']]))
-        #self.switch_to_debmode()
-        #self.logger.info("Switched to debugging mode")
+        self.switch_to_debmode()
+        self.logger.info("Switched to debugging mode")
 
     def _verify_target(self, dev_id : int) -> None:
         """
@@ -426,7 +430,7 @@ class XAvrDebugger(AvrDebugger):
     def _handle_lockbits(self, read : Callable[[], bytes],
                                erase : Callable[[], None]) -> None:
         """
-        Clear lockbits (if permitted) for different settings (JTAG and ISP)
+        Clear lockbits (if permitted) for different settings (JTAG, ISP and UPDI)
         """
         lockbits = read()
         self.logger.debug("Lockbits read: 0x%X", lockbits[0])
@@ -440,7 +444,7 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.info("MCU has been erased and lockbits have been cleared.")
                 if self.args.load and self.args.load[0] == 'n':     # the 'no initial load' option value
                     if self._iface == 'debugwire':
-                        self.args.load = 'r'     # for dbugWIRE, the right one is 'read before write'
+                        self.args.load = 'r'     # for debugWIRE, the right one is 'read before write'
                     elif self._iface == 'jtag':
                         self.args.load = 'w'
             else:
@@ -839,7 +843,7 @@ class XAvrDebugger(AvrDebugger):
         if self._regfile is None:
             self._regfile = self.device.avr.regfile_read()
             self._regsupd = False
-        return self._regfile[:]
+        return bytearray(self._regfile[:])
 
     def register_file_write(self, regs : bytearray) -> None:
         """
@@ -862,9 +866,9 @@ class XAvrDebugger(AvrDebugger):
         if self._regfile is None:
             self._regfile = self.device.avr.regfile_read()
             self._regsupd = False
-        return self._regfile[addr:addr+size]
+        return bytearray(self._regfile[addr:addr+size])
 
-    def register_write(self, addr : int, data : bytes) -> None:
+    def register_write(self, addr : int, data : bytearray) -> None:
         """
         Writes to registers
         """

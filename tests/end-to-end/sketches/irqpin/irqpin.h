@@ -7,7 +7,7 @@
 #elif defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
 #define IRQPIN 8
 #elif defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__)
-#define IRQPIN 1
+#define IRQPIN 9 // using clock-wise mapping
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define IRQPIN 2
 #elif defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny861__)

@@ -213,9 +213,9 @@ class LiveTests():
         Test 'get register' function.
         """
         self.logger.info("Running 'get register' test ...")
-        newdata : bytes = bytearray(list(range(32,64))) + \
+        newdata : bytearray = bytearray(list(range(32,64))) + \
           bytearray([0x99, 0x77, 0x00, 0x46, 0x34, 0x00, 0x00 ])
-        self.dbg.write_register_file(newdata[:32])
+        self.dbg.register_file_write(newdata[:32])
         self.dbg.status_register_write(newdata[32:33])
         self.dbg.stack_pointer_write(newdata[33:35])
         self.dbg.program_counter_write(0x000003446 >> 1)
@@ -313,7 +313,9 @@ class LiveTests():
         Tests 'get one register' function
         """
         self.logger.info("Running 'get one data register' test ...")
-        self.dbg.sram_write(0x16, bytearray([0x71]))
+        self.dbg.register_write(0x16, bytearray([0x71]))
+        self.dbg.program_counter_write(0xd5) # that is a NOP
+        self.dbg.step()
         self.handler.dispatch('p', b'16')
         self.check_result(self.send_string == '71')
 
@@ -356,7 +358,9 @@ class LiveTests():
         """
         self.logger.info("Running 'set one data register' test ...")
         self.handler.dispatch('P', b'03,26')
-        result = self.dbg.sram_read(0x03,1)
+        self.dbg.program_counter_write(0xd5) # that is a NOP
+        self.dbg.step()
+        result = self.dbg.register_read(0x03,1)
         self.check_result(self.send_string == 'OK' and result[0] == 0x26)
 
     def _live_test_set_sreg(self) -> None:

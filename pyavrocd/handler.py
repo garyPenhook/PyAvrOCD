@@ -375,7 +375,7 @@ class GdbHandler():
             self.dbg.status_register_write(binascii.unhexlify(packet[3:]))
         else:
             self.logger.debug("RSP packet: write REG%d=%s",int(packet[0:2],16),packet[3:])
-            self.dbg.register_write(int(packet[0:2],16), binascii.unhexlify(packet[3:]))
+            self.dbg.register_write(int(packet[0:2],16), bytearray(binascii.unhexlify(packet[3:])))
         self.send_packet("OK")
 
 

@@ -440,7 +440,7 @@ class BreakAndExec():
             if self._is_post_incr(opcode):
                 iaddr += 1
             if self._is_change_ix(opcode):
-                self.dbg.register_write(base_reg, iaddr.to_bytes(2, byteorder='little'))
+                self.dbg.register_write(base_reg, bytearray(iaddr.to_bytes(2, byteorder='little')))
             return self._sim_done(addr)
         # LD r, Y/Z and ST Y/Z, r with displacement
         if self._indirect_load_or_store_with_displacement_instr(opcode):
@@ -665,7 +665,7 @@ class BreakAndExec():
         if (opcode & ~0x1F0) == 0x9000: # lds
             register = (opcode & 0x1F0) >> 4
             try:
-                if secondword < self._iooffset: # if the source address is a register address 
+                if secondword < self._iooffset: # if the source address is a register address
                     val = self.dbg.register_read(secondword, 1)
                 else:
                     val = self.dbg.sram_read(secondword, 1)

@@ -3,7 +3,6 @@ The test suit for main module
 """
 #pylint: disable=protected-access,missing-function-docstring,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
 import logging
-import os.path
 from unittest.mock import MagicMock, Mock, call, patch, ANY
 from unittest import TestCase
 from types import SimpleNamespace
@@ -368,8 +367,7 @@ class TestMain(TestCase):
     @patch('pyavrocd.main.sys.stderr.write')
     def test_startup_wrong_args(self, mock_print):
         self.assertRaises(SystemExit,startup, ['-z'], Mock)
-        caller = os.path.basename(sys.argv[0])
-        mock_print.assert_has_calls([call(caller + ': error: unrecognized arguments: -z\n')])
+        mock_print.assert_has_calls([call('pyavrocd: error: unrecognized arguments: -z\n')])
 
     @patch('pyavrocd.main.importlib.metadata.version')
     @patch('pyavrocd.main.dwlink.main')
@@ -470,7 +468,7 @@ class TestMain(TestCase):
         self.assertNotEqual(startup(['-d', 'atmega328p', '-v=all'], mock_logger), 1)
         self.assertEqual(mock_dwlink.call_count,0)
         mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION'),
-                                               call('Connected to %s', ANY),
+                                               call('Connected to %s, SN: %s', ANY, ANY),
                                                call('Starting GDB server')])
 
     @patch('pyavrocd.main.dwlink.main')
@@ -526,7 +524,7 @@ class TestMain(TestCase):
         mock_backend.return_value = MagicMock(connect_to_tool=Mock(),get_available_hid_tools=MagicMock(return_value=[t3]),transport=Mock())
         self.assertNotEqual(startup(['-d', 'atmega328p', '-v=all', '--reboot'], mock_logger), 1)
         mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION'),
-                                           call('Connected to %s', ANY),
+                                           call('Connected to %s, SN: %s', ANY, ANY),
                                            call('Rebooting debugger...'),
                                            call('Reconnected to %s', ANY),
                                            call('Starting GDB server')])
@@ -568,9 +566,9 @@ class TestMain(TestCase):
         self.assertEqual(startup(['-d', 'atmega328p'], mock_logger), 1)
         self.assertEqual(mock_backend.call_count,1)
         mock_logger.info.assert_has_calls([call('This is PyAvrOCD version %s', 'VERSION')])
-        mock_logger.critical.assert_has_calls([call('More than one compatible tool! Use -u or -t to distinguish.'),
-                                                   call('> Tool: %s, S/N: %s', 'PROD1', 'S/N01'),
-                                                   call('> Tool: %s, S/N: %s', 'PROD2', 'S/N02')])
+        mock_logger.critical.assert_has_calls([call('More than one compatible tool! Use -t or -u to select.'),
+                                                   call(' Tool: %s, SN: %s', 'PROD1', 'S/N01'),
+                                                   call(' Tool: %s, SN: %s', 'PROD2', 'S/N02')])
 
 
 

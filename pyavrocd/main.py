@@ -425,7 +425,7 @@ def tool_reboot(backend : pymcuprog.backend.Backend,
                     logger : logging.Logger) -> bool:
     """
     Reboots tool and waits for it to reappear.
-    In case it takes too long (> 5sec), False is returned, otherwise True.
+    In case it takes too long (> 20sec), False is returned, otherwise True.
     """
     logger.info("Rebooting debugger...")
     backend.reboot_tool()
@@ -471,7 +471,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
 
     # check whether simavr should be started, and if so, do that exclusively
     if handle_simavr(args, device):
-        return 0
+        return 0 # returning after simavr has finished
 
     # now report startup
     logger.info("This is PyAvrOCD version %s", importlib.metadata.version("pyavrocd"))
@@ -505,10 +505,10 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         logger.critical("No compatible tool discovered")
         return 1 # exit with error code
     if len(available) > 1:
-        logger.critical("More than one compatible tool! Use -u or -t to distinguish.")
+        logger.critical("More than one compatible tool! Use -t or -u to select.")
         d : pyedbglib.hidtransport.hidtransportbase.HidTool
         for d in available:
-            logger.critical("> Tool: %s, S/N: %s", d.product_string, d.serial_number)
+            logger.critical(" Tool: %s, SN: %s", d.product_string, d.serial_number)
         return 1 # exit with error code
 
     tool : ToolUsbHidConnection = ToolUsbHidConnection(serialnumber=args.serialnumber,
@@ -519,7 +519,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         backend.connect_to_tool(tool)
         toolname = backend.transport.hid_device.get_product_string()
         tool.serialnumber = backend.transport.hid_device.get_serial_number_string()
-        logger.info("Connected to %s", toolname)
+        logger.info("Connected to %s, SN: %s", toolname, tool.serialnumber)
     except OSError as e:
         if str(e) == "open failed":
             logger.critical("Debug probe busy, cannot connect")

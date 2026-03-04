@@ -18,6 +18,7 @@ void setup()
 
 void loop()
 {
+  int pcount;
   digitalWrite(IRQPIN, LOW);
   shortwait(1);
   outsidecount++;
@@ -25,7 +26,8 @@ void loop()
   delay(200); // necessary to give enough time for printing!
 #if FLASHEND >= 4095
   Serial.print("IRQ count: ");
-  Serial.println(irqcount);
+  pcount = irqcount;
+  Serial.println(pcount);
 #endif
 }
 
