@@ -21,7 +21,9 @@ class XTinyXAvrTarget(TinyXAvrTarget):
     """
     Class handling sessions with TinyX (UPDI) AVR targets using the AVR8 generic protocol
     """
-    def __init__(self, transport : HidTransportBase, device_info :  dict[ str, Any ] = dict()) -> None:
+    def __init__(self, transport : HidTransportBase, device_info :  dict[ str, Any ] | None = None) -> None:
+        if device_info is None:
+            device_info = {}
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.tinyxtarget')
         self._fusebase : int = device_info.get('fuses_address_byte', 0)
