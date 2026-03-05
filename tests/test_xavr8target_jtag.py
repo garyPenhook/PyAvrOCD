@@ -63,7 +63,6 @@ class TestXAvr8TargetJtag(TestCase):
         self.xa.protocol.attach.assert_called_once()
         self.xa.protocol.deactivate_physical.assert_called_once()
         self.xa.protocol.activate_physical.assert_called_once()
-        self.xa.protocol.reset.assert_called_once()
 
     def test_setup_debug_session(self):
         self.set_up()

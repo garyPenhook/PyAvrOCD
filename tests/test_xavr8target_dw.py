@@ -45,11 +45,6 @@ class TestXAvr8TargetDw(TestCase):
         self.xa.attach()
         self.xa.protocol.attach.assert_called_once()
 
-    def test_reactivate(self):
-        self.set_up()
-        self.xa.reactivate()
-        self.xa.protocol.reset.assert_called_once()
-
     def test_setup_config(self):
         self.set_up()
         self.xa.setup_config(DEVICE_INFO)

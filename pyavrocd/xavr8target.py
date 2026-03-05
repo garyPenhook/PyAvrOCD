@@ -171,7 +171,6 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self.deactivate_physical()
         self.activate_physical()
         self.protocol.attach()
-        self.protocol.reset()
         self.logger_loc.info("Physical interface re-activated")
 
     def switch_to_progmode(self) -> None:
@@ -389,9 +388,8 @@ class XTinyAvrTarget(TinyAvrTarget):
 
     def reactivate(self) -> None:
         """
-        For debugWIRE, reactivating is simply a reset
+        For debugWIRE, reactivating is nothing
         """
-        self.protocol.reset()
 
     def setup_config(self, device_info : dict[str, Any ]) -> None:
         """
@@ -616,13 +614,12 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
 
     def reactivate(self) -> None:
         """
-        Reactivate physical: Necessary to get set the right timer mode
+        Reactivate physical: Necessary to set the right timer mode
         """
         self.protocol.detach()
         self.deactivate_physical()
         self.activate_physical()
         self.protocol.attach()
-        self.protocol.reset()
         self.logger_loc.info("Physical interface re-activated")
 
     def setup_debug_session(self, clkprg : int = 200,

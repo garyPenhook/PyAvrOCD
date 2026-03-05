@@ -327,11 +327,15 @@ class XAvrDebugger(AvrDebugger):
         provided the memory map has been communicated to GDB.
         """
         self.logger.info("Check for stuck bits in PC")
-        pc = (super().program_counter_read()) << 1
-        self.logger.debug("PC(byte)=%X",pc)
+        pc : int = (super().program_counter_read()) << 1
+        self.logger.debug("PC(byte)=0x%X",pc)
         if self.memory_info is None:
             raise FatalError("No memory info available")
-        mask = self.memory_info.memory_info_by_name('flash')['size'] - 1
+        maxaddr : int = self.memory_info.memory_info_by_name('flash')['size'] - 1
+        self.logger.debug("Maximal address: 0x%X", maxaddr)
+        bitlen : int = maxaddr.bit_length()
+        self.logger.debug("Bit length: %d", bitlen)
+        mask = (1 << bitlen) - 1
         self.logger.debug("Mask for testing: 0x%X", mask)
         self.bad_pc_bit_mask = pc - (mask & pc)
         self.logger.debug("Bad pc bit mask: 0x%X", self.bad_pc_bit_mask)
@@ -999,3 +1003,10 @@ class XAvrDebugger(AvrDebugger):
         """
         self._update_regfile_in_target()
         super().step()
+
+    def reactivate(self) -> None:
+        """
+        Reactivate debugger (and set timer flag)
+        """
+        self.device.avr.reactivate()
+        self.reset()
