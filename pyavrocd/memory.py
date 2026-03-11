@@ -83,7 +83,7 @@ class Memory():
         The parameter addr should be a hex string.
         """
         iaddr : int
-        method : Callable[[int, bytes], str | None]
+        method : Callable[[int, bytearray | bytes], str | None]
         iaddr, _, method = self.mem_area(addr)
         if not data:
             return "OK"
@@ -94,7 +94,7 @@ class Memory():
         return "E13"
 
     def mem_area(self, addr : str) \
-      -> tuple[int, Callable[[int, int], bytes], Callable[[int, bytes], str | None]]:
+      -> tuple[int, Callable[[int, int], bytes], Callable[[int, bytes | bytearray], str | None]]:
         """
         This function returns a triple consisting of the real address as an int, the read,
         and the write method. If illegal address section, give error message and return
@@ -153,10 +153,17 @@ class Memory():
         one could use the "Memory Read Masked" method of the AVR8 Generic protocol.
         However, there is no Python method implemented that does that for you.
         For this reason, we do it here step by step.
+
+        In addition to that, the function fetches the values from the general
+        registers if the address is below the iooffset, i.e., < 20 for JTAG and
+        dw targets.
         """
         end : int = addr + size
         data : bytearray = bytearray()
         mr : int
+        if addr < self.dbg.get_iooffset():
+            data = self.dbg.register_read(addr, min(self.dbg.get_iooffset(), end) - addr)
+            addr = self.dbg.get_iooffset()
         for mr in sorted(self._masked_registers):
             if mr >= end or addr >= end:
                 break
@@ -174,10 +181,18 @@ class Memory():
         """
         Write a chunk to SRAM but leaving  out any read-only registers. If there is an
         attempt to write to a read-only register, spew out a warning message.
+
+        If we write to SRAM below iooffset, then we will write to the registerfile
         """
         start : int = addr
         end : int = addr + len(data)
         rr : int
+        if addr < self.dbg.get_iooffset():
+            self.dbg.register_write(addr, bytes(data[:min(self.dbg.get_iooffset()-addr,len(data))]))
+            addr = self.dbg.get_iooffset()
+            data = data[self.dbg.get_iooffset()-addr:]
+            if not data:
+                return
         for rr in sorted(self._ronly_registers):
             if rr >= end or addr >= end:
                 break
@@ -271,7 +286,6 @@ class Memory():
         pagetoflash : bytearray
         readbackpage : bytearray
         currentpage : bytearray
-        flashmemtype : int
         p : int
 
         if self.mon.is_noinitialload(): # if loading is set to filling the cache only, we do not flash
@@ -313,11 +327,11 @@ class Memory():
                         self.logger.debug("Page at 0x%x erased", pgaddr)
                 self.logger.debug("Flashing now from 0x%X to 0x%X", pgaddr, pgaddr+len(pagetoflash))
                 pagetoflash.extend(bytearray([0xFF]*(self._multi_page_size-len(pagetoflash))))
-                flashmemtype = self.dbg.device.avr.memtype_write_from_string('flash')
+                self.logger.debug("Use memtype 0x%X for flashing", self.dbg.flashmemtype)
                 # program flash page only when 'pagetoflash' is not blank
                 # or memory has not been erased beforehand
                 if not self.dbg.device.avr.is_blank(pagetoflash) or not self.mon.is_erase_before_load():
-                    self.dbg.device.avr.write_memory_section(flashmemtype,
+                    self.dbg.device.avr.write_memory_section(self.dbg.flashmemtype,
                                                                 pgaddr,
                                                                 pagetoflash,
                                                                 self._flash_page_size,

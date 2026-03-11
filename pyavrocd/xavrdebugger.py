@@ -32,7 +32,7 @@ from pyavrocd.xnvmupdi import XNvmAccessProviderCmsisDapUpdi
 from pyavrocd.errors import FatalError
 from pyavrocd.deviceinfo.devices.alldevices import dev_name
 
-#pylint: disable=too-many-public-methods
+#pylint: disable=too-many-public-methods,too-many-instance-attributes
 class XAvrDebugger(AvrDebugger):
     """
     AVR debugger wrapper
@@ -73,6 +73,7 @@ class XAvrDebugger(AvrDebugger):
         self._nolock : int = 0
         self.device_info : dict[str, Any ] = {}
         self.memory_info : deviceinfo.DeviceMemoryInfo | None = None
+        self.flashmemtype : int = 0
         self.spidevice : NvmAccessProviderCmsisDapSpi | None = None
         self.device : NvmAccessProviderCmsisDapAvr
         self.edbg_protocol : EdbgProtocol | None = None
@@ -101,28 +102,31 @@ class XAvrDebugger(AvrDebugger):
             self.edbg_protocol = EdbgProtocol(transport)
             self.logger.debug("EdbgProtocol instance created")
 
-        # Now attach the right NVM device
+        # Now attach the right NVM device and set other parameters
         if iface == "updi":
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'eesave' ]]
             self.device = XNvmAccessProviderCmsisDapUpdi(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 2
             self._sregaddr = 0x3F
             self._iooffset = 0
-            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'eesave' ]]
             self._nolock = 0xC5
+            self.flashmemtype = Avr8Protocol.AVR8_MEMTYPE_BOOT_FLASH_ATOMIC
         elif iface == "debugwire":
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'dwen' ]]
             self.device = XNvmAccessProviderCmsisDapDebugwire(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 1
             self._sregaddr = 0x5F
             self._iooffset = 0x20
-            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'dwen' ]]
             self._nolock = 0xFF
+            self.flashmemtype =  Avr8Protocol.AVR8_MEMTYPE_FLASH_PAGE
         elif iface == "jtag" and self._architecture =="avr8":
+            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'ocden', 'eesave' ]]
             self.device = XNvmAccessProviderCmsisDapMegaAvrJtag(self.transport, self.device_info, manage=self.manage)
             self._hwbpnum = 4
             self._sregaddr = 0x5F
             self._iooffset = 0x20
-            self.manage = [ m for m in args.manage if m in [ 'lockbits', 'bootrst', 'ocden', 'eesave' ]]
             self._nolock = 0xFF
+            self.flashmemtype =  Avr8Protocol.AVR8_MEMTYPE_FLASH_PAGE
 
         self.logger.info("Nvm instance created, iface: %s, HWBPs: %d, arch: %s",
                               self._iface, self._hwbpnum, self._architecture)
@@ -395,7 +399,10 @@ class XAvrDebugger(AvrDebugger):
                 dev_code = (dev_id[3]<<24) + (dev_id[2]<<16) + (dev_id[1]<<8) + dev_id[0]
                 self.logger.info("Physical interface activated. MCU id=0x%X", dev_code)
             else:
-                raise
+                raise error
+        except Exception as e:
+            self.logger.error("%s", str(e))
+            raise e
         return dev_code
 
     def _handle_bootrst(self, read : Callable[[int], bytes],
@@ -849,7 +856,7 @@ class XAvrDebugger(AvrDebugger):
             self._regsupd = False
         return bytearray(self._regfile[:])
 
-    def register_file_write(self, regs : bytearray) -> None:
+    def register_file_write(self, regs : bytes) -> None:
         """
         Writes the AVR register file (R0::R31)
 
@@ -857,7 +864,7 @@ class XAvrDebugger(AvrDebugger):
         :raises ValueError: if 32 bytes are not given
         """
         self.logger.debug("Writing register file")
-        self._regfile = regs[:]
+        self._regfile = bytearray(regs)
         self._regsupd = True
 
     def register_read(self, addr : int, size : int) -> bytearray:
@@ -872,7 +879,7 @@ class XAvrDebugger(AvrDebugger):
             self._regsupd = False
         return bytearray(self._regfile[addr:addr+size])
 
-    def register_write(self, addr : int, data : bytearray) -> None:
+    def register_write(self, addr : int, data : bytes) -> None:
         """
         Writes to registers
         """

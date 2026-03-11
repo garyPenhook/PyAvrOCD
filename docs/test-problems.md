@@ -13,3 +13,5 @@ While running the end-to-end test, I had to make some amends to get them through
      - So for EDBG debuggers, we do not request a RESET
 - It seems that GDB mixes up where to look for return addresses if we have a function with a non-empty stack frame (see pctest). This happens with the old and new compiler code.
 - Microchip Studio also loses the stack backtrace when the MCUs have a non-zero unused bit!
+- When checking for stuck 1-bits in the program counter, I so far assumed that flash size is a power of two. This is not true for the ATmega4809! I now have to check how many bits are used and then compute the mask from that.
+-

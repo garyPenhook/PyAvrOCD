@@ -38,6 +38,7 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         self.logger_local : logging.Logger = logging.getLogger('pyavrocd.nvmupdi')
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
         self.avr : AvrDevice = XTinyXAvrTarget(transport, device_info=device_info)
+        self.logger_local.debug("manage=%s", self.manage)
 
     def read(self, memory_info : dict[ str, Any ], offset : int,
                  numbytes : int, prog_mode : bool=False) -> bytearray:
@@ -72,11 +73,12 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
 
     def erase_page(self, pageaddr : int, memory_info: dict[ str, Any ], prog_mode : bool) -> bool:
         """
-        Erase one page
+        Erase one page: We do not need this function for UPDI targets!
         """
-        _dummy = prog_mode
-        self.erase(memory_info, pageaddr)
-        return True
+        _dummy0 = pageaddr
+        _dummy1 = memory_info
+        _dummy2 = prog_mode
+        return False
 
     def erase_chip(self, prog_mode : bool) -> bool :
         """
@@ -87,27 +89,28 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         eesave_fuse_byte = None
         eesave_mask = self.device_info.get('eesave_mask')
         eesave_base = self.device_info.get('eesave_base')
-        self.logger_local.debug("Erase Page: Manage:=%s, Mask=0x%X, Base=0x%X", self.manage, eesave_mask, eesave_base)
+        self.logger_local.debug("Erase Chip: Manage:=%s, Mask=0x%X, Base=0x%X", self.manage,
+                                    eesave_mask, eesave_base)
         if not prog_mode:
             self.avr.switch_to_progmode()
-        if eesave_base and eesave_mask and 'eesave' in self.manage:
-            self.logger_local.debug("Trying to preserve EEPROM")
-            eesave_fuse_byte = self.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES,
+        eesave_fuse_byte = None
+        if 'eesave' in self.manage:
+            if eesave_base and eesave_mask:
+                self.logger_local.debug("Trying to preserve EEPROM")
+                eesave_fuse_byte = self.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES,
                                                         eesave_base, 1)
-            if  eesave_fuse_byte[0] & eesave_mask: # needs to be temporarily programmed
-                self.logger_local.debug("EESAVE will be temporarily programmed")
-                self.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, eesave_base,
-                                          bytearray([eesave_fuse_byte[0] & ~eesave_mask & 0xFF]))
-                self.logger_local.debug("Programmed EESAVE fuse temporarily")
+                if  eesave_fuse_byte[0] & eesave_mask: # needs to be temporarily programmed
+                    self.logger_local.info("EESAVE will be temporarily programmed")
+                    self.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, eesave_base,
+                                            bytearray([eesave_fuse_byte[0] & ~eesave_mask & 0xFF]))
+                    self.logger_local.debug("Programmed EESAVE fuse temporarily")
             else:
-                eesave_fuse_byte = None
-        else:
-            self.logger_local.error("EESAVE fuse data unknown. EEPROM will be deleted")
+                self.logger_local.error("EESAVE fuse data unknown. EEPROM will be deleted")
         self.avr.erase(Avr8Protocol.ERASE_CHIP, 0)
         self.logger_local.info("Flash memory erased")
         if eesave_fuse_byte: # needs to be restored
             self.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, eesave_base, eesave_fuse_byte)
-            self.logger_local.debug("EESAVE fuse restored")
+            self.logger_local.info("EESAVE fuse restored")
         if not prog_mode:
             self.avr.switch_to_debmode()
         return True

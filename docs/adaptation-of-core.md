@@ -1,6 +1,6 @@
 # How to enable a core for debugging
 
-Extending a core to enable it for debugging (using PyAvrOCD) is almost always the same. 
+Extending a core to enable it for debugging (using PyAvrOCD) is almost always the same.
 
 ## `platform.txt`
 
@@ -10,9 +10,9 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
 
      ```
      # Optimization flags for debugging
-     compiler.optimization_flags=-Os -ggdb3 -DNDEBUG
-     compiler.optimization_flags.release=-Os -ggdb3 -DNDEBUG
-     compiler.optimization_flags.debug=-Og -ggdb3 -DDEBUG
+     compiler.optimization_flags=-Os -ggdb3 -flto -DNDEBUG
+     compiler.optimization_flags.release=-Os -ggdb3 -flto -DNDEBUG
+     compiler.optimization_flags.debug=-Og -ggdb3 -fno-lto -DDEBUG
      ```
 
 3. Change any `-Os`  or equivalent to `{compiler.optimization_flags}` in the section under `# Default "compiler.path" is correct ...`
@@ -75,10 +75,10 @@ Extending a core to enable it for debugging (using PyAvrOCD) is almost always th
 
 ```
 menu.JTAG=JTAG pins
-menu.lto=Compiler LTO
 ```
 
-2. Add specifications for the two menu entries above. For JTAG, fuse bits must be set or cleared. For LTO, compiler switches need to be set.
+2. Add specifications for the menu entry above. For JTAG, fuse bits must be set or cleared.
+2. If LTO is a menu entry, remove it.
 
 ## `programmers.txt`
 

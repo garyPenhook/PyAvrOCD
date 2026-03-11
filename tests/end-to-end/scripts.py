@@ -132,7 +132,7 @@ all_scripts = {
 
 # set/read memory cells (small MCUs, ram start = 0x60)
     "smallpeekpoke" : (
-    ('small', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+    ('small', 'dw', 'jtag',  'noadc', 'nonarduino', 'noautopc',
          'noautopc'),
     "",
     "",
@@ -151,7 +151,7 @@ all_scripts = {
 
 # set/read memory cells (medium/large MCUs, some ram at 0x100)
     "mediumpeekpoke" : (
-    ('medium', 'large', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+    ('medium', 'large', 'dw', 'jtag',  'noadc', 'nonarduino', 'noautopc',
          'noautopc'),
     "",
     "",
@@ -170,7 +170,7 @@ all_scripts = {
 
 # set/read memory cells (huge MCUs, some ram at 0x200)
     "hugepeekpoke" : (
-    ('huge', 'dw', 'jtag', 'pdi', 'updi', 'noadc', 'nonarduino', 'noautopc',
+    ('huge', 'dw', 'jtag', 'noadc', 'nonarduino', 'noautopc',
          'noautopc'),
     "",
     "",

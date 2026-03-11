@@ -44,7 +44,7 @@ class TestMain(TestCase):
         self.assertEqual(args.breakpoints, 'all')
         self.assertEqual(args.caching, 'enable')
         self.assertEqual(args.debugwire, None)
-        self.assertEqual(args.erasebeforeload, 'enable')
+        self.assertEqual(args.erasebeforeload, None)
         self.assertEqual(args.load, None)
         self.assertEqual(args.onlywhenloaded, None)
         self.assertEqual(args.rangestepping, 'enable')

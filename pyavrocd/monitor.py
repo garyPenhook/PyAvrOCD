@@ -22,7 +22,7 @@ monopts: dict[str, tuple[ str | None, str | None, list [ str ] ] ] \
             'breakpoints'     : ('cli', 'all', ['all', 'software', 'hardware']),
             'caching'         : ('cli', 'enable', ['enable', 'disable']),
             'debugwire'       : ('cli', None, ['enable', 'disable']),
-            'erasebeforeload' : ('cli', 'enable', ['enable', 'disable']),
+            'erasebeforeload' : ('cli', None, ['enable', 'disable']),
             'help'            : (None, None, []),
             'info'            : (None, None, []),
             'load'            : ('cli', None, ['readbeforewrite', 'writeonly', 'noinitialload']),
@@ -112,15 +112,15 @@ class MonitorCommand():
         self._onlyswbps = self._args.breakpoints[0] == 's'   # default: breakpoints all
         self._bpfixed = False                                # only true with ATmega128
         self._cache = self._args.caching[0] != 'd'           # default: caching enabled
-        self._erase_before_load = self._iface != 'debugwire' and \
-                                  self._args.erasebeforeload[0] != 'd'
-                                                             # default: enable on non-dw targets,
-                                                             # on dw targets it is always false!
-        self._read_before_write = (self._iface == 'debugwire' and \
+        self._erase_before_load = (self._iface == 'jtag' and self._args.erasebeforeload is None) or \
+                                  (self._iface == 'jtag' and self._args.erasebeforeload[0] != 'd') or \
+                                  (self._args.erasebeforeload and self._args.erasebeforeload[0] == 'e')
+                                                             # default: enable on jtag targets
+        self._read_before_write = (self._iface in ['debugwire', 'updi'] and \
                                        (not self._args.load or self._args.load[0] != 'w')) or \
                                        (self._args.load and self._args.load[0] in ['r', 'n'])
                                                              # default: readbeforewrite when
-                                                             # debugWIRE, otherwise: writeonly
+                                                             # debugWIRE or updi, otherwise: writeonly
         self._only_cache = self._args.load and self._args.load[0] == 'n'
                                                              # 'noinitialload' only if requested
         self._noload = (self._args.onlywhenloaded and self._args.onlywhenloaded[0] == 'd') or \

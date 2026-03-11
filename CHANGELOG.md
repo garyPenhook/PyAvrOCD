@@ -2,6 +2,10 @@
 
 ### New:
 
+- **Fixed:**
+     - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be single hex digits.
+     - Now, `sram_masked_read` and `sram_masked_write` will read from registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
+
 - **Added:**
      - UPDI functionality
      - New option `-K` / `--kbps` meant for UPDI and PDI communication speed.
@@ -14,6 +18,9 @@
      - Only the relevant fuses are checked in `_manage_fuses`
      - Instead of a constant SREGADDR and using 0x20 as a constant (when addressing I/Os), there now methods `get_sregaddr()` and `get_iooffset()` in `XAvrDebugger`
      - In `_filter_unsafe_instruction` and `_sim_two_word_instr`, implicit (target address < `_iooffset`) and in the register read/write methods in `GdbHandler`, register reads and writes are now made explicit.
+     - In `xnvmmegajtag` and `xnvmupdi`, `erase_chip` has been restructured concerning `EESAVE`.
+     - Default for `erasebeforeload`: disabled for dw and updi, enabled for jtag
+     - Default for `readbeforewrite`: enabled for dw and updi, disabled for jtag
 
 ### 1.1.2 (10-Feb-2025)
 

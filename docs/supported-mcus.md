@@ -1,12 +1,12 @@
 # Supported MCUs
 
-This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. Currently, only the classic parts are covered, but MCUs with PDI and UPDI debugging interfaces will follow soon. Some of the MCUs are supported by more than one core. 
+This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. Currently, only the classic parts are covered, but MCUs with PDI and UPDI debugging interfaces will follow soon. Some of the MCUs are supported by more than one core.
 
 MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested.
 
 ## Classic ATtinys
 
-### ATtiny supported by [*MicroCore*](https://github.com/MCUdude/MicroCore) 
+### ATtinys supported by [*MicroCore*](https://github.com/MCUdude/MicroCore)
 
 - **ATtiny13(A)**
 
@@ -36,7 +36,7 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 
 ## Classic ATmegas
 
-### ATmegas supported by [*MiniCore*](https://github.com/MCUdude/MiniCore) 
+### ATmegas supported by [*MiniCore*](https://github.com/MCUdude/MiniCore)
 
 - <s>ATmega8</s>
 
@@ -63,7 +63,7 @@ The ATmega16 MCUs (with and without an A-suffix) have a stuck-at-one-bit in the 
 
 The ATmega8535 does not possess a debug interface.
 
-### ATmegas supported by [*MegaCore*](https://github.com/MCUdude/MegaCore) 
+### ATmegas supported by [*MegaCore*](https://github.com/MCUdude/MegaCore)
 
 * **ATmega64(A)**, **ATmega128(A)**
 * **ATmega640**, **ATmega1280**, **ATmega2560**
@@ -78,7 +78,7 @@ The Atmega64(A), ATmega329(P)(A), and ATmega3250(P)(A) MCUs have a stuck-at-one-
 
 The ATmega128(A) MCUs do not allow for software breakpoints. This means that you can use only four hardware breakpoints.
 
-### ATmega supported by [*MajorCore*](https://github.com/MCUdude/MajorCore) 
+### ATmega supported by [*MajorCore*](https://github.com/MCUdude/MajorCore)
 
 * **ATmega162**
 * <s>ATmega8515</s>
@@ -108,3 +108,9 @@ The ATmega8515 does not have a debug interface.
 
 - <s>ATmega163</s>
 
+## Modern ATmegas
+
+### Atmegas supported by MegaCoreX
+
+- <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, <u>ATmega4808</u>
+- <u>ATmega809</u>, ATmega1609, ATmega3209, <u>ATmega4809</u>

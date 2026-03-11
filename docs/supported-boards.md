@@ -22,6 +22,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>ATmega256RFR2 Xplained Pro</u>
 - **AVR Butterfly (ATmega169)**: [MegaCore](https://github.com/MCUdude/MegaCore)
 - <u>MEGA-1284P Xplained</u>: [MightyCore](https://github.com/MCUdude/MightyCore)
+- <u>ATmega4809 Curiosity Nano</u>
 
 
 
@@ -59,6 +60,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Arduino Industrial 101
 - Arduino Linino One
 - Arduino UNO WiFi (Rev 1):  [MiniCore](supporting-cores.md#minicore); cut `RESET EN` solder bridge
+- <u>Arduino Uno Wifi (Rev 2)</u>
+- <u>Arduino Nano Every</u>
 
 ## Sparkfun boards
 

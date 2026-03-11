@@ -520,8 +520,8 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         toolname = backend.transport.hid_device.get_product_string()
         tool.serialnumber = backend.transport.hid_device.get_serial_number_string()
         logger.info("Connected to %s, SN: %s", toolname, tool.serialnumber)
-    except OSError as e:
-        if str(e) == "open failed":
+    except (PymcuprogToolConnectionError, OSError) as e:
+        if "open failed" in str(e):
             logger.critical("Debug probe busy, cannot connect")
         else:
             logger.critical("Could not connect to debug probe: %s", str(e))

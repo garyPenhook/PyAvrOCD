@@ -23,8 +23,10 @@ class TestMemory(TestCase):
         mock_dbg.transport = MagicMock()
         mock_dbg.device = Mock()
         mock_dbg.device.avr = Mock()
+        mock_dbg.get_iooffset.return_value = 0x20
         mock_dbg.get_iface.return_value = "debugwire"
         mock_dbg.memory_info.memory_info_by_name('flash')['size'].__gt__ = lambda self, compare: False
+        mock_dbg.flashmemtype = 123
         # setting up the instance we want to test
         self.mem = Memory(mock_dbg, mock_mon)
         self.mem._flash_start = 0
@@ -36,7 +38,6 @@ class TestMemory(TestCase):
         self.mem._sram_size = 15
         self.mem._eeprom_start = 0
         self.mem._eeprom_size = 10
-        self.mem._flashmemtype = 123
         self.mem.programming_mode = False
 
     def test_init_flash_True(self):
@@ -60,6 +61,7 @@ class TestMemory(TestCase):
 
     def test_readmem_sram(self):
         self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0
         sram = list(reversed(range(15)))
         def access_sram(ix, length):
             return bytearray(sram[ix:ix+length])
@@ -68,19 +70,55 @@ class TestMemory(TestCase):
 
     def test_readmem_sram_masked_register_one_byte(self):
         self.set_up()
-        self.mem._masked_registers = [15, 1, 6]
-        self.assertEqual(self.mem.readmem("800001", "1"), bytearray([0x00]))
+        self.mem._masked_registers = [0x35, 0x21, 0x26]
+        self.assertEqual(self.mem.readmem("800021", "1"), bytearray([0x00]))
         self.mem.dbg.sram_read.assert_not_called()
 
     def test_readmem_sram_masked_register_bytearray(self):
         self.set_up()
-        self.mem._masked_registers = [15, 1, 6]
-        sram = list(reversed(range(15)))
+        self.mem._masked_registers = [0x35, 0x21, 0x26]
+        sram = list(reversed(range(0x35)))
         def access_sram(ix, length):
             return bytearray(sram[ix:ix+length])
         self.mem.dbg.sram_read = MagicMock(side_effect=access_sram)
-        self.assertEqual(self.mem.readmem("800005", "3"), bytearray([9, 0x00, 7]))
-        self.assertEqual(self.mem.readmem("800004", "3"), bytearray([10, 9, 0x00]))
+        self.assertEqual(self.mem.readmem("800025", "3"), bytearray([0x0F, 0x00, 0x0D]))
+        self.assertEqual(self.mem.readmem("800024", "3"), bytearray([0x10, 0x0F, 0x00]))
+
+    def test_readmem_sram_iooffset_nonnull_below(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        self.mem.readmem("800010","3")
+        self.mem.dbg.sram_read.assert_not_called()
+        self.mem.dbg.register_read.assert_called_with(0x10, 3)
+
+    def test_readmem_sram_iooffset_nonnull_above(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        self.mem.readmem("800030","3")
+        self.mem.dbg.sram_read.assert_called_with(0x30, 3)
+        self.mem.dbg.register_read.assert_not_called()
+
+    def test_readmem_sram_iooffset_nonnull_crossing(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        self.mem.readmem("80001F","3")
+        self.mem.dbg.register_read.assert_called_with(0x1F, 1)
+        self.mem.dbg.sram_read.assert_called_with(0x20, 2)
+
+    def test_readmem_sram_iooffset_nonnull_crossing_masked(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        self.mem._masked_registers = [0x35, 0x21, 0x26]
+        self.mem.readmem("80001F","3")
+        self.mem.dbg.register_read.assert_called_with(0x1F, 1)
+        self.mem.dbg.sram_read.assert_called_with(0x20, 1)
+
+    def test_readmem_sram_iooffset_null_crossing(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0
+        self.mem.readmem("80001F","3")
+        self.mem.dbg.register_read.assert_not_called()
+        self.mem.dbg.sram_read.assert_called_with(0x1F, 3)
 
     def test_readmem_eeprom(self):
         self.set_up()
@@ -129,16 +167,50 @@ class TestMemory(TestCase):
 
     def test_writemem_sram_ronly_register_one_byte(self):
         self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0
         self.mem._ronly_registers = [15, 1, 6]
         self.assertEqual(self.mem.writemem("800001", bytearray([0x55])), "OK")
         self.mem.dbg.sram_write.assert_not_called()
 
     def test_writemem_sram_ronly_register_bytearray(self):
         self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0
         self.mem._ronly_registers = [15, 1, 6, 0]
         self.assertEqual(self.mem.writemem("800001", bytearray([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])), "OK")
         self.mem.dbg.sram_write.assert_has_calls([call(2,bytearray([0x02, 0x03, 0x04, 0x05])), call(7,bytearray([0x07]))])
         self.assertEqual(self.mem.dbg.sram_write.call_count, 2)
+
+    def test_writemem_sram_iooffset_nonnull_below(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        data = bytearray([1,2,3])
+        self.assertEqual(self.mem.writemem("800010", data), "OK")
+        self.mem.dbg.sram_write.assert_not_called()
+        self.mem.dbg.register_write.assert_called_with(0x10, data)
+
+    def test_writemem_sram_iooffset_nonnull_above(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        data = bytearray([1,2,3])
+        self.assertEqual(self.mem.writemem("800030", data), "OK")
+        self.mem.dbg.sram_write.assert_called_with(0x30, data)
+        self.mem.dbg.register_write.assert_not_called()
+
+    def test_writemem_sram_iooffset_nonnull_crossing(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0x20
+        data = bytearray([1,2,3])
+        self.assertEqual(self.mem.writemem("80001F", data), "OK")
+        self.mem.dbg.sram_write.assert_called_with(0x20, data[1:3])
+        self.mem.dbg.register_write.assert_called_with(0x1F, data[0:1])
+
+    def test_writemem_sram_iooffset_null_crossing(self):
+        self.set_up()
+        self.mem.dbg.get_iooffset.return_value = 0
+        data = bytearray([1,2,3])
+        self.assertEqual(self.mem.writemem("80001F", data), "OK")
+        self.mem.dbg.sram_write.assert_called_with(0x1F, data)
+        self.mem.dbg.register_write.assert_not_called()
 
     def test_writemem_eeprom(self):
         self.set_up()
@@ -221,7 +293,7 @@ class TestMemory(TestCase):
                                                    bytearray([0,1]), bytearray([2,3]), bytearray([0xFF,0xFF])]
         self.mem.flash_pages()
         self.assertEqual(self.mem.dbg.flash_read.call_count, 6)
-        fmt = self.mem.dbg.device.avr.memtype_write_from_string('flash')
+        fmt = self.mem.dbg.flashmemtype
         self.mem.dbg.device.avr.write_memory_section.assert_called_with(fmt, 0, bytearray([0,1,2,3,0xFF,0xFF]),
                                                                             2, allow_blank_skip=False)
 
