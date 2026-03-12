@@ -3,15 +3,17 @@
 ### New:
 
 - **Fixed:**
-     - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be single hex digits.
-     - Now, `sram_masked_read` and `sram_masked_write` will read from registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
+     - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.
+     - Now, `sram_masked_read` and `sram_masked_write` will read from registers/write to registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
 
 - **Added:**
      - UPDI functionality
+     - Erasing a locked MCU (is different from doing it for dw or JTAG)
      - New option `-K` / `--kbps` meant for UPDI and PDI communication speed.
      - New attributes in `XAvrDebugger`: `_sregaddr`, `_iooffset`, `_nolock`
      - Since activate_physical does not return a device id which contains the signature bytes, we use the special method `read_device_id()` from `nvmupdi` inside `_activate_interface`. This should have been handled either in the avr8target class or the nvm class!
-     - Since registers are not the first 32 SRAM bytes, register reading is now performed by reading the entire register file once into a cache and then accessing single registers from the cache in `XAvrDebugger`
+     - For UPDI, `memory_write` and `memory_read` have been implemented in a way so that memory areas are translated into addresses in SRAM (`_mem_transform`) in `xavr8target.py`
+     - Since registers are not the first 32 SRAM bytes for UPDI, register reading is now performed by reading the entire register file once into a cache and then accessing single registers from the cache in `XAvrDebugger`
      - Updates are also written to this cache, which, if changed, will be written back immediately before a run or step on EDBG level is performed (also in `XAvrDebugger`)
      - New methods in `XAvrDebuffer`: `register_read` and `register_write`
 - **Changed:**

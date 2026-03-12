@@ -243,6 +243,7 @@ jobs:
   publish-to-pypi:
     name: >-
       Publish Python distribution to PyPI
+    if: ${{ !contains(github.event.release.name,'a') && !contains(github.event.release.name,'b') }}
     needs:
     - build-pypi-distribution
     runs-on: ubuntu-latest

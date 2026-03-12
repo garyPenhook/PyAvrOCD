@@ -200,17 +200,23 @@ class XAvrDebugger(AvrDebugger):
                 self.logger.warning("Try later with 'monitor debugwire enable'")
                 return False
             raise FatalError("Debug session not started: %s" % str(e)) #pylint: disable=raise-missing-from
-        self.device.avr.attach()
         try:
+            self.device.avr.attach()
             self.device.avr.protocol.stop() # If successful, OCDEN is already activated
         except Jtagice3ResponseError as e:
+            self.logger.debug("Could not attach and stop MCU")
             if e.code == Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS: # we need to set OCDEN
                 self.logger.debug("Illegal OCD status, need to activate debugging")
                 if self.args.attach:
                     raise FatalError("Could not attach to OCD because debugging is not yet activated") #pylint: disable=raise-missing-from
-                self._manage_fuses()
+            elif e.code == Avr8Protocol.AVR8_FAILURE_OCD_LOCKED: # Chip is locked and needs to be unlocked
+                self.logger.info("Chip is locked and needs to be erased")
+                if self.args.attach:
+                    raise FatalError("Could not attach to OCD because chip is locked") #pylint: disable=raise-missing-from
+                self._erase_locked_updi_chip()
             else:
                 raise e
+        self._manage_fuses()
         self._verify_target(dev_id)
         self._check_attiny2313()
         self._check_stuck_at_one_pc()
@@ -219,13 +225,31 @@ class XAvrDebugger(AvrDebugger):
         self.logger.info("... debug session startup done")
         return True
 
+    def _erase_locked_updi_chip(self) -> None:
+        """
+        Erase a locked chip (UPDI only)
+        """
+        self._complain_if_no_lockbits_permission()
+        self.device.avr.deactivate_physical()
+        self.logger.info("Physical interface deactivated")
+        self.device.avr.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                                        Avr8Protocol.AVR8_OPT_CHIP_ERASE_TO_ENTER, 1)
+        self.logger.info("Chip-erase key entry mechanism activated")
+        self._activate_interface()
+        self.device.avr.enter_progmode()
+        self.switch_to_debmode()
+        self.logger.info("Switched to debug mode")
+        if self.args.load == 'n': # if noinitialload is active, change to readbeforewrite
+            self.args.load = 'r'
 
     def _manage_fuses(self) -> None:
         """
         After having attached to the OCD, set fuses if the
         MCU is not in debugging mode yet: Clear lockbits, unprogram BOOTRST,
-        and program OCDEN. This function will never be called by debugWIRE targets!
+        and program OCDEN. This is only useful for Mega JTAG targets.
         """
+        if self._iface != 'jtag':
+            return
         self.switch_to_progmode()
         self.logger.info("Switched to programming mode")
         # clear lockbits if necessary
@@ -443,29 +467,39 @@ class XAvrDebugger(AvrDebugger):
         """
         Clear lockbits (if permitted) for different settings (JTAG, ISP and UPDI)
         """
+        trial : int = 0
         lockbits = read()
         self.logger.debug("Lockbits read: 0x%X", lockbits[0])
-        if lockbits[0] != self._nolock:
-            if 'lockbits' in self.manage:
-                self.logger.info("MCU is locked.")
-                erase()
-                lockbits = read()
-                self.logger.debug("Lockbits after write: 0x%X", lockbits[0])
-                assert lockbits[0] == self._nolock, "Lockbits could not be cleared"
-                self.logger.info("MCU has been erased and lockbits have been cleared.")
-                if self.args.load and self.args.load[0] == 'n':     # the 'no initial load' option value
-                    if self._iface == 'debugwire':
-                        self.args.load = 'r'     # for debugWIRE, the right one is 'read before write'
-                    elif self._iface == 'jtag':
-                        self.args.load = 'w'
-            else:
-                self.logger.warning("PyAvrOCD is not allowed to clear lockbits.")
-                self.logger.warning("This must be done manually by erasing the chip.")
-                self.logger.warning("Alternatively, let PyAvrOCD manage it: '-m lockbits'")
-                raise FatalError("Debugging is impossible when lockbits are set.")
-        else:
+        if lockbits[0] == self._nolock:
             self.logger.info("MCU is not locked.")
+            return
+        self.logger.info("MCU is locked.")
+        self._complain_if_no_lockbits_permission()
+        while trial < 5: # usually, the 2nd attempt is successful
+            time.sleep(0.1)
+            erase()
+            time.sleep(0.1)
+            lockbits = read()
+            self.logger.debug("Lockbits after erase: 0x%X", lockbits[0])
+            if lockbits[0] == self._nolock:
+                break
+            trial += 1
+        if trial < 5:
+            self.logger.info("MCU has been erased and lockbits have been cleared.")
+        else:
+            raise FatalError("Impossible to clear lockbits")
+        if self.args.load and self.args.load[0] == 'n':     # the 'no initial load' option value
+            if self._iface == 'debugwire':
+                self.args.load = 'r'     # for debugWIRE, the right one is 'read before write'
+            elif self._iface == 'jtag':
+                self.args.load = 'w'
 
+    def _complain_if_no_lockbits_permission(self) -> None:
+        if 'lockbits' not in self.manage:
+            self.logger.warning("PyAvrOCD is not allowed to clear lockbits.")
+            self.logger.warning("This must be done manually by erasing the chip.")
+            self.logger.warning("Alternatively, let PyAvrOCD manage it: '-m lockbits'")
+            raise FatalError("Debugging is impossible when lockbits are set.")
 
     def prepare_debugging(self, callback : Callable[[], bool] | None = None,
                                 recognition : Callable[[], None] | None =None) -> None:

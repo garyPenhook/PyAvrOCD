@@ -47,7 +47,14 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         :returns: Data read out
         :rtype: bytearray
         """
-        return self.protocol.memory_read(*self._mem_transform(memory_name, start_address), numbytes)
+        data : bytearray = self.protocol.memory_read(*self._mem_transform(memory_name, start_address), numbytes)
+        self.protocol.memory_read(memory_name, start_address, numbytes)
+        self.logger_loc.debug("Reading from address 0x%X in memory area 0x%X %d bytes",
+                                  start_address, memory_name, numbytes)
+        self.logger_loc.debug("Correct API call: [ %s ]", ",".join(format(byte, '02x') for byte in
+                                  self.protocol.memory_read(memory_name, start_address, numbytes)))
+        self.logger_loc.debug("Transformed API call: [ %s ]", ",".join(format(byte, '02x') for byte in data))
+        return data
 
     def memory_write(self, memory_name : int, start_address : int , data : bytes) -> bytearray | None:
         """
@@ -165,7 +172,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
 
     def reactivate(self) -> None:
         """
-        Reactivate physical: Necessary to get set the right timer mode
+        Reactivate physical: Necessary to set the right timer mode
         """
         self.protocol.detach()
         self.deactivate_physical()
