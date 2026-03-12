@@ -22,7 +22,7 @@ jobs:
       - name: Set up python
         if: ${{ github.event.release.tag_name != '' }}
         id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 
@@ -74,13 +74,13 @@ jobs:
 
       - name: Set up Python-64-bit
         if: matrix.os != 'windows-2022'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.14'
 
       - name: Set up Python-32-bit
         if: matrix.os == 'windows-2022'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.14'
           architecture: 'x86'
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload as artifact (macOS ARM = macos-15)
         if: matrix.os == 'macos-15'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: arm64-apple-darwin
           path: dist/pyavrocd/*
@@ -111,7 +111,7 @@ jobs:
 
       - name: Upload as artifact (Linux Arm = ubuntu-24.04-arm)
         if: matrix.os == 'ubuntu-24.04-arm'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: aarch64-linux-gnu
           path: dist/pyavrocd/*
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload artifact (Windows Intel (64-bit) = windows-2025)
         if: matrix.os == 'windows-2025'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: x86_64-mingw32
           path: dist/pyavrocd/*
@@ -131,7 +131,7 @@ jobs:
 
       - name: Upload artifact (Windows Intel (32-bit) = windows-2022)
         if: matrix.os == 'windows-2022'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: i686-mingw32
           path: dist/pyavrocd/*
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload artifact (macOS Intel = macos-15-intel)
         if: matrix.os == 'macos-15-intel'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: x86_64-apple-darwin
           path: dist/pyavrocd/*
@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload artifact (Linux Intel = ubuntu-24.04)
         if: matrix.os == 'ubuntu-24.04'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: x86_64-linux-gnu
           path: dist/pyavrocd/*
@@ -222,7 +222,7 @@ jobs:
         persist-credentials: false
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.14"
 
@@ -235,7 +235,7 @@ jobs:
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: python-package-distributions
         path: dist/
@@ -255,7 +255,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: python-package-distributions
         path: dist/
