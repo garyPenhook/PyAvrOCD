@@ -84,6 +84,7 @@ class TestMemory(TestCase):
 
     def test_readmem_eeprom(self):
         self.set_up()
+        self.mem.dbg.memory_info.memory_info_by_name('eeprom')['address'] = 0
         self.mem.dbg.device.read.return_value=bytearray([1,2,3])
         self.assertEqual(self.mem.readmem("810001", "3"), bytearray([1, 2, 3]))
 
@@ -144,6 +145,10 @@ class TestMemory(TestCase):
         self.set_up()
         self.mem.dbg.device.write.return_value = None
         self.assertEqual(self.mem.writemem("810002", bytearray([1,2,3])), "OK")
+        args = self.mem.dbg.device.write.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[2], bytearray([1, 2, 3]))
+        self.assertFalse(args[3])
 
     def test_writemem_fuse(self):
         self.set_up()
@@ -224,6 +229,19 @@ class TestMemory(TestCase):
         fmt = self.mem.dbg.device.avr.memtype_write_from_string('flash')
         self.mem.dbg.device.avr.write_memory_section.assert_called_with(fmt, 0, bytearray([0,1,2,3,0xFF,0xFF]),
                                                                             2, allow_blank_skip=False)
+
+    def test_flash_pages_write_updi_erases_page_in_programming_mode(self):
+        self.set_up()
+        self.mem.dbg.get_iface.return_value = "updi"
+        self.mem.dbg.device.avr.write_memory_section = Mock()
+        self.mem.dbg.device.erase_page = Mock(return_value=True)
+        self.mem._flash = bytearray(range(4))
+        self.mem.programming_mode = True
+        self.mem.mon.is_verify.return_value = False
+        self.mem.mon.is_read_before_write.return_value = False
+        self.mem.mon.is_erase_before_load.return_value = False
+        self.mem.flash_pages()
+        self.mem.dbg.device.erase_page.assert_called_once_with(0, True)
 
     def test_no_flash_pages_write_only_cached(self):
         self.set_up()
@@ -325,3 +343,23 @@ class TestMemory(TestCase):
         self.set_up()
         self.mem.dbg.write_usig.side_effect = FatalError("fail")
         self.assertEqual(self.mem.usig_write(0x00, bytearray([0x12, 0x34])), 'E13')
+
+    def test_eeprom_read_uses_programming_mode_flag(self):
+        self.set_up()
+        self.mem.programming_mode = True
+        self.mem.dbg.device.read.return_value = bytearray([0x12, 0x34])
+        self.assertEqual(self.mem.eeprom_read(2, 2), bytearray([0x12, 0x34]))
+        args = self.mem.dbg.device.read.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[2], 2)
+        self.assertTrue(args[3])
+
+    def test_eeprom_write_uses_programming_mode_flag(self):
+        self.set_up()
+        self.mem.programming_mode = True
+        self.mem.dbg.device.write.return_value = None
+        self.mem.eeprom_write(3, bytearray([0xAA]))
+        args = self.mem.dbg.device.write.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[2], bytearray([0xAA]))
+        self.assertTrue(args[3])
