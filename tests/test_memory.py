@@ -28,6 +28,7 @@ class TestMemory(TestCase):
         # setting up the instance we want to test
         self.mem = Memory(mock_dbg, mock_mon)
         self.mem._flash_start = 0
+        self.mem._flash_gdb_start = 0
         self.mem._flash_page_size = 2
         self.mem._flash_size = 12
         self.mem._multi_buffer = 3
@@ -272,6 +273,17 @@ class TestMemory(TestCase):
         self.assertEqual(self.mem.memory_map(), 'l<memory-map><memory type="ram" start="0x800000" length="0x60000"/>' + \
                              '<memory type="flash" start="0x0" length="0xC">' + \
                              '<property name="blocksize">0x6</property>' + \
+                             '</memory></memory-map>')
+
+    def test_memory_map_uses_hexfile_address(self):
+        self.set_up()
+        self.mem._flash_start = 0x8000
+        self.mem._flash_gdb_start = 0x0
+        self.mem._flash_size = 0x8000
+        self.mem._multi_page_size = 0x80
+        self.assertEqual(self.mem.memory_map(), 'l<memory-map><memory type="ram" start="0x800000" length="0x60000"/>' + \
+                             '<memory type="flash" start="0x0" length="0x8000">' + \
+                             '<property name="blocksize">0x80</property>' + \
                              '</memory></memory-map>')
 
     def test_fuse_read_ok(self):

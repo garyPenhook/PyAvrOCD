@@ -1,6 +1,6 @@
 # UPDI Phase 1 Change Note
 
-This note records the UPDI-related implementation, testing, and device-database work added in this workspace session.
+This note records the UPDI-related implementation, testing, device-database work, and later hardware validation added in this workspace session.
 
 The code completion and drafting work in this session was aided by ChatGPT operating in the local workspace.
 
@@ -15,6 +15,7 @@ The following additions and changes were made to the project as part of this fir
 - completed the local UPDI target adapter in `pyavrocd/xavr8target.py`
 - completed the local UPDI NVM wrapper in `pyavrocd/xnvmupdi.py`
 - adjusted UPDI target verification in `pyavrocd/xavrdebugger.py`
+- corrected flash memory-map reporting in `pyavrocd/memory.py` so GDB loads use the logical flash address space instead of the raw UPDI NVM base address
 
 ### Test additions and expansions
 
@@ -23,6 +24,7 @@ The following additions and changes were made to the project as part of this fir
 - added UPDI verification coverage in `tests/test_xavrdebugger.py`
 - added UPDI memory-path coverage in `tests/test_memory.py`
 - added UPDI handler and flash-load coverage in `tests/test_gdbhandler.py`
+- added regression coverage for the UPDI raw-signature read path and for flash memory-map reporting
 
 ### Device database additions
 
@@ -126,7 +128,37 @@ That test now checks:
 - pack-derived memory layout expectations across the `20x`, `40x`, `80x`, `160x`, `161x`, `162x`, `321x`, and `322x` families
 - continued visibility of the new parts through the CLI-oriented device tables
 
-### 8. Project documentation additions
+### 8. Hardware smoke-test validation
+
+Additional follow-up work was done after the initial UPDI implementation pass to validate the live execution path on real hardware.
+
+The hardware used for this smoke test was:
+
+- `ATtiny3217` target firmware from the local `test_nano_C` project
+- Curiosity Nano mounted on a Curiosity Nano Explorer
+- onboard `nEDBG CMSIS-DAP` debugger exposed by the Nano
+
+The first real smoke test exposed a runtime bug: UPDI startup reached the target, but target verification read the wrong signature value because the implementation was using the wrong access path for TinyX UPDI devices.
+
+That defect was corrected by changing the UPDI signature read logic in `pyavrocd/xavrdebugger.py` to read the raw signature bytes from the TinyX signature row in programming mode.
+
+The same smoke-test work also exposed a second live issue: normal GDB `load` failed when PyAvrOCD advertised flash in the memory map using the raw flash NVM base address instead of the ELF-visible flash start address.
+
+That defect was corrected in `pyavrocd/memory.py` by using the flash `hexfile_address` for the GDB memory map while preserving the raw address for programming operations.
+
+After those fixes, a real `avr-gdb` smoke test completed successfully through the normal remote-debug flow:
+
+- connect
+- verify `ATtiny3217` signature `0x1E9522`
+- `monitor reset`
+- `load`
+- set breakpoint at `main`
+- `continue`
+- stop at `main`
+- read registers
+- detach
+
+### 9. Project documentation additions
 
 Two documentation files were added during this work:
 
@@ -138,6 +170,7 @@ Two documentation files were added during this work:
 - `pyavrocd/xavr8target.py`
 - `pyavrocd/xnvmupdi.py`
 - `pyavrocd/xavrdebugger.py`
+- `pyavrocd/memory.py`
 - `pyavrocd/deviceinfo/devices/alldevices.py`
 - `pyavrocd/deviceinfo/devices/attiny202.py`
 - `pyavrocd/deviceinfo/devices/attiny204.py`
@@ -195,7 +228,10 @@ The recorded verification results for this implementation pass include:
 593 passed in 30.14s
 46 passed in 0.16s
 197 passed in 15.49s
+243 passed in 17.81s
 ```
+
+In addition to the automated test runs above, the later smoke-test validation on real hardware succeeded with the local `ATtiny3217` firmware project under `avr-gdb`.
 
 ## Intent
 

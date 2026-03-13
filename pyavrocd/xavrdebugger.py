@@ -73,6 +73,7 @@ class XAvrDebugger(AvrDebugger):
         self.device : NvmAccessProviderCmsisDapAvr
         self.edbg_protocol : EdbgProtocol | None = None
         self.housekeeper : housekeepingprotocol.Jtagice3HousekeepingProtocol | None = None
+        self._progmode_active : bool = False
         self.use_events_for_run_stop_state =  False # in order to avoid the timing glitch with ATmega32/Atmel-ICE
 
         # Gather device info
@@ -723,13 +724,17 @@ class XAvrDebugger(AvrDebugger):
         """
         Switch to debugging mode
         """
-        return self.device.avr.switch_to_debmode()
+        result = self.device.avr.switch_to_debmode()
+        self._progmode_active = False
+        return result
 
     def switch_to_progmode(self) -> bool:
         """
         Switch to programming mode
         """
-        return self.device.avr.switch_to_progmode()
+        result = self.device.avr.switch_to_progmode()
+        self._progmode_active = True
+        return result
 
     def software_breakpoint_set(self, address : int) -> bool:
         """
@@ -859,7 +864,22 @@ class XAvrDebugger(AvrDebugger):
         """
         Read signature in a liberal way, i.e., throwing no errors
         """
-        resp = self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
+        if self._iface == 'updi':
+            if self.memory_info is None:
+                raise FatalError("No memory info available")
+            signatures : dict[str, Any] = self.memory_info.memory_info_by_name('signatures')
+            memtype : int = self.device.avr.memtype_read_from_string("raw")
+            switched : bool = False
+            if not self._progmode_active:
+                self.switch_to_progmode()
+                switched = True
+            try:
+                resp = self.device.avr.memory_read(memtype, signatures['address'], 3)
+            finally:
+                if switched:
+                    self.switch_to_debmode()
+        else:
+            resp = self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
         if size+addr > 3:
             resp += [0xFF]*(addr+size)
         return bytearray(resp[addr:addr+size])
