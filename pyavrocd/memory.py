@@ -37,6 +37,7 @@ class Memory():
         flash_info : dict[str, int] | object = self.dbg.memory_info.memory_info_by_name('flash')
         self._flash_start : int = int(flash_info['address'])
         if isinstance(flash_info, dict):
+            # GDB wants the logical image address, not the raw UPDI flash base.
             self._flash_gdb_start : int = int(flash_info.get('hexfile_address', self._flash_start))
         else:
             self._flash_gdb_start = self._flash_start

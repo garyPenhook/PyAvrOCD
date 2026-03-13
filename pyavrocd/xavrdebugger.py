@@ -978,7 +978,10 @@ class XAvrDebugger(AvrDebugger):
 
     def read_sig(self, addr : int, size : int) -> bytearray:
         """
-        Read signature in a liberal way, i.e., throwing no errors
+        Read signature bytes in a liberal way, i.e., throwing no errors.
+
+        UPDI tinyAVR devices expose the signature row through the raw memory
+        space, so that path temporarily enters programming mode if needed.
         """
         if self._iface == 'updi':
             if self.memory_info is None:
