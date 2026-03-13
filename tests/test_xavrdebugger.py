@@ -100,9 +100,24 @@ class TestXAvrDebugger(TestCase):
 
     def test__verify_target_updi(self):
         self.set_up()
+        self.xau.memory_info.memory_info_by_name.return_value = {'address': 0x1100}
+        self.xau.device.avr.memtype_read_from_string.return_value = Avr8Protocol.AVR8_MEMTYPE_SRAM
         self.xau.device.avr.memory_read.return_value = bytearray([0x1E, 0x96, 0x51])
         self.xau._verify_target(0)
-        self.xau.device.avr.memory_read.assert_called_once_with(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
+        self.xau.device.avr.switch_to_progmode.assert_called_once()
+        self.xau.device.avr.switch_to_debmode.assert_called_once()
+        self.xau.device.avr.memory_read.assert_called_once_with(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x1100, 3)
+
+    def test_read_sig_updi_in_progmode(self):
+        self.set_up()
+        self.xau._progmode_active = True
+        self.xau.memory_info.memory_info_by_name.return_value = {'address': 0x1100}
+        self.xau.device.avr.memtype_read_from_string.return_value = Avr8Protocol.AVR8_MEMTYPE_SRAM
+        self.xau.device.avr.memory_read.return_value = bytearray([0x1E, 0x95, 0x22])
+        self.assertEqual(self.xau.read_sig(0, 3), bytearray([0x1E, 0x95, 0x22]))
+        self.xau.device.avr.switch_to_progmode.assert_not_called()
+        self.xau.device.avr.switch_to_debmode.assert_not_called()
+        self.xau.device.avr.memory_read.assert_called_once_with(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x1100, 3)
 
 
     @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())

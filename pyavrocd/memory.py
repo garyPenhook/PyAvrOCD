@@ -34,9 +34,14 @@ class Memory():
         # some device info that is needed throughout
         if self.dbg.memory_info is None:
             raise FatalError("No memory info available")
-        self._flash_start : int = int(self.dbg.memory_info.memory_info_by_name('flash')['address'])
-        self._flash_page_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['page_size'])
-        self._flash_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['size'])
+        flash_info : dict[str, int] | object = self.dbg.memory_info.memory_info_by_name('flash')
+        self._flash_start : int = int(flash_info['address'])
+        if isinstance(flash_info, dict):
+            self._flash_gdb_start : int = int(flash_info.get('hexfile_address', self._flash_start))
+        else:
+            self._flash_gdb_start = self._flash_start
+        self._flash_page_size : int = int(flash_info['page_size'])
+        self._flash_size : int = int(flash_info['size'])
         self._multi_buffer : int = int(self.dbg.device_info.get('buffers_per_flash_page',1))
         self._masked_registers : list[int] = self.dbg.device_info.get('masked_registers',[])
         self._ronly_registers : list[int] = self.dbg.device_info.get('ronly_registers',[])
@@ -366,12 +371,12 @@ class Memory():
         Return a memory map in XML format. Include registers, IO regs, and EEPROM in SRAM area
         """
         return ('l<memory-map><memory type="ram" start="0x{0:X}" length="0x{1:X}"/>' + \
-                             '<memory type="flash" start="0x0000" length="0x{2:X}">' + \
-                             '<property name="blocksize">0x{3:X}</property>' + \
+                             '<memory type="flash" start="0x{2:X}" length="0x{3:X}">' + \
+                             '<property name="blocksize">0x{4:X}</property>' + \
                              '</memory></memory-map>').format(0 + 0x800000, \
                               # (0x10000 + self._eeprom_start + self._eeprom_size),
                               0x60000, # is needed to read the other memory areas as well
-                              self._flash_size, self._multi_page_size)
+                              self._flash_gdb_start, self._flash_size, self._multi_page_size)
 
     def fuse_read(self, addr : int, size : int) -> bytes:
         """
