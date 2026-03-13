@@ -525,14 +525,37 @@ class TestGdbHandler(TestCase):
         self.gh.dispatch('qSupported', b'')
         self.gh._comsocket.sendall.assert_called_with(rsp("PacketSize={0:X};qXfer:memory-map:read+".format(self.gh.packet_size)))
         self.gh.mon.set_debug_mode_active.assert_called_once()
+        self.gh.dbg.start_debugging.assert_called_once_with(warmstart=True)
+
+    def test_supported_handler_updi_starts_without_warmstart(self):
+        self.set_up()
+        self.gh.dbg.get_iface.return_value = 'updi'
+        self.gh.dbg.start_debugging.return_value = True
+        self.gh.dispatch('qSupported', b'')
+        self.gh.dbg.start_debugging.assert_called_once_with(warmstart=False)
+        self.gh.mon.set_debug_mode_active.assert_called_once()
+        self.gh._comsocket.sendall.assert_called_with(
+            rsp("PacketSize={0:X};qXfer:memory-map:read+".format(self.gh.packet_size)))
 
     def test_supported_handler_error(self):
         self.set_up()
         self.gh.dbg.start_debugging.side_effect = FatalError("XXX")
         self.gh.dispatch('qSupported', b'')
         self.gh.mon.set_debug_mode_active.assert_not_called()
-        self.gh.dbg.stop_debugging.assert_called_once()
+        self.gh.dbg.stop_debugging.assert_called_once_with(skip=True, graceful=True)
         self.gh._comsocket.sendall.assert_called_with(rsp("PacketSize={0:X};qXfer:memory-map:read+".format(self.gh.packet_size)))
+
+    def test_supported_handler_updi_error_cleans_up_session(self):
+        self.set_up()
+        self.gh.dbg.get_iface.return_value = 'updi'
+        self.gh.dbg.start_debugging.side_effect = FatalError("UPDI failed")
+        self.gh.dispatch('qSupported', b'')
+        self.gh.dbg.start_debugging.assert_called_once_with(warmstart=False)
+        self.gh.mon.set_debug_mode_active.assert_not_called()
+        self.gh.dbg.stop_debugging.assert_called_once_with(skip=True, graceful=True)
+        self.assertEqual(self.gh.critical, "UPDI failed")
+        self.gh._comsocket.sendall.assert_called_with(
+            rsp("PacketSize={0:X};qXfer:memory-map:read+".format(self.gh.packet_size)))
 
     def test_first_thread_info_handler(self):
         self.set_up()
@@ -643,6 +666,15 @@ class TestGdbHandler(TestCase):
         self.gh.mon.disable_noinitialload.assert_not_called()
         self.gh._comsocket.sendall.assert_called_with(rsp("OK"))
 
+    def test_flashDoneHandler_reactivates_updi(self):
+        self.set_up()
+        self.gh.dbg.get_iface.return_value = 'updi'
+        self.gh.dispatch('vFlashDone', b'')
+        self.gh.dbg.switch_to_progmode.assert_called_once_with()
+        self.gh.dbg.switch_to_debmode.assert_called_once_with()
+        self.gh.dbg.device.avr.reactivate.assert_called_once_with()
+        self.assertTrue(self.gh.mem.programming_mode is False)
+
     def test_flashDoneHandler_noinitialload(self):
         self.set_up()
         self.gh.mon.is_noinitialload.return_value = True
@@ -675,6 +707,16 @@ class TestGdbHandler(TestCase):
         self.gh.dispatch('vFlashErase', b':200,10')
         self.gh.mem.init_flash.assert_called_once()
         self.gh._comsocket.sendall.assert_called_with(rsp("OK"))
+
+    def test_flashEraseHandler_updi_erase_before_load(self):
+        self.set_up()
+        self.gh.dbg.get_iface.return_value = 'updi'
+        self.gh.mon.is_debugger_active.return_value = True
+        self.gh.mon.is_erase_before_load.return_value = True
+        self.gh.mem.programming_mode = True
+        self.gh.dispatch('vFlashErase', b':100,10')
+        self.gh.dbg.device.erase_chip.assert_called_once_with(True)
+        self.gh.bp.cleanup_breakpoints.assert_called_once_with()
 
     def test_flash_writeHandler_success(self):
         self.set_up()
@@ -754,6 +796,19 @@ class TestGdbHandler(TestCase):
         self.gh.dbg.device.erase_chip.assert_called_once()
         self.assertTrue(self.gh.mem.lazy_loading)
         self.gh._comsocket.sendall.assert_called_with(rsp('OK'))
+
+    def test_set_binary_memory_handler_flash_updi_keeps_programming_mode(self):
+        self.set_up()
+        self.gh.dbg.get_iface.return_value = 'updi'
+        self.gh.mon.is_debugger_active.return_value = True
+        self.gh.mem.writemem.return_value = "OK"
+        self.gh.mem.lazy_loading = False
+        self.gh.mon.is_erase_before_load.return_value = True
+        self.gh.dispatch('X', b'100,1:}]')
+        self.gh.dbg.switch_to_progmode.assert_called_once_with()
+        self.assertTrue(self.gh.mem.programming_mode)
+        self.gh.dbg.device.erase_chip.assert_called_once_with(True)
+        self.gh.mem.writemem.assert_called_once_with("100", bytearray([0x7D]))
 
     def test_set_binary_memory_handler_exception(self):
         self.set_up()

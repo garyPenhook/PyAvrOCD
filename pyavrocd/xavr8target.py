@@ -84,6 +84,55 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         return (memory_name, start_address)
 
 
+    def setup_debug_session(self, clkdeb : int = 100, timers_run : bool = True,
+                                interface : int = Avr8Protocol.AVR8_PHY_INTF_PDI_1W,
+                                use_hv : int = Avr8Protocol.UPDI_HV_NONE,
+                                **kwargs : Any) -> None:
+        """
+        Sets up a debugging session on a TinyX AVR (UPDI)
+        """
+        _dummy = kwargs
+        self.logger_loc.info("Setting up debug session for UPDI target")
+        self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                               Avr8Protocol.AVR8_OPT_RUN_TIMERS,
+                               timers_run)
+        super().setup_debug_session(interface=interface, khz=clkdeb, use_hv=use_hv)
+
+    def switch_to_progmode(self) -> None:
+        """
+        Switch to programming mode by detaching from OCD first.
+        """
+        self.logger_loc.debug("Detaching...")
+        self.protocol.detach()
+        self.logger_loc.debug("Entering progmode...")
+        self.protocol.enter_progmode()
+        self.logger_loc.debug("Switched to progmode")
+
+    def switch_to_debmode(self) -> None:
+        """
+        Return to debug mode. UPDI leaves programming mode with auto-attach.
+        """
+        self.logger_loc.debug("Leaving progmode...")
+        self.protocol.leave_progmode()
+        self.logger_loc.debug("Switched to debug mode")
+
+    def attach(self) -> None:
+        """
+        Attach to OCD.
+        """
+        self.protocol.attach()
+
+    def reactivate(self) -> None:
+        """
+        Re-activate the physical interface so option changes take effect.
+        """
+        self.protocol.detach()
+        self.deactivate_physical()
+        self.activate_physical()
+        self.protocol.attach()
+        self.protocol.reset()
+        self.logger_loc.info("Physical interface re-activated")
+
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
     # the registers as part of their SRAM address space.

@@ -1,13 +1,10 @@
 """
 UPDI NVM implementation - extended
 """
-#Implementation is only a stub:
-#pylint: disable=unused-import
 from typing import Any
 
 import logging
 
-from pyedbglib.protocols.jtagice3protocol import Jtagice3ResponseError
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 from pyedbglib.util import binary
@@ -27,7 +24,7 @@ from pyavrocd.xavr8target import XTinyXAvrTarget
 
 class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
     """
-    NVM Access the DW way
+    NVM Access the UPDI way
     """
     #pylint: disable=non-parent-init-called, super-init-not-called
     #we want to set up the debug session much later
@@ -40,47 +37,125 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         self.avr : AvrDevice = XTinyXAvrTarget(transport, device_info=device_info)
         self.logger_local.debug("manage=%s", self.manage)
 
+    # pylint: disable=arguments-differ
+    # reason for the difference: PyAvrOCD passes a prog_mode flag through all NVM wrappers
     def read(self, memory_info : dict[ str, Any ], offset : int,
                  numbytes : int, prog_mode : bool=False) -> bytearray:
         """
-        Read the memory in chunks
-
-        :param memory_info: dictionary for the memory as provided by the DeviceMemoryInfo class
-        :param offset: relative offset in the memory type
-        :param numbytes: number of bytes to read
-        :param prog_mode: True iff in programming mode
-        :return: array of bytes read
-
-        The super class will handle it (we simply remove the prog_mode parameter)
+        Read memory in chunks.
         """
         _dummy = prog_mode
-        return super().read(memory_info, offset, numbytes)
+        memtype_string : str = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype : int = self.avr.memtype_read_from_string(memtype_string)
+        if memtype == 0:
+            msg : str = "Unsupported memory type: {}".format(memtype_string)
+            self.logger_local.error(msg)
+            raise PymcuprogError(msg)
 
+        if memtype_string != MemoryNames.FLASH:
+            try:
+                offset += memory_info[DeviceMemoryInfoKeys.ADDRESS]
+            except TypeError:
+                pass
+
+        self.logger_local.debug("Reading from %s at %X %d bytes",
+                                memory_info['name'], offset, numbytes)
+        return self.avr.read_memory_section(memtype, offset, numbytes, numbytes)
 
     def write(self, memory_info : dict[ str, Any ], offset : int,
                   data : bytes, prog_mode : bool=False) -> None:
         """
-        Write the memory with data
-
-        :param memory_info: dictionary for the memory as provided by the DeviceMemoryInfo class
-        :param offset: relative offset within the memory type
-        :param data: the data to program
-
-        The super class will handle it
+        Write memory with data.
         """
         _dummy = prog_mode
-        super().write(memory_info, offset, data)
+        if len(data) == 0:
+            return
+        data_in : bytearray = bytearray(data)
+        memtype_string : str = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype : int = self.avr.memtype_write_from_string(memtype_string)
+        if memtype == 0:
+            msg : str = "Unsupported memory type: {}".format(memtype_string)
+            self.logger_local.error(msg)
+            raise PymcuprogError(msg)
 
-    def erase_page(self, pageaddr : int, memory_info: dict[ str, Any ], prog_mode : bool) -> bool:
-        """
-        Erase one page: We do not need this function for UPDI targets!
-        """
-        _dummy0 = pageaddr
-        _dummy1 = memory_info
-        _dummy2 = prog_mode
-        return False
+        data_to_write : bytes
+        address : int
+        if memtype_string != MemoryNames.EEPROM:
+            data_to_write, address = utils.pagealign(data_in,
+                                                     offset,
+                                                     memory_info[DeviceMemoryInfoKeys.PAGE_SIZE],
+                                                     memory_info[DeviceMemoryInfoKeys.WRITE_SIZE])
+        else:
+            data_to_write = data_in
+            address = offset
 
-    def erase_chip(self, prog_mode : bool) -> bool :
+        if memtype_string != MemoryNames.FLASH:
+            address += memory_info[DeviceMemoryInfoKeys.ADDRESS]
+
+        allow_blank_skip : bool = memtype_string == MemoryNames.FLASH
+        if memtype_string in (MemoryNames.FLASH, MemoryNames.EEPROM,
+                              MemoryNames.FUSES, MemoryNames.LOCKBITS):
+            write_chunk_size : int = memory_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+            if memtype_string != MemoryNames.EEPROM:
+                data_to_write = utils.pad_to_size(data_to_write, write_chunk_size, 0xFF)
+        else:
+            write_chunk_size = len(data_to_write)
+
+        self.logger_local.debug("Writing %d bytes of data in chunks of %d bytes to %s...",
+                         len(data_to_write),
+                         write_chunk_size,
+                         memory_info[DeviceMemoryInfoKeys.NAME])
+
+        first_chunk_size : int = write_chunk_size - address % write_chunk_size
+        self.avr.write_memory_section(memtype,
+                                      address,
+                                      data_to_write[:first_chunk_size],
+                                      write_chunk_size,
+                                      allow_blank_skip=allow_blank_skip)
+        address += first_chunk_size
+        if len(data_to_write) > first_chunk_size:
+            self.avr.write_memory_section(memtype,
+                                          address,
+                                          data_to_write[first_chunk_size:],
+                                          write_chunk_size,
+                                          allow_blank_skip=allow_blank_skip)
+
+    def erase_page(self, pageaddr : int, prog_mode : bool) -> bool:
+        """
+        Erase one flash page.
+        """
+        if not prog_mode:
+            self.avr.switch_to_progmode()
+        self.erase({DeviceMemoryInfoKeys.NAME: MemoryNames.FLASH}, pageaddr)
+        if not prog_mode:
+            self.avr.switch_to_debmode()
+        return True
+
+    def read_device_id(self) -> bytearray:
+        """
+        Read the device info
+
+        :returns: Device ID raw bytes (little endian)
+        """
+        device_memory_info = DeviceMemoryInfo(self.device_info)
+        signatures_info = device_memory_info.memory_info_by_name(MemoryNames.SIGNATURES)
+        signatures_address = signatures_info[DeviceMemoryInfoKeys.ADDRESS]
+        sig = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
+                                   signatures_address,
+                                   3)
+        device_id_read = binary.unpack_be24(sig)
+
+        self.logger.info("Device ID: '%06X'", device_id_read)
+
+        revision = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
+                                        self.device_info.get(DeviceInfoKeysAvr.SYSCFG_BASE) + 1, 1)
+        self.logger.debug("Device revision: 0x%02x", revision[0])
+        self.logger.info("Device revision: '%x.%x'", revision[0] >> 4, revision[0] & 0x0F)
+
+        # Return the raw signature bytes, but swap the endianness as target sends ID as Big endian
+        return bytearray([sig[2], sig[1], sig[0]])
+
+    def erase_chip(self, prog_mode : bool) -> bool:
         """
         Erasing entire chip. Save EEPROM by, potentially, reprogramming EESAVE fuse.
         Lockbits will never be set when this function is called since this is handled
@@ -114,27 +189,3 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         if not prog_mode:
             self.avr.switch_to_debmode()
         return True
-
-    def read_device_id(self) -> bytearray:
-        """
-        Read the device info
-
-        :returns: Device ID raw bytes (little endian)
-        """
-        device_memory_info = DeviceMemoryInfo(self.device_info)
-        signatures_info = device_memory_info.memory_info_by_name(MemoryNames.SIGNATURES)
-        signatures_address = signatures_info[DeviceMemoryInfoKeys.ADDRESS]
-        sig = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
-                                   signatures_address,
-                                   3)
-        device_id_read = binary.unpack_be24(sig)
-
-        self.logger.info("Device ID: '%06X'", device_id_read)
-
-        revision = self.avr.memory_read(self.avr.memtype_read_from_string("raw"),
-                                        self.device_info.get(DeviceInfoKeysAvr.SYSCFG_BASE) + 1, 1)
-        self.logger.debug("Device revision: 0x%02x", revision[0])
-        self.logger.info("Device revision: '%x.%x'", revision[0] >> 4, revision[0] & 0x0F)
-
-        # Return the raw signature bytes, but swap the endianness as target sends ID as Big endian
-        return bytearray([sig[2], sig[1], sig[0]])

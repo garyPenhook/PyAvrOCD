@@ -322,12 +322,12 @@ class XAvrDebugger(AvrDebugger):
             return
         if self._iface == 'debugwire':
             sig = (0x1E<<16) + dev_id # derive a signature from the id returned from activate_physical for debugWIRE
-        elif self._iface == 'jtag':
-            sig = (0x1E<<16) + ((dev_id >> 12)&0xFFFF) # same thing for JTAG
         elif self._iface == 'updi':
             self.logger.debug("Trying to read device code")
             sig = int.from_bytes(self.read_sig(0, 3),'big')
             self.logger.info("UPDI device code: 0x%X", sig)
+        elif self._iface == 'jtag':
+            sig = (0x1E<<16) + ((dev_id >> 12)&0xFFFF) # same thing for JTAG
         else:
             raise FatalError("Unhandled debug interface")
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])
