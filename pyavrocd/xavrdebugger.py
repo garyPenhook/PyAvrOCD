@@ -254,6 +254,9 @@ class XAvrDebugger(AvrDebugger):
             return
         if self._iface == 'debugwire':
             sig = (0x1E<<16)+dev_id # derive a signature from the id returned from activate_physical for debugWIRE
+        elif self._iface == 'updi':
+            idbytes : bytes = self.read_sig(0,3)
+            sig = (idbytes[2]) + (idbytes[1]<<8) + (idbytes[0]<<16)
         else:
             sig = (0x1E<<16)+((dev_id >> 12)&0xFFFF) # same thing for JTAG
         self.logger.debug("Device signature expected: %X", self.device_info['device_id'])

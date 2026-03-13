@@ -97,6 +97,12 @@ class TestXAvrDebugger(TestCase):
         self.assertEqual(self.xaj.get_hwbpnum(), 4)
         self.assertEqual(self.xau.get_hwbpnum(), 2)
 
+    def test__verify_target_updi(self):
+        self.set_up()
+        self.xau.device.avr.memory_read.return_value = bytearray([0x1E, 0x96, 0x51])
+        self.xau._verify_target(0)
+        self.xau.device.avr.memory_read.assert_called_once_with(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
+
 
     @patch('pyavrocd.xavrdebugger.housekeepingprotocol.Jtagice3HousekeepingProtocol', MagicMock())
     def test_start_debugging_dw(self):
@@ -747,4 +753,3 @@ class TestXAvrDebugger(TestCase):
         self.set_up()
         self.xa.reset()
         self.xa.device.avr.protocol.reset.assert_called_once()
-
