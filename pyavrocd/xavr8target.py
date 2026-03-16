@@ -26,19 +26,24 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.tinyxtarget')
 
-    def setup_debug_session(self, clkdeb : int = 100, timers_run : bool = True,
-                                interface : int = Avr8Protocol.AVR8_PHY_INTF_PDI_1W,
+    def setup_debug_session(self, interface : int = Avr8Protocol.AVR8_PHY_INTF_PDI_1W,
+                                khz : int = 100,
                                 use_hv : int = Avr8Protocol.UPDI_HV_NONE,
+                                *,
+                                timers_run : bool = True,
+                                clkdeb : int | None = None,
                                 **kwargs : Any) -> None:
         """
         Sets up a debugging session on a TinyX AVR (UPDI)
         """
         _dummy = kwargs
+        if clkdeb is not None:
+            khz = clkdeb
         self.logger_loc.info("Setting up debug session for UPDI target")
         self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
                                Avr8Protocol.AVR8_OPT_RUN_TIMERS,
                                timers_run)
-        super().setup_debug_session(interface=interface, khz=clkdeb, use_hv=use_hv)
+        super().setup_debug_session(interface=interface, khz=khz, use_hv=use_hv)
 
     def switch_to_progmode(self) -> None:
         """

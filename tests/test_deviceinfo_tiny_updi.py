@@ -44,8 +44,10 @@ from pyavrocd.deviceinfo.devices.attiny3227 import DEVICE_INFO as ATTINY3227
 
 
 class TestTinyUpdiDeviceInfo(TestCase):
+    """Verify tinyAVR UPDI devices are registered with the expected pack data."""
 
     def test_tiny_updi_parts_are_registered(self):
+        """Every supported tinyAVR UPDI part should be discoverable by ID and name."""
         expected = {
             'attiny202': 0x1E9123,
             'attiny204': 0x1E9122,
@@ -91,6 +93,7 @@ class TestTinyUpdiDeviceInfo(TestCase):
             self.assertEqual(dev_name[device_id], name)
 
     def test_tiny_updi_memory_layout_matches_pack(self):
+        """Pack-derived memory layout constants should match the generated device tables."""
         for device in [
             ATTINY202, ATTINY204, ATTINY212, ATTINY214,
             ATTINY1604, ATTINY1606, ATTINY1607,

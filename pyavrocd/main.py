@@ -23,10 +23,9 @@ import usb.core
 # debugger modules
 import pymcuprog
 import pymcuprog.backend
-from pymcuprog.toolconnection import ToolUsbHidConnection
+from pymcuprog.toolconnection import ToolConnection, ToolUsbHidConnection
 from pymcuprog.pymcuprog_errors import PymcuprogToolConnectionError
-
-import pyedbglib
+from pyedbglib.hidtransport.hidtransportbase import HidTool
 
 from pyavrocd import dwlink
 from pyavrocd.xavrdebugger import XAvrDebugger
@@ -270,7 +269,11 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     - device name
     - interface string
     """
-    args.F_CPU = int(args.F_CPU.rstrip('UL'))
+    f_cpu = args.F_CPU
+    if isinstance(f_cpu, str):
+        args.F_CPU = int(f_cpu.rstrip('UL'))
+    else:
+        args.F_CPU = int(f_cpu)
 
     if args.cmd:
         portcmd : list[str] = [c for c in args.cmd if 'gdb_port' in c]
@@ -336,14 +339,23 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     args.dev = device
     return None, device, intf[0]
 
+def normalize_program_name(prg: str | os.PathLike[str]) -> str:
+    """
+    Convert PathLike program names before string handling and process launch.
+
+    Windows only accepted string commands reliably before Python 3.12, so callers
+    normalize early and pass `subprocess` a plain string.
+    """
+    return os.fspath(prg).strip()
+
 def handle_simavr(args : argparse.Namespace, device : str) -> bool:
     """
-    Checks whether simavr shall be started, and if so, will prepare the the start and exit
+    Checks whether simavr shall be started, and if so, will prepare the start and exit
     when simavr returns.
     """
     if not args.prg:
         return False
-    args.prg = args.prg.strip()
+    args.prg = normalize_program_name(args.prg)
     if os.path.basename(args.prg) != 'simavr':
         return False
     prg : str = shutil.which(args.prg)
@@ -365,7 +377,7 @@ def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> N
     Starts program requested by user, e.g., a debugger GUI
     """
     if args.prg and args.prg != "nop":
-        args.prg = args.prg.strip()
+        args.prg = normalize_program_name(args.prg)
         prg : str = shutil.which(args.prg)
         if prg:
             prg = os.path.abspath(prg)
@@ -381,12 +393,11 @@ def run_server(server: RspServer, logger : logging.Logger) -> int:
     """
     try:
         return server.serve()
-    except (ValueError, Exception) as e:
+    except Exception as e:
         if logger.getEffectiveLevel() != logging.DEBUG:
             logger.critical("Fatal Error: %s",e)
             return 1
         raise
-    return 0
 
 def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
     """
@@ -412,7 +423,7 @@ def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
         return -1 # error return
 
 def tool_reboot(backend : pymcuprog.backend.Backend,
-                    tool : pyedbglib.hidtransport.hidtransportbase.HidTool,
+                    tool : ToolConnection,
                     logger : logging.Logger) -> bool:
     """
     Reboots tool and waits for it to reappear.
@@ -489,7 +500,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
             return 1
         logger.error("Not all discovered tools are available")
 
-    available : list[pyedbglib.hidtransport.hidtransportbase.HidTool]
+    available : list[HidTool]
     available = backend.get_available_hid_tools(serialnumber_substring=args.serialnumber,
                                                     tool_name=args.tool)
     if len(available) == 0:
@@ -497,7 +508,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         return 1 # exit with error code
     if len(available) > 1:
         logger.critical("More than one compatible tool! Use -u or -t to distinguish.")
-        d : pyedbglib.hidtransport.hidtransportbase.HidTool
+        d : HidTool
         for d in available:
             logger.critical("> Tool: %s, S/N: %s", d.product_string, d.serial_number)
         return 1 # exit with error code
@@ -506,9 +517,8 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
                                                            tool_name=args.tool)
     # Now try to connect
     try:
-        toolname : str = "Unknown tool"
         backend.connect_to_tool(tool)
-        toolname = backend.transport.hid_device.get_product_string()
+        toolname : str = backend.transport.hid_device.get_product_string()
         tool.serialnumber = backend.transport.hid_device.get_serial_number_string()
         logger.info("Connected to %s", toolname)
     except OSError as e:
@@ -546,8 +556,8 @@ def main() -> int:
     """
     This generates the root logger and forwards it as well as the arguments to the startup function
     """
+    logger = getLogger()
     try:
-        logger = getLogger()
         return startup(sys.argv[1:], logger)
     except KeyboardInterrupt:
         logger.info("Terminated by Ctrl-C")

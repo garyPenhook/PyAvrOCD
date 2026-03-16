@@ -2,12 +2,20 @@
 The test suite for dwlink
 """
 #pylint: disable=protected-access,missing-function-docstring,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock, patch, call
 from unittest import TestCase
 
-from pyavrocd.dwlink import SerialToNet, discover, main, build_packet, \
-     send_and_wait, send_mon_options
+from pyavrocd.dwlink import (
+    SerialToNet,
+    build_packet,
+    discover,
+    main,
+    normalize_program_name,
+    send_and_wait,
+    send_mon_options,
+)
 
 class TestSerialToNet(TestCase):
 
@@ -79,6 +87,9 @@ class TestSerialToNet(TestCase):
         args = SimpleNamespace()
         args.verbose = 'info'
         self.assertEqual(build_packet('MESSAGE', args),b'$MESSAGE#05')
+
+    def test_normalize_program_name_pathlike(self):
+        self.assertEqual(normalize_program_name(Path(' prog ')), 'prog')
 
     def test_send_and_wait(self):
         args = SimpleNamespace()
@@ -214,5 +225,4 @@ class TestSerialToNet(TestCase):
         mock_discover.return_value = (10, '/dev/null', 6)
         self.assertRaises(SystemExit, main, args, 'jtag')
         mock_write.assert_called_once()
-
 
