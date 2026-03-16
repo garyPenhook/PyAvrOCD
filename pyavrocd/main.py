@@ -355,12 +355,12 @@ def handle_simavr(args : argparse.Namespace, device : str) -> bool:
     """
     if not args.prg:
         return False
-    args.prg = normalize_program_name(args.prg)
-    if os.path.basename(args.prg) != 'simavr':
+    program_name: str = normalize_program_name(args.prg)
+    if os.path.basename(program_name) != 'simavr':
         return False
-    prg : str = shutil.which(args.prg)
+    prg : str | None = shutil.which(program_name)
     if not prg:
-        print("Could not find program '%s'" % args.prg)
+        print("Could not find program '%s'" % program_name)
         return True
     prg = os.path.abspath(prg)
     prg += " -g " + str(args.port) + " -f " + str(args.F_CPU) + " -m " + device
@@ -377,14 +377,14 @@ def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> N
     Starts program requested by user, e.g., a debugger GUI
     """
     if args.prg and args.prg != "nop":
-        args.prg = normalize_program_name(args.prg)
-        prg : str = shutil.which(args.prg)
+        program_name: str = normalize_program_name(args.prg)
+        prg : str | None = shutil.which(program_name)
         if prg:
             prg = os.path.abspath(prg)
             logger.info("Starting %s", prg)
             subprocess.Popen(prg)
         else:
-            logger.critical("Could not find program '%s'", args.prg)
+            logger.critical("Could not find program '%s'", program_name)
             sys.exit(1)
 
 def run_server(server: RspServer, logger : logging.Logger) -> int:

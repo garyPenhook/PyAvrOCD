@@ -268,7 +268,8 @@ def main(args : argparse.Namespace, intf : str) -> None:
 
         subprc = None
         if args.prg and args.prg != "nop":
-            subprc = subprocess.Popen(normalize_program_name(args.prg))
+            program_name: str = normalize_program_name(args.prg)
+            subprc = subprocess.Popen(program_name)
 
         sys.stdout.write("[INFO] Listening on port {} for gdb connection\n\r".format(args.port))
         sys.stdout.flush()
