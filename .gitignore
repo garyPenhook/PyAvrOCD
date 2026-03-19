@@ -17,3 +17,4 @@ dist/*
 .theia
 site/**
 gdb.txt
+fuse.txt
