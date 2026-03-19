@@ -1,14 +1,16 @@
 #pylint: disable=missing-module-docstring
 # Clock combinations and naming
 micro_clock = {'1.2' : ('1M2', '1200000UL'), '9.6' : ('9M6', '9600000UL'),
-                   '16' : ('16M', '16000000UL')}
-mini_clock = {'1' : ('1MHz_internal', '1000000UL'), '8' : ('8MHz_internal', '8000000UL'),
-                  '16' : ('16MHz_external', '16000000UL')}
-new_attiny_rc_clock = {'1' : ('internal_1m', '1000000UL'), '8' : ('internal_8m', '8000000UL')}
-attiny_rc_clock = {'1' : ('1internal', '1000000UL'), '8' : ('8internal', '8000000UL')}
-new_attiny_clock = {'1' : ('internal_1m', '1000000UL'), '8' : ('internal_8m', '8000000UL'),
-                        '16' : ('external_16m', '16000000UL')}
-attiny_clock = {'1' : ('1internal', '1000000UL'), '8' : ('8internal', '8000000UL'), '16': ('16external', '16000000')}
+      '16' : ('16M', '16000000UL')}
+mini_clock = {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
+      '8' : ('8MHz_internal', '8000000UL'),
+      '16' : ('16MHz_external', '16000000UL')}
+attiny_rc_clock = {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
+      '8' : ('8MHz_internal', '8000000UL')}
+attiny_clock = mini_clock
+attiny_pll_clock =  {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
+      '8' : ('8MHz_internal', '8000000UL'),
+      '16' : ('16MHz_external', '16000000UL'), '16i' : ('16MHz_internal_PLL', '16000000UL') }
 c_clock = {'1' : '1000000UL', '8' : '8000000UL', '16' : '16000000UL'}
 no_clock = {'none' : ('', '16000000UL')}
 
@@ -16,70 +18,48 @@ no_clock = {'none' : ('', '16000000UL')}
 # Example: For attiny13 only scripts are selected that have  'small', 'arduino', 'dw'. and 'noadc' in their description
 test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', 'noautopc'),
                                    "MicroCore:avr:13:clock=", "Dev Board"),
-                "oldattiny2313" : (attiny_clock, ('small',  'dw', 'noadc', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx313:chip=2313,clock=", "Programmer-ZF"),
-                "attiny2313" : (new_attiny_clock, ('small',  'dw', 'noadc', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx313:chip=2313,clock=", "Programmer-ZF"),
+                "attiny2313" : (attiny_clock, ('small',  'dw', 'noadc', 'noautopc'),
+                                   "TinyCore:avr:x313:chip=2313,clock=", "Programmer-ZF"),
                 "attiny2313a" : (attiny_clock, ('small',  'dw', 'noadc', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx313:chip=2313,clock=", "Programmer-ZF"),
-                "oldattiny4313" : (attiny_clock, ('medium',  'dw', 'noadc', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx313:chip=4313,clock=", "Programmer-ZF"),
-                "attiny4313" : (new_attiny_clock, ('medium',  'dw', 'noadc', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx313:chip=4313,clock=", "Programmer-ZF"),
-                "oldattiny43u" : (attiny_rc_clock,  ('medium', 'dw', 'noautopc', 'noadc'),
-                                   "ATTinyCore:avr:attiny43:clock=", "Breakout Board"), # changed name with v2.0.0!
-                "attiny43u" : (new_attiny_rc_clock,  ('medium', 'dw', 'noautopc', 'noadc'),
-                                   "ATTinyCore:avr:attiny43u:clock=", "Breakout Board"), # changed name with v2.0.0!
+                                   "TinyCore:avr:x313:chip=2313,clock=", "Programmer-ZF"),
+                "attiny4313" : (attiny_clock, ('medium',  'dw', 'noadc', 'noautopc'),
+                                   "TinyCore:avr:x313:chip=4313,clock=", "Programmer-ZF"),
+                "attiny43u" : (attiny_rc_clock,  ('medium', 'dw', 'noautopc', 'noadc'),
+                                   "TinyCore:avr:43:clock=", "Breakout Board"), # changed name with v2.0.0!
                 "attiny24" : (attiny_clock, ('small',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx4:chip=24,clock=", "Dev Board"),
+                                   "TinyCore:avr:x4:chip=24,clock=", "Dev Board"),
                 "attiny44" : (attiny_clock, ('medium',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx4:chip=44,clock=", "Dev Board"),
-                "oldattiny84" : (attiny_clock, ('large',   'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx4:chip=84,clock=", "Dev Board"),
-                "attiny84" : (new_attiny_clock, ('large',   'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx4:chip=84,clock=", "Dev Board"),
-                "oldattiny841" : (attiny_rc_clock, ('large',   'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx41:chip=841,clock=", "Breakout Board"),
-                "attiny841" : (new_attiny_rc_clock, ('large',   'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx41:chip=841,clock=", "Breakout Board"),
+                                   "TinyCore:avr:x4:chip=44,clock=", "Dev Board"),
+                "attiny84" : (attiny_clock, ('large',   'dw', 'noautopc'),
+                                   "TinyCore:avr:x4:chip=84,clock=", "Dev Board"),
+                "attiny841" : (attiny_rc_clock, ('large',   'dw', 'noautopc'),
+                                   "TinyCore:avr:x41:chip=841,clock=", "Breakout Board"),
                 "attiny441" : (attiny_rc_clock, ('medium',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx41:chip=441,clock=", "Breadboard setup"),
-                "attiny25" : (attiny_clock, ('small',   'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx5:chip=25,clock=", "Dev Board"),
-                "attiny45" : (attiny_clock, ('medium',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx5:chip=45,clock=", "Dev Board"),
-                "oldattiny85" : (attiny_clock, ('large', 'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx5:chip=85,clock=", "Dev Board"),
-                "attiny85" : (new_attiny_clock, ('large', 'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx5:chip=85,clock=", "Dev Board"),
+                                   "TinyCore:avr:x41:chip=441,clock=", "Breadboard setup"),
+                "attiny25" : (attiny_pll_clock, ('small',   'dw', 'noautopc'),
+                                   "TinyCore:avr:x5:chip=25,clock=", "Dev Board"),
+                "attiny45" : (attiny_pll_clock, ('medium',  'dw', 'noautopc'),
+                                   "TinyCore:avr:x5:chip=45,clock=", "Dev Board"),
+                "attiny85" : (attiny_pll_clock, ('large', 'dw', 'noautopc'),
+                                   "TinyCore:avr:x5:chip=85,clock=", "Dev Board"),
                 "attiny261" : (attiny_clock, ('small',  'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attinyx61:chip=261,clock=", "Dev Board"),
-                "attiny461" : (attiny_clock, ('medium',   'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attinyx61:chip=461,clock=", "Dev Board"),
-                "oldattiny861" : (attiny_clock, ('large',   'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attinyx61:chip=861,clock=", "Dev Board"),
-                "attiny861" : (new_attiny_clock, ('large',   'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attinyx61:chip=861,clock=", "Dev Board"),
-                "oldattiny87" : (attiny_clock, ('large',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx7:chip=87,clock=", "Breakout Board"),
-                "attiny87" : (new_attiny_clock, ('large',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx7:chip=87,clock=", "Breakout Board"),
+                                    "TinyCore:avr:x61:chip=261,clock=", "Dev Board"),
+                "attiny461" : (attiny_pll_clock, ('medium',   'dw', 'noautopc'),
+                                    "TinyCore:avr:x61:chip=461,clock=", "Dev Board"),
+                "attiny861" : (attiny_pll_clock, ('large',   'dw', 'noautopc'),
+                                    "TinyCore:avr:x61:chip=861,clock=", "Dev Board"),
+                "attiny87" : (attiny_clock, ('large',  'dw', 'noautopc'),
+                                   "TinyCore:avr:x7:chip=87,clock=", "Breakout Board"),
                 "attiny167" : (attiny_clock, ('large',  'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attinyx7:chip=167,clock=", "Breakout Board"),
+                                    "TinyCore:avr:x7:chip=167,clock=", "Breakout Board"),
                 "attiny48" : (attiny_rc_clock, ('medium',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx8:chip=48,clock=", "Programmer-ZF"),
-                "oldattiny88" : (attiny_rc_clock, ('large',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx8:chip=88,clock=", "Programmer-ZF"),
-                "attiny88" : (new_attiny_rc_clock, ('large',  'dw', 'noautopc'),
-                                   "ATTinyCore:avr:attinyx8:chip=88,clock=", "Programmer-ZF"),
-                "oldattiny828" : (attiny_rc_clock, ('large',   'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attiny828:clock=", "Breakout Board"),
-                "attiny828" : (new_attiny_rc_clock, ('large',   'dw', 'noautopc'),
-                                    "ATTinyCore:avr:attiny828:clock=", "Breakout Board"),
-                "oldattiny1634" : (attiny_rc_clock, ('large',  'dw', 'noautopc'),
-                                     "ATTinyCore:avr:attiny1634:clock=", "Breakout Board"),
-                "attiny1634" : (new_attiny_rc_clock, ('large',  'dw', 'noautopc'),
-                                     "ATTinyCore:avr:attiny1634:clock=", "Breakout Board"),
+                                   "TinyCore:avr:x8:chip=48,clock=", "Programmer-ZF"),
+                "attiny88" : (attiny_rc_clock, ('large',  'dw', 'noautopc'),
+                                   "TinyCore:avr:x8:chip=88,clock=", "Programmer-ZF"),
+                "attiny828" : (attiny_rc_clock, ('large',   'dw', 'noautopc'),
+                                    "TinyCore:avr:828:clock=", "Breakout Board"),
+                "attiny1634" : (attiny_rc_clock, ('large',  'dw', 'noautopc'),
+                                     "TinyCore:avr:1634:clock=", "Breakout Board"),
                 "atmega48" : (mini_clock, ('dirty', 'dw'),
                                     "MiniCore:avr:48:variant=modelNonP,bootloader=no_bootloader," +
                                     "clock=", "Programmer-ZF"),
@@ -237,5 +217,11 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 "atmega32u4": (no_clock, ('large', 'jtag'),
                                    "arduino:avr:leonardo",
                                    "Leonardo"),
+
+                # UPDI targets: MegaCoreX
+                "atmega4809": (mini_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:4809,bootloader=no_bootloader,clock=",
+                                   "Curiosity Nano or Uno WiFi Rev2 or Nano Every")
+
 
                     }

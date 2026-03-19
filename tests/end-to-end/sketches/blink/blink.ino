@@ -65,11 +65,9 @@ void setup() {
 #endif
 #endif
   // now force that the interrupt is actually used
-  unsigned long start = millis();
+  volatile unsigned long start = millis();
   start += 100;
-  delay(100);
   start = start/millis();
-  delay(start);
 }
 
 // the loop function runs over and over again forever

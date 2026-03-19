@@ -2,11 +2,17 @@
 
 The debugging system, consisting of the debug probe, the GDB server, and GDB itself, has a number of inherent limitations. Some aspects of the hardware may not be debuggable at all or only with some extra effort. And sometimes the behavior of the MCU in a debugging environment is significantly different from the behavior shown in a non-debugging environment. Finally, debugging your AVR chips can also be a risk to the health of your MCU.
 
+## Debug probes
+
+The Microchip/Atmel debug probes/programmers do not electrically disconnect from the target when inactive.
+
+When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines are not usable, since the debug probe may put some voltage potential on some of the lines. So, if you need these, you need to disconnect the debug probe/programmer and connect only Vcc, GND, and debugWIRE to the target. For other debugging interfaces, the problem is not pronounced since the lines need to be exclusively accessed by the debug probe in any case.
+
 ## Bootloader
 
 Bootloaders will usually be erased when running the debugger.
 
-In a **debugWIRE** context, the entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse is disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
+In a **debugWIRE** context, the entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
 
 When debugging with **JTAG**, the chip will be erased each time a new binary is loaded. Suppose you want to keep the bootloader in memory. In that case, you can request not to erase the chip before loading a binary, erasing each flash page only when some code needs to be loaded into this page: `--erasebeforeload disable`. However, this will severely slow down the process of loading a binary.
 

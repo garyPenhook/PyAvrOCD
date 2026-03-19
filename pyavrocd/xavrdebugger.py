@@ -202,7 +202,7 @@ class XAvrDebugger(AvrDebugger):
             raise FatalError("Debug session not started: %s" % str(e)) #pylint: disable=raise-missing-from
         try:
             self.device.avr.attach()
-            self.device.avr.protocol.stop() # If successful, OCDEN is already activated
+            self.stop() # If successful, OCDEN is already activated
         except Jtagice3ResponseError as e:
             self.logger.debug("Could not attach and stop MCU")
             if e.code == Avr8Protocol.AVR8_FAILURE_ILLEGAL_OCD_STATUS: # we need to set OCDEN
@@ -685,7 +685,7 @@ class XAvrDebugger(AvrDebugger):
             self.switch_to_debmode()
             self.logger.info("Switched to debugging mode")
             # Halt the core
-            self.device.avr.protocol.stop()
+            self.stop()
             self.logger.info("AVR core stopped")
             # Remove all software breakpoints
             self.device.avr.protocol.software_breakpoint_clear_all()

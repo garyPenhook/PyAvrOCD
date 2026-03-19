@@ -30,7 +30,7 @@ def main():
                             type=str,
                             dest='clock',
                             help='MCU clock frequency in MHz',
-                            choices=['1', '8', '16', '1.2', '9.6', 'none' ],
+                            choices=['1', '8', '4', '16', '16i', '1.2', '9.6', 'none' ],
                             required=True)
     parser.add_argument('-d', '--device',
                             type=str,

@@ -357,7 +357,7 @@ class LiveTests():
         Tests 'set one register' function
         """
         self.logger.info("Running 'set one data register' test ...")
-        self.handler.dispatch('P', b'03,26')
+        self.handler.dispatch('P', b'03=26')
         self.dbg.program_counter_write(0xd5) # that is a NOP
         self.dbg.step()
         result = self.dbg.register_read(0x03,1)
@@ -406,19 +406,19 @@ class LiveTests():
         self.logger.debug("mem=%s", self.dbg.sram_read(self.sram_start, 1))
         self.dbg.program_counter_write(0x1b2 >> 1)
         self.handler.dispatch('vCont', b';S05')
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send1 : str  = self.send_string
         self.logger.debug("Send1: %s", self.send_string)
         self.send_string = ""
         self.handler.dispatch('vCont', b';s')
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send2 : str = self.send_string
         self.logger.debug("Send2: %s", self.send_string)
         self.send_string = ""
         self.handler.dispatch('vCont', b';s')
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send3 : str = self.send_string
         self.logger.debug("Send3: %s", self.send_string)
@@ -442,7 +442,7 @@ class LiveTests():
         self.dbg.program_counter_write(0x1b2 >> 1)
         #self.send_string = ""
         #self.handler.dispatch("vCont", b";r1b2,1c0")
-        #time.sleep(0.1)
+        #time.sleep(0.2)
         #self.handler.poll_events()
         #send1 = self.send_string
         #self.logger.debug("Result of range-stepping: %s", send1)
@@ -450,7 +450,7 @@ class LiveTests():
         #pc1 = self.dbg.program_counter_read() << 1
         self.send_string = ""
         self.handler.dispatch("vCont", b";r1b2,1c0")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send2 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
@@ -479,7 +479,7 @@ class LiveTests():
         self.logger.debug("Opcode before 'continue': 0x%X", opc1)
         self.send_string = ""
         self.handler.dispatch("vCont", b";c")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send1 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
@@ -495,7 +495,7 @@ class LiveTests():
         self.logger.debug("Opcode before 'step': 0x%X", opc4)
         self.send_string = ""
         self.handler.dispatch("vCont", b";s")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         send2 : str = self.send_string
         self.logger.debug("Result of 'step': %s", send2)
@@ -536,7 +536,7 @@ class LiveTests():
         self.logger.debug("Opcode before 'continue' opc1=0x%X", opc1)
         self.send_string = ""
         self.handler.dispatch("vCont", b";c")
-        time.sleep(0.1)
+        time.sleep(0.3)
         self.handler.poll_events()
         send1 : str = self.send_string
         self.dbg.stop() # in order to stop a runaway!
@@ -552,7 +552,7 @@ class LiveTests():
         self.logger.debug("Opcode before 'step'  opc4=0x%X", opc4)
         self.send_string = ""
         self.handler.dispatch("vCont", b";s")
-        time.sleep(0.1)
+        time.sleep(0.3)
         self.handler.poll_events()
         send2 : str = self.send_string
         self.logger.debug("Result of 'step' send2=%s", send2)
@@ -561,7 +561,7 @@ class LiveTests():
         self.handler.dispatch("z", b"1,1ae,2")
         self.handler.dispatch("Z", b"1,1ac,2")
         self.handler.dispatch("vCont", b";s")
-        time.sleep(0.1)
+        time.sleep(0.3)
         self.handler.poll_events()
         send3 : str = self.send_string
         self.logger.debug("Result of 'step' send3=%s", send3)
@@ -574,6 +574,7 @@ class LiveTests():
                               opc1 == 0x0000 and opc2 == 0x9598 and
                               opc3 == 0x9598 and opc4 == 0x9598 and opc5 == 0x0000 and
                               opc6 == 0x9598)
+        self.logger.info("send1=%s", send1)
         self.mon._cache = True
         self.mon._old_exec = False
         self.mon._onlyswbps = False
@@ -590,14 +591,14 @@ class LiveTests():
         self.dbg.status_register_write(bytearray([0x87]))
         self.handler.dispatch("Z", b"1,1b2,2")
         self.handler.dispatch("vCont", b";c")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         self.logger.debug("HWBP after stopping: %s", self.bp.hwbp._hwbplist[0])
         self.logger.debug("Breakpoint at 0x1b2 after stopping: %s", self.bp._bp.get(0x1b2,None))
         hw1 : int | None = self.bp.hwbp._hwbplist[0]
         self.handler.dispatch("z", b"1,1b2,2")
         self.handler.dispatch("vCont", b";s")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         self.logger.debug("HWBP after single-step: %s", self.bp.hwbp._hwbplist[0])
         self.logger.debug("Breakpoint at 0x1b2 after step: %s", self.bp._bp.get(0x1b2,None))
@@ -621,7 +622,7 @@ class LiveTests():
         self.dbg.program_counter_write(0x1c4 >> 1)
         self.logger.debug("OPC after setting BP: 0x%X", opc1)
         self.handler.dispatch("vCont", b";c")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         self.dbg.stop() # in order to stop a runaway!
         self.handler.dispatch("z", b"1,1b2,2")
@@ -653,7 +654,7 @@ class LiveTests():
         self.dbg.program_counter_write(0x1c4 >> 1)
         self.logger.debug("OPC after setting BP: 0x%X", opc1)
         self.handler.dispatch("vCont", b";c")
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.handler.poll_events()
         self.dbg.stop() # in order to stop a runaway!
         self.handler.dispatch("z", b"1,1b2,2")
