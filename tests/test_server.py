@@ -51,6 +51,18 @@ class TestRspServer(TestCase):
                                               call('Leaving GDB server')])
         self.assertEqual(self.rs.logger.info.call_count,7)
 
+    @patch('pyavrocd.server.time.sleep', Mock())
+    @patch('pyavrocd.server.signal.signal', Mock())
+    @patch('pyavrocd.server.socket.socket')
+    def test_serve_terminated_before_connect(self, mock_socket):
+        self.set_up()
+        self.rs._terminate = True
+        self.assertEqual(self.rs.serve(), 0)
+        mock_socket.return_value.accept.assert_not_called()
+        self.rs.logger.info.assert_has_calls([call('Listening on port %s for gdb connection', 2000),
+                                              call('Terminated before GDB connected'),
+                                              call('Leaving GDB server')])
+
 
     @patch('pyavrocd.server.time.sleep',Mock())
     @patch('pyavrocd.server.signal.signal',Mock())

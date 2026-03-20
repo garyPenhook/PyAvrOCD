@@ -60,6 +60,7 @@ class GdbHandler():
         self._live_tests : LiveTests = LiveTests(self)
         self._interrupt : bool = False # interrupt received from GDB
         self._init_done : bool = False # initialization sequence from GDB has finished
+        self._recv_buffer : bytearray = bytearray()
         self.packettypes : dict[ str , Callable[[bytes], None] ] = {
             '.'           : self._ctrlc_interrupt,
             '!'           : self._extended_remote_handler,
@@ -878,6 +879,7 @@ class GdbHandler():
               format(signal, sreg, spl, sph, pcstring)
             self.send_packet(stoppacket)
 
+    #pylint: disable=too-many-branches
     def handle_data(self, data : bytes | None) -> None:
         """
         Analyze the incoming data stream from GDB. Allow more than one RSP record
@@ -887,36 +889,46 @@ class GdbHandler():
         if data is None: # timeout
             self.dispatch('', b'')
             return
-        while data:
-            if data[0] == ord('+'): # ACK
+        self._recv_buffer.extend(data)
+        while self._recv_buffer:
+            if self._recv_buffer[0] == ord('+'): # ACK
                 self.rsp_logger.debug("-> +")
-                data = data[1:]
+                del self._recv_buffer[0]
                 # if no ACKs/NACKs are following, delete last message
-                if not data or data[0] not in b'+-':
+                if not self._recv_buffer or self._recv_buffer[0] not in b'+-':
                     self._lastmessage = None
-            elif data[0] == ord('-'): # NAK, resend last message
+            elif self._recv_buffer[0] == ord('-'): # NAK, resend last message
                 # remove multiple '-'
                 i : int = 0
-                while (i < len(data) and data[i] == ord('-')):
+                while i < len(self._recv_buffer) and self._recv_buffer[i] == ord('-'):
                     i += 1
-                data = data[i:]
+                del self._recv_buffer[:i]
                 self.rsp_logger.debug("-> -")
                 if self._lastmessage:
                     self.logger.debug("Resending packet to GDB")
                     self.send_packet(self._lastmessage)
                 else:
                     self.send_packet("")
-            elif data[0] == 3: # CTRL-C
+            elif self._recv_buffer[0] == 3: # CTRL-C
                 self.logger.info("CTRL-C")
                 self._interrupt = True
-                data = data[1:]
-            elif data[0] == ord('$'): # start of message
+                del self._recv_buffer[0]
+            elif self._recv_buffer[0] == ord('$'): # start of message
+                hash_ix : int = self._recv_buffer.find(b'#')
+                if hash_ix < 0 or len(self._recv_buffer) < hash_ix + 3:
+                    break
                 valid_data = True
-                self.rsp_logger.debug('-> %s', data)
-                checksum = (data.split(b"#")[1])[:2]
-                packet_data = (data.split(b"$")[1]).split(b"#")[0]
-                if int(checksum, 16) != sum(packet_data) % 256:
-                    self.logger.warning("Checksum Wrong in packet: %s", data)
+                packet_end : int = hash_ix + 3
+                packet : bytes = bytes(self._recv_buffer[:packet_end])
+                self.rsp_logger.debug('-> %s', packet)
+                checksum : bytes = packet[hash_ix + 1:packet_end]
+                packet_data : bytes = packet[1:hash_ix]
+                try:
+                    checksum_val = int(checksum, 16)
+                except ValueError:
+                    checksum_val = -1
+                if checksum_val != sum(packet_data) % 256:
+                    self.logger.warning("Checksum Wrong in packet: %s", packet)
                     valid_data = False
                 if not valid_data:
                     self._comsocket.sendall(b"-")
@@ -925,14 +937,15 @@ class GdbHandler():
                     self._comsocket.sendall(b"+")
                     self.rsp_logger.debug("<- +")
                     # now split into command and data (or parameters) and dispatch
-                    if chr(packet_data[0]) not in {'v', 'q', 'Q'}:
+                    if not packet_data:
+                        i = 0
+                    elif chr(packet_data[0]) not in {'v', 'q', 'Q'}:
                         i = 1
                     else:
                         for i in range(len(packet_data)+1):
                             if i == len(packet_data) or not chr(packet_data[i]).isalpha():
                                 break
                     self.dispatch(packet_data[:i].decode('ascii'),packet_data[i:])
-                data = data[(data.index(b"#")+2):]
+                del self._recv_buffer[:packet_end]
             else: # ignore character
-                data = data[1:]
-
+                del self._recv_buffer[0]

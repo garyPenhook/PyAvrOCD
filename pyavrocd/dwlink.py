@@ -18,6 +18,13 @@ from pyavrocd.monitor import monopts
 
 REQMJVERSION = 6 # required major version of dw-link
 
+
+def normalize_program_name(prg: str | os.PathLike[str]) -> str:
+    """
+    Convert PathLike program names before process launch.
+    """
+    return os.fspath(prg).strip()
+
 class DetachException(Exception):
     """Termination of session because of a detach command"""
     def __init__(self, msg : str | None = None) -> None:
@@ -259,7 +266,8 @@ def main(args : argparse.Namespace, intf : str) -> None:
 
         subprc = None
         if args.prg and args.prg != "nop":
-            subprc = subprocess.Popen(args.prg)
+            program_name: str = normalize_program_name(args.prg)
+            subprc = subprocess.Popen(program_name)
 
         sys.stdout.write("[INFO] Listening on port {} for gdb connection\n\r".format(args.port))
         sys.stdout.flush()

@@ -960,6 +960,26 @@ class TestGdbHandler(TestCase):
         self.gh.handle_data(b'+++$qfThreadInfo#bb$qsThreadInfo#c8-')
         self.gh._comsocket.sendall.assert_has_calls([call(b'+'), call(rsp('m01')),  call(b'+'), call(rsp('l')),  call(rsp('l'))])
 
+    @patch('pyavrocd.handler.GdbHandler.dispatch', Mock())
+    def test_handle_data_fragmented_packet(self):
+        self.set_up()
+        self.gh.handle_data(b'$qfThreadInfo')
+        self.gh._comsocket.sendall.assert_not_called()
+        self.gh.dispatch.assert_not_called() #pylint: disable=no-member
+        self.gh.handle_data(b'#bb')
+        self.gh._comsocket.sendall.assert_called_once_with(b'+')
+        self.gh.dispatch.assert_called_once_with('qfThreadInfo', b'') #pylint: disable=no-member
+
+    @patch('pyavrocd.handler.GdbHandler.dispatch', Mock())
+    def test_handle_data_fragmented_checksum(self):
+        self.set_up()
+        self.gh.handle_data(b'$qfThreadInfo#b')
+        self.gh._comsocket.sendall.assert_not_called()
+        self.gh.dispatch.assert_not_called() #pylint: disable=no-member
+        self.gh.handle_data(b'b')
+        self.gh._comsocket.sendall.assert_called_once_with(b'+')
+        self.gh.dispatch.assert_called_once_with('qfThreadInfo', b'') #pylint: disable=no-member
+
     def test_handle_data_wrong_checksum(self):
         self.set_up()
         self.gh.handle_data(b'$qfThreadInfo#cc')

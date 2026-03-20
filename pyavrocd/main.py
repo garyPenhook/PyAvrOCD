@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import contextlib
 import time
+import shlex
 from logging import getLogger
 
 
@@ -336,27 +337,33 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     args.dev = device
     return None, device, intf[0]
 
+def normalize_program_name(prg: str | os.PathLike[str]) -> str:
+    """
+    Convert PathLike program names before string handling and process launch.
+    """
+    return os.fspath(prg).strip()
+
 def handle_simavr(args : argparse.Namespace, device : str) -> bool:
     """
-    Checks whether simavr shall be started, and if so, will prepare the the start and exit
+    Checks whether simavr shall be started, and if so, will prepare the start and exit
     when simavr returns.
     """
     if not args.prg:
         return False
-    args.prg = args.prg.strip()
-    if os.path.basename(args.prg) != 'simavr':
+    program_name: str = normalize_program_name(args.prg)
+    if os.path.basename(program_name) != 'simavr':
         return False
-    prg : str = shutil.which(args.prg)
+    prg : str | None = shutil.which(program_name)
     if not prg:
-        print("Could not find program '%s'" % args.prg)
+        print("Could not find program '%s'" % program_name)
         return True
     prg = os.path.abspath(prg)
-    prg += " -g " + str(args.port) + " -f " + str(args.F_CPU) + " -m " + device
+    cmd : list[str] = [prg, "-g", str(args.port), "-f", str(args.F_CPU), "-m", device]
     if args.xargs:
-        prg += " " + args.xargs
-    print("Simavr will be started: %s" % prg, flush=True)
+        cmd.extend(shlex.split(args.xargs))
+    print("Simavr will be started: %s" % shlex.join(cmd), flush=True)
     print("Listening on port %d for gdb connection" % args.port, flush=True)
-    sim : subprocess.Popen = subprocess.Popen(prg, bufsize=0, shell=True)
+    sim : subprocess.Popen = subprocess.Popen(cmd, bufsize=0)
     sim.wait()
     return True
 
@@ -365,14 +372,14 @@ def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> N
     Starts program requested by user, e.g., a debugger GUI
     """
     if args.prg and args.prg != "nop":
-        args.prg = args.prg.strip()
-        prg : str = shutil.which(args.prg)
+        program_name: str = normalize_program_name(args.prg)
+        prg : str | None = shutil.which(program_name)
         if prg:
             prg = os.path.abspath(prg)
             logger.info("Starting %s", prg)
             subprocess.Popen(prg)
         else:
-            logger.critical("Could not find program '%s'", args.prg)
+            logger.critical("Could not find program '%s'", program_name)
             sys.exit(1)
 
 def run_server(server: RspServer, logger : logging.Logger) -> int:

@@ -2,12 +2,20 @@
 The test suite for dwlink
 """
 #pylint: disable=protected-access,missing-function-docstring,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock, patch, call
 from unittest import TestCase
 
-from pyavrocd.dwlink import SerialToNet, discover, main, build_packet, \
-     send_and_wait, send_mon_options
+from pyavrocd.dwlink import (
+    SerialToNet,
+    build_packet,
+    discover,
+    main,
+    normalize_program_name,
+    send_and_wait,
+    send_mon_options,
+)
 
 class TestSerialToNet(TestCase):
 
@@ -79,6 +87,9 @@ class TestSerialToNet(TestCase):
         args = SimpleNamespace()
         args.verbose = 'info'
         self.assertEqual(build_packet('MESSAGE', args),b'$MESSAGE#05')
+
+    def test_normalize_program_name_pathlike(self):
+        self.assertEqual(normalize_program_name(Path(' prog ')), 'prog')
 
     def test_send_and_wait(self):
         args = SimpleNamespace()
@@ -215,4 +226,45 @@ class TestSerialToNet(TestCase):
         self.assertRaises(SystemExit, main, args, 'jtag')
         mock_write.assert_called_once()
 
+    @patch('pyavrocd.dwlink.subprocess.Popen')
+    @patch('pyavrocd.dwlink.socket.socket')
+    @patch('pyavrocd.dwlink.serial.threaded.ReaderThread')
+    @patch('pyavrocd.dwlink.send_mon_options')
+    @patch('pyavrocd.dwlink.serial.serial_for_url')
+    @patch('pyavrocd.dwlink.discover')
+    def test_main_pathlike_program_name(
+        self,
+        mock_discover,
+        mock_serial_for_url,
+        mock_send_mon_options,
+        mock_reader_thread,
+        mock_socket,
+        mock_popen,
+    ):
+        args = SimpleNamespace()
+        args.verbose = 'info'
+        args.dev = 'atmega328p'
+        args.port = 4321
+        args.prg = Path('helper')
+        mock_discover.return_value = (115200, '/dev/ttyUSB0', 6)
+        mock_ser = MagicMock()
+        mock_serial_for_url.return_value = mock_ser
+        mock_worker = MagicMock()
+        mock_reader_thread.return_value = mock_worker
+        mock_client = MagicMock()
+        mock_client.recv.return_value = b''
+        mock_server = MagicMock()
+        mock_server.accept.return_value = (mock_client, ('127.0.0.1', 9000))
+        mock_socket.return_value = mock_server
+        mock_subprc = MagicMock()
+        mock_popen.return_value = mock_subprc
+
+        main(args, 'debugwire')
+
+        mock_send_mon_options.assert_called_once_with(mock_ser, args)
+        mock_popen.assert_called_once_with('helper')
+        mock_worker.start.assert_called_once()
+        mock_worker.stop.assert_called_once()
+        mock_ser.write.assert_called_with(b'$D#44')
+        mock_subprc.kill.assert_called_once()
 

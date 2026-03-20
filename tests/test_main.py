@@ -4,14 +4,24 @@ The test suit for main module
 #pylint: disable=protected-access,missing-function-docstring,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
 import logging
 import os.path
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, call, patch, ANY
 from unittest import TestCase
 from types import SimpleNamespace
 import sys
 from usb.core import NoBackendError
 import pymcuprog.pymcuprog_errors
-from pyavrocd.main import options,  setup_logging, \
-     process_arguments, startup_helper_prog, run_server, startup, handle_simavr, tool_reboot
+from pyavrocd.main import (
+    handle_simavr,
+    normalize_program_name,
+    options,
+    process_arguments,
+    run_server,
+    setup_logging,
+    startup,
+    startup_helper_prog,
+    tool_reboot,
+)
 
 class TestMain(TestCase):
 
@@ -262,6 +272,21 @@ class TestMain(TestCase):
     @patch('pyavrocd.main.sys.exit')
     @patch('pyavrocd.main.shutil.which')
     @patch('pyavrocd.main.subprocess.Popen')
+    def test_startup_helper_prog_pathlike(self, mocked_popen, mocked_which, mocked_exit):
+        args = SimpleNamespace()
+        args.prg = Path('prog')
+        mocked_which.return_value = '/bin/prog'
+        startup_helper_prog(args, MagicMock())
+        mocked_which.assert_called_with('prog')
+        mocked_popen.assert_called_with('/bin/prog')
+        mocked_exit.assert_not_called()
+
+    def test_normalize_program_name_pathlike(self):
+        self.assertEqual(normalize_program_name(Path(' prog ')), 'prog')
+
+    @patch('pyavrocd.main.sys.exit')
+    @patch('pyavrocd.main.shutil.which')
+    @patch('pyavrocd.main.subprocess.Popen')
     def test_startup_helper_prog_none(self, mocked_popen, mocked_which, mocked_exit):
         args = SimpleNamespace()
         args.prg = 'prog'
@@ -304,7 +329,29 @@ class TestMain(TestCase):
         args.xargs = '-o out.log --add-trace LED=trace@0x0038/0xff'
         mocked_which.return_value =  '/usr/bin/simavr'
         self.assertTrue(handle_simavr(args, 'atmega328p'))
-        mocked_popen.assert_called_once()
+        mocked_popen.assert_called_once_with(
+            ['/usr/bin/simavr', '-g', '2000', '-f', '16000000UL', '-m', 'atmega328p',
+             '-o', 'out.log', '--add-trace', 'LED=trace@0x0038/0xff'],
+            bufsize=0
+        )
+        mocked_exit.assert_not_called()
+
+    @patch('pyavrocd.main.sys.exit')
+    @patch('pyavrocd.main.shutil.which')
+    @patch('pyavrocd.main.subprocess.Popen')
+    def test_handle_simavr_pathlike(self, mocked_popen, mocked_which, mocked_exit):
+        args = SimpleNamespace()
+        args.prg = Path('simavr')
+        args.port = 2000
+        args.F_CPU = '16000000UL'
+        args.xargs = None
+        mocked_which.return_value = '/usr/bin/simavr'
+        self.assertTrue(handle_simavr(args, 'atmega328p'))
+        mocked_which.assert_called_with('simavr')
+        mocked_popen.assert_called_once_with(
+            ['/usr/bin/simavr', '-g', '2000', '-f', '16000000UL', '-m', 'atmega328p'],
+            bufsize=0
+        )
         mocked_exit.assert_not_called()
 
     def test_run_server_success(self):
@@ -546,7 +593,6 @@ class TestMain(TestCase):
         mock_logger.critical.assert_has_calls([call('More than one compatible tool! Use -u or -t to distinguish.'),
                                                    call('> Tool: %s, S/N: %s', 'PROD1', 'S/N01'),
                                                    call('> Tool: %s, S/N: %s', 'PROD2', 'S/N02')])
-
 
 
 
