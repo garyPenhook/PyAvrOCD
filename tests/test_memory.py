@@ -5,7 +5,7 @@ The test suit for the Memory class
 from unittest.mock import Mock, MagicMock, call, create_autospec, patch
 from unittest import TestCase
 from pymcuprog.deviceinfo import deviceinfo
-from pyavrocd.deviceinfo.devices.attiny3217 import DEVICE_INFO as ATTINY3217_DEVICE_INFO
+from pyavrocd.deviceinfo.devices.atmega4809 import DEVICE_INFO as ATMEGA4809_DEVICE_INFO
 from pyavrocd.xavrdebugger import XAvrDebugger
 from pyavrocd.errors import FatalError
 from pyavrocd.memory import Memory
@@ -20,8 +20,8 @@ class TestMemory(TestCase):
         mock_dbg = create_autospec(XAvrDebugger, spec_set=False, instance=True)
         mock_mon = create_autospec(MonitorCommand, spec_set=True, instance=True)
         mock_mon.is_noinitialload.return_value = False
-        mock_dbg.memory_info = deviceinfo.DeviceMemoryInfo(ATTINY3217_DEVICE_INFO)
-        mock_dbg.device_info = ATTINY3217_DEVICE_INFO
+        mock_dbg.memory_info = deviceinfo.DeviceMemoryInfo(ATMEGA4809_DEVICE_INFO)
+        mock_dbg.device_info = ATMEGA4809_DEVICE_INFO
         mock_dbg.transport = MagicMock()
         mock_dbg.device = Mock()
         mock_dbg.device.avr = Mock()

@@ -11,7 +11,7 @@ The problem was an address translation mismatch between the GDB-facing
   passes an EEPROM-relative offset such as `0x0002`.
 - The UPDI NVM provider expects exactly that relative offset and adds the
   physical EEPROM base address from the device description, for example
-  `0x1400` on parts such as the ATtiny3217.
+  `0x1400` on parts such as the ATmega4809.
 - The old implementation in `Memory.eeprom_read()` and
   `Memory.eeprom_write()` subtracted the EEPROM base once before calling the
   backend. For UPDI devices with a nonzero EEPROM base, this produced the
@@ -20,7 +20,7 @@ The problem was an address translation mismatch between the GDB-facing
 The fix is to keep the EEPROM offset relative in the `Memory` layer and let
 the transport-specific NVM implementation add the physical base exactly once.
 Regression tests now cover this path with a real UPDI device definition
-(`attiny3217`) so that nonzero EEPROM bases are exercised.
+(`atmega4809`) so that nonzero EEPROM bases are exercised.
 
 ## Memory access API
 
