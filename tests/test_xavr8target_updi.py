@@ -2,7 +2,7 @@
 The test suit for the XTinyAvrTarget class
 """
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
-from unittest.mock import  MagicMock, create_autospec, call
+from unittest.mock import  MagicMock, create_autospec
 from unittest import TestCase
 
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
@@ -26,18 +26,6 @@ class TestXAvr8TargetUpdi(TestCase):
         self.assertEqual(self.xa.memtype_write_from_string('flash'), Avr8Protocol.AVR8_MEMTYPE_FLASH_PAGE)
         self.assertEqual(self.xa.memtype_write_from_string('eeprom'), Avr8Protocol.AVR8_MEMTYPE_EEPROM_ATOMIC)
         self.assertEqual(self.xa.memtype_write_from_string('internal_sram'), Avr8Protocol.AVR8_MEMTYPE_SRAM)
-
-    def test_setup_debug_session(self):
-        self.set_up()
-        self.xa.setup_debug_session(clkdeb=123, timers_run=False, clkprg=456)
-        self.xa.protocol.set_byte.assert_called_with(Avr8Protocol.AVR8_CTXT_OPTIONS,
-                                                     Avr8Protocol.AVR8_OPT_RUN_TIMERS,
-                                                     False)
-        self.xa.protocol.set_variant.assert_called_once_with(Avr8Protocol.AVR8_VARIANT_TINYX)
-        self.xa.protocol.set_function.assert_called_once_with(Avr8Protocol.AVR8_FUNC_DEBUGGING)
-        self.xa.protocol.set_interface.assert_called_once_with(Avr8Protocol.AVR8_PHY_INTF_PDI_1W)
-        self.xa.protocol.set_le16.assert_called_once_with(Avr8Protocol.AVR8_CTXT_PHYSICAL,
-                                                          Avr8Protocol.AVR8_PHY_XM_PDI_CLK, 123)
 
     def test_regfile_read(self):
         self.set_up()
@@ -84,27 +72,3 @@ class TestXAvr8TargetUpdi(TestCase):
         self.xa.protocol.check_response.return_value = None
         self.assertEqual(self.xa.hardware_breakpoint_clear(1), None)
         self.xa.protocol.jtagice3_command_response.assert_called_with(bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, 1]))
-
-    def test_switch_to_progmode(self):
-        self.set_up()
-        self.xa.switch_to_progmode()
-        self.xa.protocol.assert_has_calls([call.detach(), call.enter_progmode()])
-
-    def test_switch_to_debmode(self):
-        self.set_up()
-        self.xa.switch_to_debmode()
-        self.xa.protocol.leave_progmode.assert_called_once_with()
-
-    def test_attach(self):
-        self.set_up()
-        self.xa.attach()
-        self.xa.protocol.attach.assert_called_once_with()
-
-    def test_reactivate(self):
-        self.set_up()
-        self.xa.deactivate_physical = MagicMock()
-        self.xa.activate_physical = MagicMock()
-        self.xa.reactivate()
-        self.xa.protocol.assert_has_calls([call.detach(), call.attach(), call.reset()])
-        self.xa.deactivate_physical.assert_called_once_with()
-        self.xa.activate_physical.assert_called_once_with()

@@ -67,16 +67,16 @@ class TestXNvmAccessProviderCmsisDapUpdi(TestCase):
 
     def test_erase_page_switches_modes_when_needed(self):
         self.set_up()
+        flash_info = self.memory_info.memory_info_by_name('flash')
         self.nvm.erase = Mock()
-        self.assertTrue(self.nvm.erase_page(0x80, False))
+        self.assertTrue(self.nvm.erase_page(0x80, flash_info, False))
         self.nvm.avr.switch_to_progmode.assert_called_once_with()
         self.nvm.avr.switch_to_debmode.assert_called_once_with()
-        self.nvm.erase.assert_called_once_with({DeviceMemoryInfoKeys.NAME: MemoryNames.FLASH}, 0x80)
+        self.nvm.erase.assert_called_once_with(flash_info, 0x80)
 
     def test_erase_chip_uses_existing_mode(self):
         self.set_up()
-        self.nvm.erase = Mock()
         self.assertTrue(self.nvm.erase_chip(True))
         self.nvm.avr.switch_to_progmode.assert_not_called()
         self.nvm.avr.switch_to_debmode.assert_not_called()
-        self.nvm.erase.assert_called_once_with()
+        self.nvm.avr.erase.assert_called_once_with(Avr8Protocol.ERASE_CHIP, 0)

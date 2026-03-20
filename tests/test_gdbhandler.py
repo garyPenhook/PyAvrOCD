@@ -672,7 +672,7 @@ class TestGdbHandler(TestCase):
         self.gh.dispatch('vFlashDone', b'')
         self.gh.dbg.switch_to_progmode.assert_called_once_with()
         self.gh.dbg.switch_to_debmode.assert_called_once_with()
-        self.gh.dbg.device.avr.reactivate.assert_called_once_with()
+        self.gh.dbg.reactivate.assert_called_once_with()
         self.assertTrue(self.gh.mem.programming_mode is False)
 
     def test_flashDoneHandler_noinitialload(self):

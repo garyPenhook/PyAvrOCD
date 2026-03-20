@@ -314,7 +314,11 @@ class TestMemory(TestCase):
         self.mem.mon.is_read_before_write.return_value = False
         self.mem.mon.is_erase_before_load.return_value = False
         self.mem.flash_pages()
-        self.mem.dbg.device.erase_page.assert_called_once_with(0, True)
+        self.mem.dbg.device.erase_page.assert_called_once_with(
+            0,
+            self.mem.dbg.memory_info.memory_info_by_name('flash'),
+            True,
+        )
 
     def test_no_flash_pages_write_only_cached(self):
         self.set_up()
@@ -354,7 +358,7 @@ class TestMemory(TestCase):
         self.mem._flash_size = 0x8000
         self.mem._multi_page_size = 0x80
         self.assertEqual(self.mem.memory_map(), 'l<memory-map><memory type="ram" start="0x800000" length="0x60000"/>' + \
-                             '<memory type="flash" start="0x0" length="0x8000">' + \
+                             '<memory type="flash" start="0x0000" length="0x8000">' + \
                              '<property name="blocksize">0x80</property>' + \
                              '</memory></memory-map>')
 

@@ -372,7 +372,7 @@ class Memory():
         Return a memory map in XML format. Include registers, IO regs, and EEPROM in SRAM area
         """
         return ('l<memory-map><memory type="ram" start="0x{0:X}" length="0x{1:X}"/>' + \
-                             '<memory type="flash" start="0x{2:X}" length="0x{3:X}">' + \
+                             '<memory type="flash" start="0x{2:04X}" length="0x{3:X}">' + \
                              '<property name="blocksize">0x{4:X}</property>' + \
                              '</memory></memory-map>').format(0 + 0x800000, \
                               # (0x10000 + self._eeprom_start + self._eeprom_size),

@@ -120,13 +120,13 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
                                           write_chunk_size,
                                           allow_blank_skip=allow_blank_skip)
 
-    def erase_page(self, pageaddr : int, prog_mode : bool) -> bool:
+    def erase_page(self, pageaddr : int, memory_info : dict[ str, Any ], prog_mode : bool) -> bool:
         """
         Erase one flash page.
         """
         if not prog_mode:
             self.avr.switch_to_progmode()
-        self.erase({DeviceMemoryInfoKeys.NAME: MemoryNames.FLASH}, pageaddr)
+        self.erase(memory_info, pageaddr)
         if not prog_mode:
             self.avr.switch_to_debmode()
         return True
