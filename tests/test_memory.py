@@ -4,6 +4,8 @@ The test suit for the Memory class
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
 from unittest.mock import Mock, MagicMock, call, create_autospec, patch
 from unittest import TestCase
+from pymcuprog.deviceinfo import deviceinfo
+from pyavrocd.deviceinfo.devices.attiny3217 import DEVICE_INFO as ATTINY3217_DEVICE_INFO
 from pyavrocd.xavrdebugger import XAvrDebugger
 from pyavrocd.errors import FatalError
 from pyavrocd.memory import Memory
@@ -13,6 +15,20 @@ class TestMemory(TestCase):
 
     def setUp(self):
         self.mem = None
+
+    def set_up_real_updi(self):
+        mock_dbg = create_autospec(XAvrDebugger, spec_set=False, instance=True)
+        mock_mon = create_autospec(MonitorCommand, spec_set=True, instance=True)
+        mock_mon.is_noinitialload.return_value = False
+        mock_dbg.memory_info = deviceinfo.DeviceMemoryInfo(ATTINY3217_DEVICE_INFO)
+        mock_dbg.device_info = ATTINY3217_DEVICE_INFO
+        mock_dbg.transport = MagicMock()
+        mock_dbg.device = Mock()
+        mock_dbg.device.avr = Mock()
+        mock_dbg.get_iooffset.return_value = 0x20
+        mock_dbg.get_iface.return_value = "updi"
+        mock_dbg.flashmemtype = 123
+        self.mem = Memory(mock_dbg, mock_mon)
 
     def set_up(self):
         mock_dbg = create_autospec(XAvrDebugger, spec_set=False, instance=True)
@@ -397,3 +413,42 @@ class TestMemory(TestCase):
         self.set_up()
         self.mem.dbg.write_usig.side_effect = FatalError("fail")
         self.assertEqual(self.mem.usig_write(0x00, bytearray([0x12, 0x34])), 'E13')
+    def test_eeprom_read_uses_programming_mode_flag(self):
+        self.set_up()
+        self.mem.programming_mode = True
+        self.mem.dbg.device.read.return_value = bytearray([0x12, 0x34])
+        self.assertEqual(self.mem.eeprom_read(2, 2), bytearray([0x12, 0x34]))
+        args = self.mem.dbg.device.read.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[2], 2)
+        self.assertTrue(args[3])
+
+    def test_eeprom_write_uses_programming_mode_flag(self):
+        self.set_up()
+        self.mem.programming_mode = True
+        self.mem.dbg.device.write.return_value = None
+        self.mem.eeprom_write(3, bytearray([0xAA]))
+        args = self.mem.dbg.device.write.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[2], bytearray([0xAA]))
+        self.assertTrue(args[3])
+
+    def test_readmem_eeprom_updi_keeps_relative_offset(self):
+        self.set_up_real_updi()
+        self.mem.dbg.device.read.return_value = bytearray([1, 2, 3])
+        self.assertEqual(self.mem.readmem("810002", "3"), bytearray([1, 2, 3]))
+        args = self.mem.dbg.device.read.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[1], 2)
+        self.assertEqual(args[2], 3)
+        self.assertFalse(args[3])
+
+    def test_writemem_eeprom_updi_keeps_relative_offset(self):
+        self.set_up_real_updi()
+        self.mem.dbg.device.write.return_value = None
+        self.assertEqual(self.mem.writemem("810002", bytearray([1, 2, 3])), "OK")
+        args = self.mem.dbg.device.write.call_args.args
+        self.assertEqual(args[0], self.mem.dbg.memory_info.memory_info_by_name('eeprom'))
+        self.assertEqual(args[1], 2)
+        self.assertEqual(args[2], bytearray([1, 2, 3]))
+        self.assertFalse(args[3])
