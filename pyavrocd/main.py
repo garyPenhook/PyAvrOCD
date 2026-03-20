@@ -390,12 +390,11 @@ def run_server(server: RspServer, logger : logging.Logger) -> int:
     """
     try:
         return server.serve()
-    except (ValueError, Exception) as e:
-        if logger.getEffectiveLevel() != logging.DEBUG:
-            logger.critical("Fatal Error: %s",e)
-            return 1
-        raise
-    return 0
+    except Exception as e:
+        if logger.getEffectiveLevel() == logging.DEBUG:
+            raise
+        logger.critical("Fatal Error: %s",e)
+        return 1
 
 def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
     """

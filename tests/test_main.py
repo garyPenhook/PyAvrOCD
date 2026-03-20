@@ -341,6 +341,13 @@ class TestMain(TestCase):
         mock_server = Mock(serve=Mock(side_effect = ValueError()))
         self.assertEqual(run_server(mock_server, Mock()), 1)
 
+    def test_run_server_reraises_in_debug(self):
+        mock_server = Mock(serve=Mock(side_effect=ValueError()))
+        mock_logger = Mock()
+        mock_logger.getEffectiveLevel.return_value = logging.DEBUG
+        with self.assertRaises(ValueError):
+            run_server(mock_server, mock_logger)
+
     @patch('pyavrocd.main.time.sleep',Mock())
     def test_reboot(self):
         mockbackend = MagicMock(reboot_tool=Mock(), connect_to_tool=Mock())
@@ -569,7 +576,6 @@ class TestMain(TestCase):
         mock_logger.critical.assert_has_calls([call('More than one compatible tool! Use -t or -u to select.'),
                                                    call(' Tool: %s, SN: %s', 'PROD1', 'S/N01'),
                                                    call(' Tool: %s, SN: %s', 'PROD2', 'S/N02')])
-
 
 
 

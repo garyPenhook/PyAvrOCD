@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Check out repository
         if: ${{ github.event.release.tag_name != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up python
         if: ${{ github.event.release.tag_name != '' }}
@@ -70,7 +70,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python-64-bit
         if: matrix.os != 'windows-2022'
@@ -217,7 +217,7 @@ jobs:
     steps:
 #    - run: exit 1
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         persist-credentials: false
 

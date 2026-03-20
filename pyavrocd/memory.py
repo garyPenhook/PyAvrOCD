@@ -2,6 +2,7 @@
 Memory module for the AVR GDB server
 """
 from collections.abc import Callable
+from typing import Any, cast
 
 # args, logging
 import logging
@@ -34,15 +35,12 @@ class Memory():
         # some device info that is needed throughout
         if self.dbg.memory_info is None:
             raise FatalError("No memory info available")
-        flash_info : dict[str, int] | object = self.dbg.memory_info.memory_info_by_name('flash')
-        self._flash_start : int = int(flash_info['address'])
-        if isinstance(flash_info, dict):
-            # GDB wants the logical image address, not the raw UPDI flash base.
-            self._flash_gdb_start : int = int(flash_info.get('hexfile_address', self._flash_start))
-        else:
-            self._flash_gdb_start = self._flash_start
-        self._flash_page_size : int = int(flash_info['page_size'])
-        self._flash_size : int = int(flash_info['size'])
+        flash_info_typed = cast(dict[str, Any], self.dbg.memory_info.memory_info_by_name('flash'))
+        self._flash_start : int = int(flash_info_typed['address'])
+        # GDB wants the logical image address, not the raw UPDI flash base.
+        self._flash_gdb_start : int = int(flash_info_typed.get('hexfile_address', self._flash_start))
+        self._flash_page_size : int = int(flash_info_typed['page_size'])
+        self._flash_size : int = int(flash_info_typed['size'])
         self._multi_buffer : int = int(self.dbg.device_info.get('buffers_per_flash_page',1))
         self._masked_registers : list[int] = self.dbg.device_info.get('masked_registers',[])
         self._ronly_registers : list[int] = self.dbg.device_info.get('ronly_registers',[])
