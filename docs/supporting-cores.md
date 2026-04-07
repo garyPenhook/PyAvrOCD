@@ -72,10 +72,10 @@ https://mcudude.github.io/MajorCore/package_MCUdude_MajorCore_index.json
 
 ### [MegaCoreX](https://github.com/MCUdude/MegaCoreX) *(work in progress)*
 
-This is the core for the megaAVR-0 chip family, such as ATmega4809, which are used on the Nano Every Board and the Uno WiFi Rev 2. You can install an experimental core using the following URL:
+This is a fork of the core for the megaAVR-0 chip family, such as the ATmega4809, which is used on the Nano Every Board and the Uno WiFi Rev 2. You can install an experimental core using the following URL:
 
 ```
-https://felias-fogg.github.io/MajorCore/package_MCUdude_MajorCore_index.json
+https://felias-fogg.github.io/MegaCoreX/package_MCUdude_MegaCoreX_index.json
 ```
 
-Note that this core is not bug-free. In particular, access to the EEPROM does not work yet. But other functionality might also be hampered. If you spot a bug, please report it.
+Note that the debug support for this core is not bug-free. In particular, access to the EEPROM does not work yet. But other functionality might also be hampered. If you spot a bug, please report it.
