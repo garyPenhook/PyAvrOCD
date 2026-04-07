@@ -6,13 +6,11 @@ If you want to install a core, in most cases, you first have to add a *package i
 
 ### [ATTinyCore (Debug enabled)](https://github.com/felias-fogg/ATTinyCore-debug-enabled)
 
-This is a fork of Spence Konde's ATTinyCore version 1.5.2,[^a] which covers all classic ATtinys with a debugWire interface. You can install it after including the following URL
+This is my fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is now deprecated. You can install it after including the following URL:
 
 ```
  https://downloads.pyavrocd.io/package_debug_enabled_index.json
 ```
-
-in the additional boards manager URLs.
 
 ### [Atmel AVR Xplained-minis (Debug enabled)](https://github.com/felias-fogg/avr-xminis-debug-enabled)
 
@@ -23,6 +21,14 @@ https://downloads.pyavrocd.io/package_debug_enabled_index.json
 ```
 
 If you had installed the original core `Atmel AVR Xplained-minis`, you should definitely remove it.
+
+### [TinyCore](https://github.com/MCUdude/TinyCore)
+
+This is a fork of Spence Konde's ATTinyCore version 2.0.0. It is the preferred way of supporting classic ATtinys.  You can install it after including the following URL:
+
+```
+https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
+```
 
 ### [MicroCore](https://github.com/MCUdude/MicroCore)
 
@@ -64,6 +70,12 @@ This core covers just ATmega8515 and ATmega162, of which only the latter possess
 https://mcudude.github.io/MajorCore/package_MCUdude_MajorCore_index.json
 ```
 
+### [MegaCoreX](https://github.com/MCUdude/MegaCoreX) *(work in progress)*
 
+This is the core for the megaAVR-0 chip family, such as ATmega4809, which are used on the Nano Every Board and the Uno WiFi Rev 2. You can install an experimental core using the following URL:
 
-[^a]: I tried to extend the current development version 2.0.0, but failed. I may give it another try in the near future.
+```
+https://felias-fogg.github.io/MajorCore/package_MCUdude_MajorCore_index.json
+```
+
+Note that this core is not bug-free. In particular, access to the EEPROM does not work yet. But other functionality might also be hampered. If you spot a bug, please report it.

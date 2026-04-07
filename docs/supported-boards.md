@@ -22,9 +22,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>ATmega256RFR2 Xplained Pro</u>
 - **AVR Butterfly (ATmega169)**: [MegaCore](https://github.com/MCUdude/MegaCore)
 - <u>MEGA-1284P Xplained</u>: [MightyCore](https://github.com/MCUdude/MightyCore)
-- <u>ATmega4809 Curiosity Nano</u>
-
-
+- <u>ATmega4809 Curiosity Nano</u> *(work in progress)*
 
 ## Arduino boards
 
@@ -41,7 +39,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **Arduino Leonardo**: JTAG pins are A0-A3, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag)
 - Arduino Leonardo ETH
 - <u>Arduino Micro</u>
-- <s>Arduino Esplora</s>: JTAG pins are not accessible
+- <s>Arduino Esplora</s>
 - Arduino Mini: [MiniCore](supporting-cores.md#minicore) (if Mini 05); do not connect DTR pin of FTDI header
 - Arduino Ethernet: [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
 - <u>Arduino Fio</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header and do not connect XBee
@@ -54,14 +52,14 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <s>Arduino NG (ATmega8)</s>: no debugging interface
 - Arduino Robot Control
 - Arduino Robot Motor
-- <u>Arduino Gemma</u>:  [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled), RESET pad on backside
+- <u>Arduino Gemma</u>: [TinyCore](https://github.com/MCUdude/TinyCore), RESET pad on backside
 - <u>Adafruit Circuit Playground 32u4</u>
 - Arduino Yún Mini
 - Arduino Industrial 101
 - Arduino Linino One
 - Arduino UNO WiFi (Rev 1):  [MiniCore](supporting-cores.md#minicore); cut `RESET EN` solder bridge
-- <u>Arduino Uno Wifi (Rev 2)</u>
-- <u>Arduino Nano Every</u>
+- <u>Arduino Uno WiFi (Rev 2)</u> *(work in progress)*
+- <u>Arduino Nano Every</u> *(work in progress)*
 
 ## Sparkfun boards
 
@@ -85,9 +83,9 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <s>Flora (ATmega32U4)</s>: JTAG pins are not accessible
 - Feather 32U4
 - Feather 328P: [MiniCore](supporting-cores.md#minicore)
-- Gemma (ATtiny85):  [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled),
-- Trinket 3.3V (ATtiny85): [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- Trinket 5V (ATtiny85): [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
+- Gemma (ATtiny85):  [TinyCore](https://github.com/MCUdude/TinyCore),
+- Trinket 3.3V (ATtiny85): [TinyCore](https://github.com/MCUdude/TinyCore)
+- Trinket 5V (ATtiny85): [TinyCore](https://github.com/MCUdude/TinyCore)
 - Metro (ATmega328P):  [MiniCore](supporting-cores.md#minicore), cut `RESET EN` solder bridge
 - Metro Mini V2:  [MiniCore](supporting-cores.md#minicore), you have to figure out which cap to remove
 - Circuit Playground Classic (ATmega32U4)
@@ -132,10 +130,10 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 
 ## Azduino boards by Spence Konde
 
-- **ATtiny841 dev. board**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- **ATtiny1634 dev. board**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- **ATtiny88 breakout board (assembled)**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- **ATtiny828 breakout board (assembled)**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- **ATtiny167 dev. board**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
-- **ATtiny43 dev. board**: [ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)
+- **ATtiny841 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny1634 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny88 breakout board (assembled)**: [TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny828 breakout board (assembled)**: [TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny167 dev. board**:[TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny43 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
 

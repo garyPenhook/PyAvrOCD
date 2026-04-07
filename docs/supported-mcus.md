@@ -10,7 +10,7 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 
 - **ATtiny13(A)**
 
-### ATtinys supported by [*ATTinyCore (Debug enabled)*](https://github.com/felias-fogg/ATTinyCore-debug-enabled)
+### ATtinys supported by [TinyCore](https://github.com/MCUdude/TinyCore)
 
 * **ATtiny43U**
 * **ATtiny2313, ATtiny2313A, ATtiny4313**
@@ -110,7 +110,9 @@ The ATmega8515 does not have a debug interface.
 
 ## Modern ATmegas
 
-### Atmegas supported by MegaCoreX
+### Atmegas supported by MegaCoreX *(work in progress)*
+
+The following MCUs are not yet fully supported, but PyAvrOCD is in the process of being extended to also cover these MCUs (see updi branch).
 
 - <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, <u>ATmega4808</u>
-- <u>ATmega809</u>, ATmega1609, ATmega3209, <u>ATmega4809</u>
+- <u>ATmega809</u>, ATmega1609, ATmega3209, **ATmega4809**
