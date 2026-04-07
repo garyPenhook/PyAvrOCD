@@ -30,6 +30,6 @@ So, why another open-source GDB server for AVR MCUs? The main intention is to pr
 
 ## What has been done so far, and what to expect in the future
 
-[PyAvrOCD v1.0.0 has been released](https://arduino-craft-corner.de/index.php/2026/02/10/pyavrocd-1-0-0-released/). Interested to give it a try? You are welcome to [install](INSTALL.md) it. Want to learn more about it? [Read the docs](https://pyavrocd.io). Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
+[PyAvrOCD v1.0.0 has been released](https://arduino-craft-corner.de/index.php/2026/02/10/pyavrocd-1-0-0-released/). Interested in giving it a try? You are welcome to [install](INSTALL.md) it. Want to learn more about it? [Read the docs](https://pyavrocd.io). Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
 
-UPDI MCUs will follow next. I am unsure about Xmegas. One main point missing is an Arduino core for the MegaXU4 chips, similar to MCUdude's MiniCore.
+Work is underway to handle UPDI MCUs. I am unsure about Xmegas. One main point missing is an Arduino core for the MegaXU4 chips, similar to MCUdude's MiniCore.
