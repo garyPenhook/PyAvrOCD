@@ -32,7 +32,7 @@ Now select the field with the additional board manager URLs.
 Type the following URL into a new line:
 
 ```
-https://downloads.pyavrocd.io/package_debug_enabled_index.json
+https://felias-fogg.github.io/XMiniCore/package_felias-fogg_XMiniCore_index.json
 ```
 
 <p align="center">
@@ -43,7 +43,7 @@ You close the dialog by clicking on two `OK` buttons in succession.
 
 ### Step 2: Install a debug-enabled core
 
-Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "Debug" into the search line (2). After that, all cores with the word "Debug" in their description are displayed. Scroll down until you see one with the title "Atmel AVR Xplained-minis (Debug enabled)." Install this core by clicking on `Install` (3).
+Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "xmini" into the search line (2). After that, all cores with the word "xmini" in their description are displayed. Scroll down until you see one with the title "XminiCore." Install this core by clicking on `Install` (3).
 
 <p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager-xmini.png" width="90%"></p>
 

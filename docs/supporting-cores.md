@@ -6,25 +6,15 @@ If you want to install a core, in most cases, you first have to add a *package i
 
 ### [ATTinyCore (Debug enabled)](https://github.com/felias-fogg/ATTinyCore-debug-enabled)
 
-This is my fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is now deprecated. You can install it after including the following URL:
+This is my fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is deprecated. You can install it after including the following URL:
 
 ```
- https://downloads.pyavrocd.io/package_debug_enabled_index.json
+https://felias-fogg.github.io/ATTinyCore/package_drazzy.com_ATTinyCore_index.json
 ```
-
-### [Atmel AVR Xplained-minis (Debug enabled)](https://github.com/felias-fogg/avr-xminis-debug-enabled)
-
-This is a debug-enabled Arduino core for the Microchip development boards [ATmega328P Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega328p-xmini), [ATmega168BP Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega168pb-xmini), and [ATmega328PB Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega328pb-xmini). It is meant to be a replacement for the similarly named core in the official Arduino distribution, which is already 10 years old and does not really work. The new core is a stripped-down and adapted version of MCUdude's MiniCore. The boards, together with PyAvrOCD, work very smoothly. It is just plug-and-play. The only thing one must be aware of is that one should power the application circuit attached to the board through the `IOREF` pin (pin 2 of J202 on the Xplained Mini board). Otherwise, the automatic power-cycle feature might not work. Again, you can install this core through the boards manager URL:
-
-```
-https://downloads.pyavrocd.io/package_debug_enabled_index.json
-```
-
-If you had installed the original core `Atmel AVR Xplained-minis`, you should definitely remove it.
 
 ### [TinyCore](https://github.com/MCUdude/TinyCore)
 
-This is a fork of Spence Konde's ATTinyCore version 2.0.0. It is the preferred way of supporting classic ATtinys.  You can install it after including the following URL:
+This is a fork of Spence Konde's ATTinyCore version 2.0.0. It is the preferred way of supporting classic ATtinys.  It does not support the micronucleus bootloader, however. You can install it after including the following URL:
 
 ```
 https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
@@ -44,6 +34,14 @@ This is the core for the small ATmegas with a debugWIRE interface, aka, ATmegaX8
 
 ```
 https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+```
+
+### [XMiniCore](https://github.com/felias-fogg/XMiniCore)
+
+This is a debug-enabled Arduino core for the Microchip development boards [ATmega328P Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega328p-xmini), [ATmega168BP Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega168pb-xmini), and [ATmega328PB Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega328pb-xmini). It is meant to be a replacement for the *Atmel AVR Xplained-minis* board package of the official Arduino distribution, which is already 10 years old and does not really work. The new core is a stripped-down and adapted version of MCUdude's MiniCore. The boards, together with PyAvrOCD, work very smoothly. It is just plug-and-play:
+
+```
+https://felias-fogg.github.io/XMiniCore/package_felias-fogg_XMiniCore_index.json
 ```
 
 ### [MightyCore](https://github.com/MCUdude/MightyCore)
