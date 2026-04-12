@@ -54,7 +54,11 @@ Let us assume you found the bug and made a correction in the source code. Note t
 2. Click again on the `Verify` button to start a new compilation.
 3. Restart the debugger by clicking on the `Debugging` button in the top line in order to try out your correction.
 
+### Finishing the debug session
+
 If everything now works out, you may consider calling it a day and stopping work on the program. If you were debugging on a debugWIRE target, consider typing the command `monitor debugwire disable` into the last line of the `Debug Console` before terminating the debugger.  This is necessary to bring the target chip back into normal mode, where it accepts SPI programming.
+
+You may finally want to disable the `Optimize for Debugging` option in the `Sketch` menu. If you leave it enabled, then all future compilation actions will use this option and produce much larger code than necessary.
 
 ## Debugging using PlatformIO/VSC
 
