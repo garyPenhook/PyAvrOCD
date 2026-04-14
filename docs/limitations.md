@@ -6,7 +6,9 @@ The debugging system, consisting of the debug probe, the GDB server, and GDB its
 
 The Microchip/Atmel debug probes/programmers do not electrically disconnect from the target when inactive.
 
-When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines are not usable, since the debug probe may put some voltage potential on some of the lines. So, if you need these, you need to disconnect the debug probe/programmer and connect only Vcc, GND, and debugWIRE to the target. For other debugging interfaces, the problem is not pronounced since the lines need to be exclusively accessed by the debug probe in any case.
+When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines will not be electrically disconnected, even when the probe is inactive or only active on the debugWIRE line. In particular, the SNAP probe has a pretty low-impedance high-state MISO line and a low-impedance low-state SCK line. However, also the other probes can interfere with high impedance outputs. It is something to look out for if these lines do not behave as they should.
+
+For other debugging interfaces, such as **JTAG** or **UPDI**, the problem is not relevant since the debug control and data lines need to be exclusively accessed by the debug probe in any case.
 
 ## Bootloader
 
@@ -64,11 +66,11 @@ Another effect of using the `-Og` compiler optimization could be that all of a s
 
 Link-time optimization (`-flto`) can optimize away important structural debug information about C++ objects and global variables.
 
-Link-time optimization is a relatively new technique and was introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
+Link-time optimization is a technique introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
 
 The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.
 
-All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed.
+All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed. In most of the debug-enabled Arduino cores, link-time optimization is disabled when the user has chosen to activate the `Optimize for Debugging` option.
 
 ## Link-time jump relaxation
 
