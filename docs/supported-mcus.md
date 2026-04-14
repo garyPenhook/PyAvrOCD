@@ -10,7 +10,7 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 
 - **ATtiny13(A)**
 
-### ATtinys supported by [TinyCore](https://github.com/MCUdude/TinyCore)
+### ATtinys supported by *[TinyCore](https://github.com/MCUdude/TinyCore)* and *[ATTinyCore (Debug enabled)](https://github.com/felias-fogg/ATTinyCore)*
 
 * **ATtiny43U**
 * **ATtiny2313, ATtiny2313A, ATtiny4313**
@@ -47,11 +47,11 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 
 The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to debugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
 
-### ATmegas supported by [*Atmel AVR Xplained-minis (Debug enabled)*](https://github.com/felias-fogg/avr-xminis-debug-enabled)
+### ATmegas supported by [*XMiniCore*](https://github.com/felias-fogg/XMiniCore)
 
-- **ATmega328P**
-- **ATmega168PB**
-- **ATmega328PB**
+- **ATmega328P** (Xplained Mini board)
+- **ATmega168PB** (Xplained Mini board)
+- **ATmega328PB** (Xplained Mini board)
 
 ### ATmegas supported by [*MightyCore*](https://github.com/MCUdude/MightyCore)
 
@@ -110,7 +110,7 @@ The ATmega8515 does not have a debug interface.
 
 ## Modern ATmegas
 
-### Atmegas supported by MegaCoreX *(work in progress)*
+### Atmegas supported by *[MegaCoreX (work in progress)](https://github.com/felias-fogg/MegaCoreX)*
 
 The following MCUs are not yet fully supported, but PyAvrOCD is in the process of being extended to also cover these MCUs (see updi branch).
 
