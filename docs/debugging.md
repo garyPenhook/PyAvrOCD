@@ -84,7 +84,7 @@ Clicking on OK, you start a debugging session. The startup may take a while beca
 
 If you are more into command-line interface programming, simply using avr-gdb may be the right approach for you.
 
-After [compiling your program](compilation-otions.md#compiling-in-other-environments), e.g., varblink0.ino, you can start the GDB server and the GDB debugger. When starting the GDB server from the command line, you need to specify the MCU you want to connect to. In addition, you should specify the option `-m all`, so that the GDB server manages the debug-related fuses (see [Setting the right fuses](fuse-preparation.md#general-considerations)):
+After [compiling your program](compilation-options.md#compiling-in-other-environments), e.g., varblink0.ino, you can start the GDB server and the GDB debugger. When starting the GDB server from the command line, you need to specify the MCU you want to connect to. In addition, you should specify the option `-m all`, so that the GDB server manages the debug-related fuses (see [Setting the right fuses](fuse-preparation.md#general-considerations)):
 
 ```log
 > pyavrocd -d atmega328p -m all

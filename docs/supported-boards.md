@@ -9,33 +9,33 @@ In addition, for supported boards, possible board modifications, and other infor
 
 Most of the supported Microchip boards have an embedded debugger on board, which makes it easy to work with. You do not have to modify the boards physically or change fuses. When working with debugWIRE targets, the power cycling is done automatically.
 
-- **ATmega328P** **Xplained Mini**:  [Atmel AVR Xplained-minis (Debug enabled)](supporting-cores.md#atmel-avr-xplained-minis-debug-enabled); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega328P** **Xplained Mini**:  [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega168PB** **Xplained Mini**: [Atmel AVR Xplained-minis (Debug enabled)](supporting-cores.md#atmel-avr-xplained-minis-debug-enabled); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega168PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega328PB** **Xplained Mini**: [Atmel AVR Xplained-minis (Debug enabled)](supporting-cores.md#atmel-avr-xplained-minis-debug-enabled); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega328PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega324PB Xplained Pro:** [MightyCore](https://github.com/MCUdude/MightyCore); serial I/O is routed via
+- **ATmega324PB Xplained Pro:** [MightyCore](supporting-cores.md#mightycore); serial I/O is routed via
   `Serial1` instead of `Serial`. The LED is connected to digital
   pin 23. No physical modifications or fuse settings necessary.
 - <u>AT90USBKEY2 (AT90USB1287)</u>
 - <u>ATmega256RFR2 Xplained Pro</u>
-- **AVR Butterfly (ATmega169)**: [MegaCore](https://github.com/MCUdude/MegaCore)
-- <u>MEGA-1284P Xplained</u>: [MightyCore](https://github.com/MCUdude/MightyCore)
+- **AVR Butterfly (ATmega169)**: [MegaCore](supporting-cores.md#megacore)
+- <u>MEGA-1284P Xplained</u>: [MightyCore](supporting-cores.md#mightycore)
 - <u>ATmega4809 Curiosity Nano</u> *(work in progress)*
 
 ## Arduino boards
 
 
 - Arduino Yún
-- **Arduino UNO R3**:   [MiniCore](supporting-cores.md#minicore), [the `RESET EN` solder bridge needs to be cut](board-preparation.md#preparing-a-debugwire-target)
-- Arduino UNO Mini:  [MiniCore](supporting-cores.md#minicore), remove capacitor `C3`
-- Arduino Duemilanove:  [MiniCore](supporting-cores.md#minicore), `RESET EN` needs to be cut
-- Arduino Diecimila:  [MiniCore](supporting-cores.md#minicore), [remove 100nF capacitor](https://awtfy.com/2010/02/21/modify-an-arduino-for-debugwire/)
-- **Arduino Nano:** [100 nF cap and 1kΩ resistor needs to be removed](board-preparation.md#arduino-nano-and-clones)
-- **Arduino Mega**: [MegaCore](https://github.com/MCUdude/MegaCore); JTAG pins are A4-A7, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag), `RESET EN` does not need to be opened
+- **Arduino UNO R3**:   [MiniCore](supporting-cores.md#minicore); [the `RESET EN` solder bridge needs to be cut](board-preparation.md#preparing-a-debugwire-target)
+- Arduino UNO Mini:  [MiniCore](supporting-cores.md#minicore); remove capacitor `C3`
+- Arduino Duemilanove:  [MiniCore](supporting-cores.md#minicore); `RESET EN` needs to be cut
+- Arduino Diecimila:  [MiniCore](supporting-cores.md#minicore); [remove 100nF capacitor](https://awtfy.com/2010/02/21/modify-an-arduino-for-debugwire/)
+- **Arduino Nano:**  [MiniCore](supporting-cores.md#minicore); [100 nF cap and 1kΩ resistor needs to be removed](board-preparation.md#arduino-nano-and-clones)
+- **Arduino Mega**: [MegaCore](supporting-cores.md#megacore); JTAG pins are A4-A7, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag), `RESET EN` does not need to be opened
 - **Arduino Mega 2560:** [MegaCore](https://github.com/MCUdude/MegaCore); JTAG pins are A4-A7, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag), `RESET EN` does not need to be opened
-- Arduino Mega ADK: [MegaCore](https://github.com/MCUdude/MegaCore)
+- Arduino Mega ADK: [MegaCore](supporting-cores.md#megacore)
 - **Arduino Leonardo**: JTAG pins are A0-A3, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag)
 - Arduino Leonardo ETH
 - <u>Arduino Micro</u>
@@ -52,7 +52,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <s>Arduino NG (ATmega8)</s>: no debugging interface
 - Arduino Robot Control
 - Arduino Robot Motor
-- <u>Arduino Gemma</u>: [TinyCore](https://github.com/MCUdude/TinyCore), RESET pad on backside
+- <u>Arduino Gemma</u>: [TinyCore](supporting-cores.md#tinycore); RESET pad on backside
 - <u>Adafruit Circuit Playground 32u4</u>
 - Arduino Yún Mini
 - Arduino Industrial 101
@@ -68,8 +68,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>Pro Micro 5V (ATmega32U4)</u>
 - Fio v3
 - Qduino Mini (ATmega32U4)
-- Mega Pro 3.3V: [MegaCore](https://github.com/MCUdude/MegaCore)
-- Mega Pro 5V: [MegaCore](https://github.com/MCUdude/MegaCore)
+- Mega Pro 3.3V: [MegaCore](supporting-cores.md#megacore)
+- Mega Pro 5V: [MegaCore](supporting-cores.md#megacore)
 - RedBot (ATmega328P): [MiniCore](supporting-cores.md#minicore)
 - <u>Serial-7-Segment-Display</u> (ATmega328P): [MiniCore](supporting-cores.md#minicore)
 - ATmega128RFA1 Development board
@@ -84,8 +84,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Feather 32U4
 - Feather 328P: [MiniCore](supporting-cores.md#minicore)
 - Gemma (ATtiny85):  [TinyCore](https://github.com/MCUdude/TinyCore),
-- Trinket 3.3V (ATtiny85): [TinyCore](https://github.com/MCUdude/TinyCore)
-- Trinket 5V (ATtiny85): [TinyCore](https://github.com/MCUdude/TinyCore)
+- Trinket 3.3V (ATtiny85): [TinyCore](supporting-cores.md#tinycore)
+- Trinket 5V (ATtiny85): [TinyCore](supporting-cores.md#tinycore)
 - Metro (ATmega328P):  [MiniCore](supporting-cores.md#minicore), cut `RESET EN` solder bridge
 - Metro Mini V2:  [MiniCore](supporting-cores.md#minicore), you have to figure out which cap to remove
 - Circuit Playground Classic (ATmega32U4)
@@ -110,11 +110,11 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <s>eduArdu</s>: JTAG pins are not accessible
 - Olimex-Nano: [MiniCore](supporting-cores.md#minicore)
 - RGB-Glasses
-- Olimexino-2560: [MegaCore](https://github.com/MCUdude/MegaCore)
-- **AVR-CAN (AT90CAN128)**: [MegaCore](https://github.com/MCUdude/MegaCore)
-- AVR-GSM (ATMega32): [MightyCore](https://github.com/MCUdude/MightyCore)
-- AVR-IO-M16 (ATmega16): [MightyCore](https://github.com/MCUdude/MightyCore)
-- **AVR-MT128 (ATmega128)**: [MegaCore](https://github.com/MCUdude/MegaCore)
+- Olimexino-2560: [MegaCore](supporting-cores.md#megacore)
+- **AVR-CAN (AT90CAN128)**: [MegaCore](supporting-cores.md#megacore)
+- AVR-GSM (ATMega32): [MightyCore](supporting-cores.md#mightycore)
+- AVR-IO-M16 (ATmega16): [MightyCore](supporting-cores.md#mightycore)
+- **AVR-MT128 (ATmega128)**: [MegaCore](supporting-cores.md#megacore)
 - AVR-USB-STK (AT90USB162)
 - **AVR-USB-162 (AT90USB162)**
 
@@ -126,14 +126,14 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Seeeduino Lotus: [MiniCore](supporting-cores.md#minicore); remove `C6` and RESET LED (next to RESET button)
 - Seeeduino Lite
 - Seeeduino Nano: [MiniCore](supporting-cores.md#minicore)
-- Seeeduino Mega 2560: [MegaCore](https://github.com/MCUdude/MegaCore)
+- Seeeduino Mega 2560: [MegaCore](supporting-cores.md#megacore)
 
 ## Azduino boards by Spence Konde
 
-- **ATtiny841 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
-- **ATtiny1634 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
-- **ATtiny88 breakout board (assembled)**: [TinyCore](https://github.com/MCUdude/TinyCore)
-- **ATtiny828 breakout board (assembled)**: [TinyCore](https://github.com/MCUdude/TinyCore)
-- **ATtiny167 dev. board**:[TinyCore](https://github.com/MCUdude/TinyCore)
-- **ATtiny43 dev. board**: [TinyCore](https://github.com/MCUdude/TinyCore)
+- **ATtiny841 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+- **ATtiny1634 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+- **ATtiny88 breakout board (assembled)**: [TinyCore](supporting-cores.md#tinycore)
+- **ATtiny828 breakout board (assembled)**: [TinyCore](supporting-cores.md#tinycore)
+- **ATtiny167 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+- **ATtiny43 dev. board**: [TinyCore](supporting-cores.md#tinycore)
 

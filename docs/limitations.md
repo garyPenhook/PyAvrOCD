@@ -221,7 +221,7 @@ All in all, as Microchip states, you should not ship MCUs that have been used he
 
 ### Using only hardware breakpoints
 
-Can it be a solution to use only hardware breakpoints? It will definitely reduce flash wear to zero (well, except for reprogramming the target). And all GDB servers support that by trying to use hardware breakpoints as much as possible. Only when too many breakpoints are requested, software breakpoints are utilized.
+Can it be a solution to use only hardware breakpoints? It will definitely reduce flash wear to zero (well, except for reprogramming the target). And all GDB servers support that by trying to use hardware breakpoints as much as possible. Only when too many breakpoints are requested are software breakpoints utilized.
 
 You can enforce the use of *only* hardware breakpoints by employing the following `monitor` command.
 
@@ -229,7 +229,7 @@ You can enforce the use of *only* hardware breakpoints by employing the followin
 monitor breakpoint hardware
 ```
 
-After using this command, you always get an error when more than the number of available hardware breakpoints is requested. One must be aware, though, that there might be slight problems when single-stepping and when continuing from a breakpoint.
+After using this command, you always get an error when more than the number of available hardware breakpoints is in use when you request to start or continue execution. One must be aware, though, that there might be slight problems when single-stepping and when continuing from a breakpoint.
 
 A GDB step-over operation uses a temporary breakpoint, which can lead to the situation where, after starting a step-over operation with a single step on the GDB server level, it is discovered that too many breakpoints are necessary to complete the step-over operation. In this case, the initial single step is done, but then execution is stopped (in the middle of the step-over operation).
 

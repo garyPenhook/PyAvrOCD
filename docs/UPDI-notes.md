@@ -2,11 +2,15 @@
 
 ## EEPROM
 
-EEPROM access does not work - check!
+EEPROM access does not work - check! 
+
+The problem was that I had copied over the subtraction of the memory segment starting from the SRAM access in the avrdebugger module (without understanding it).  For JTAG and dw, it did not make a difference. However, for UPDI it makes a big difference. Here, we have to add it!
+
+The big question is now, what does it mean for SRAM in the UPDI setting?
 
 ## Memory access API
 
-Memory access API does not seem to work in the way described in the document.
+The memory access API does not seem to work in the way described in the document. Well, they do actually. However, when accessing memory, one has to add the MEMTYPE_address_byte, except when we access flash.
 
 ## General registers and I/O registers
 

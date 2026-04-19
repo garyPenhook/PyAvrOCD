@@ -1,6 +1,6 @@
 # Installing & configuring the debugging software
 
-The GDB server PyAvrOCD provides an interface to the debug probe on one side. The other side can be an IDE, a debug GUI, or the GDB debugger. Installation of the software is usually straightforward when you follow the instructions on the respective webpages, where you can download the software. In addition, we will also cover the [installation of a software simulator](#a-software-simulator-simavr).
+The GDB server PyAvrOCD provides an interface to the debug probe on one side. The other side can be an IDE, a debug GUI, or the GDB debugger. Installation of the software is usually straightforward when you follow the instructions on the respective download pages. In addition, we will also cover the [installation of a software simulator](#a-software-simulator-simavr).
 
 ## Arduino IDE 2
 
@@ -10,9 +10,9 @@ The GDB server PyAvrOCD provides an interface to the debug probe on one side. Th
 https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
 ```
 
-After that, you can install one of the platforms referred to in the index file, e.g., `TinyCore`, which is a fork of Spence Konde's  `ATTinyCore-2.0.0` platform. And this is all! Now, you can press the debug button and start debugging. Well, before you can do that, you must probably [modify the target board](board-preparation.md), and you need to [connect the debug probe to the target board](connect-to-target.md).
+After that, you can install the platform referred to in the index file, `TinyCore`, which is a fork of Spence Konde's  `ATTinyCore-2.0.0` platform. And this is all! Now, you can press the debug button and start debugging. Well, before you can do that, you must probably [modify the target board](board-preparation.md), and you need to [connect the debug probe to the target board](connect-to-target.md).
 
-The set of available cores is covered in the [section on Arduino cores](supporting-cores.md).
+The set of available debug-enabled cores is covered in the [section on Arduino cores](supporting-cores.md).
 
 ## PlatformIO and Visual Studio Code
 
