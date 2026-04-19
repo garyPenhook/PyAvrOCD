@@ -54,11 +54,17 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             action='store_true',
                             help="Start without resetting the MCU")
 
-    parser.add_argument("-c", "--command",
+    parser.add_argument("-c", 
                             action='append',
                             dest='cmd',
                             type=str,
                             help=argparse.SUPPRESS) # "Command to set gdb port (OpenOCD style)")
+
+    parser.add_argument("-C", "--comm-speed",
+                            metavar="CS",
+                            dest='kbps',
+                            type=int,
+                            help="Communication speed for (U)PDI (kbps) (default: 56)")
 
     parser.add_argument("-d", "--device",
                             dest='dev',
@@ -84,12 +90,6 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             type=str,
                             choices= ['?'] + interface_choices,
                             help="Debugging interface to use, use '?' for list")
-
-    parser.add_argument("-K", "--kbps",
-                            metavar="KB",
-                            dest='kbps',
-                            type=int,
-                            help="UPDI/PDI communication speed (kbps)")
 
     manage_choices : list [str] = ['all', 'none', 'bootrst', 'nobootrst', 'dwen', 'nodwen',
                           'ocden', 'noocden', 'lockbits', 'nolockbits', 'eesave', 'noeesave']
