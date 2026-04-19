@@ -122,7 +122,7 @@ class TestMemory(TestCase):
 
     def test_readmem_eeprom(self):
         self.set_up()
-        self.mem.dbg.device.read.return_value=bytearray([1,2,3])
+        self.mem.dbg.eeprom_read.return_value=bytearray([1,2,3])
         self.assertEqual(self.mem.readmem("810001", "3"), bytearray([1, 2, 3]))
 
     def test_readmem_flash_cached(self):
@@ -214,7 +214,7 @@ class TestMemory(TestCase):
 
     def test_writemem_eeprom(self):
         self.set_up()
-        self.mem.dbg.device.write.return_value = None
+        self.mem.dbg.eeprom_write.return_value = None
         self.assertEqual(self.mem.writemem("810002", bytearray([1,2,3])), "OK")
 
     def test_writemem_fuse(self):
@@ -360,12 +360,12 @@ class TestMemory(TestCase):
 
     def test_usig_read_ok(self):
         self.set_up()
-        self.mem.dbg.read_usig.return_value = bytearray([0x12])
+        self.mem.dbg.usig_read.return_value = bytearray([0x12])
         self.assertEqual(self.mem.usig_read(0x00,1), bytearray([0x12]))
 
     def test_usig_read_fail(self):
         self.set_up()
-        self.mem.dbg.read_usig.side_effect = FatalError("fail")
+        self.mem.dbg.usig_read.side_effect = FatalError("fail")
         self.assertEqual(self.mem.usig_read(0x00,1), bytearray([0xFF]))
 
     def test_fuse_write_ok(self):
@@ -390,10 +390,10 @@ class TestMemory(TestCase):
 
     def test_usig_write_ok(self):
         self.set_up()
-        self.mem.dbg.write_usig.return_value = None
+        self.mem.dbg.usig_write.return_value = None
         self.assertEqual(self.mem.usig_write(0x00, bytearray([0x12, 0x34])), None)
 
     def test_usig_write_fail(self):
         self.set_up()
-        self.mem.dbg.write_usig.side_effect = FatalError("fail")
+        self.mem.dbg.usig_write.side_effect = FatalError("fail")
         self.assertEqual(self.mem.usig_write(0x00, bytearray([0x12, 0x34])), 'E13')

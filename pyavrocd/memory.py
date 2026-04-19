@@ -139,10 +139,10 @@ class Memory():
             #  or self.dbg.get_iface() == 'debugwire':
             #    return(iaddr, self.sig_read, lambda *x: 'E13')
         if addr_section == "85":  # user signature
+            if self.dbg.get_iface() in ['jtag', 'updi']:
+                return(iaddr, self.usig_read, self.usig_write)
             self.logger.error("User signature cannot be accessed: request ignored")
             return (0, lambda addr, num: bytes([0xFF]*num), lambda *x: None)
-            #if self.dbg.get_iface() in ['jtag', 'updi']:
-            #    return(iaddr, self.usig_read, self.usig_write)
         self.logger.error("Illegal memtype in memory access operation at %s: %s",
                               addr, addr_section)
         return (0, lambda addr, num: bytes([0xFF]*num), lambda *x: 'E13')
@@ -441,58 +441,38 @@ class Memory():
                                     dev_name[self.dbg.device_info['device_id']]))
         self.logger.info("MCU signature read and verified")
 
-    def usig_read(self, addr : int, size : int) -> bytes:
+    def usig_read(self, address : int, numbytes : int) -> bytes:
         """
         Read contents of user signature (does not work with debugWIRE)
         """
         try:
-            resp : bytes = self.dbg.read_usig(addr, size)
+            return self.dbg.usig_read(address, numbytes, self.programming_mode)
         except Exception as e:
-            self.logger.error("Error reading the user signature: %s", e)
-            return bytearray([0xFF]*size)
-        return bytearray(resp)
+            self.logger.error("Error reading USER ROW: %s", e)
+            return bytearray([0xFF]*numbytes)
 
-    def usig_write(self, addr : int, data : bytes) -> str | None:
+
+    def usig_write(self, address : int, data : bytes) -> str | None:
         """
         Write user signature (does not work with debugWIRE)
         """
         try:
-            self.dbg.write_usig(addr, data)
+            return self.dbg.usig_write(address, data, self.programming_mode)
         except Exception as e:
-            self.logger.error("Error writing the user signature: %s", e)
+            self.logger.error("Error writing to USER ROW: %s", e)
             return 'E13'
-        return None
 
     def eeprom_read(self, address : int, numbytes : int) -> bytes:
         """
         Read EEPROM content from the AVR
         Needs to be handled here because depending on programm_mode, different memtypes have to be used
-
-        :param address: absolute address to start reading from
-        :param numbytes: number of bytes to read
         """
-        self.logger.debug("Reading %d bytes from EEPROM at %X", numbytes, address)
-        # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
-        # So the offset is subtracted here (and added later in the debugger)
-        if self.dbg.memory_info is None:
-            raise FatalError("No memory info available")
-        offset : int = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
-        return self.dbg.device.read(self.dbg.memory_info.memory_info_by_name('eeprom'), address-offset,
-                                        numbytes, self.programming_mode)
+        return self.dbg.eeprom_read(address, numbytes, self.programming_mode)
 
     def eeprom_write(self, address : int , data : bytes) -> None:
         """
         Write EEPROM content to the AVR
         Needs to be handled here because depending on programm_mode, different memtypes have to be used
-
-        :param address: absolute address in EEPROM to start writing
-        :param data: content to store to EEPROM
         """
-        self.logger.debug("Writing %d bytes to EEPROM at %X", len(data), address)
-        # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
-        # So the offset is subtracted here (and added later in the debugger)
-        if self.dbg.memory_info is None:
-            raise FatalError("No memory info available")
-        offset : int = (self.dbg.memory_info.memory_info_by_name('eeprom'))['address']
-        return self.dbg.device.write(self.dbg.memory_info.memory_info_by_name('eeprom'), address-offset,
-                                         data, self.programming_mode)
+        return self.dbg.eeprom_write(address, data, self.programming_mode)
+

@@ -35,16 +35,7 @@ from pyavrocd.deviceinfo.devices.alldevices import dev_name
 #pylint: disable=too-many-public-methods,too-many-instance-attributes
 class XAvrDebugger(AvrDebugger):
     """
-    AVR debugger wrapper
-
-    :param transport: transport object to communicate through
-    :type transport: object(hid_transport)
-    :param devicename: MCU device name
-    :type string
-    :param iface debugging interface to used
-    :type string
-    :param use_events_for_run_stop_state: True to use HID event channel, False to polling
-    :type use_events_for_run_stop_state: boolean
+    AVR debugger wrapper extension
     """
     #pylint: disable=super-init-not-called,too-many-positional-arguments
     def __init__(self, transport : HidTransportBase,
@@ -934,79 +925,6 @@ class XAvrDebugger(AvrDebugger):
         self.device.avr.protocol.reset()
         self._wait_for_break()
 
-    def read_fuse(self, addr : int, size : int) -> bytearray:
-        """
-        Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
-        """
-        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, size)
-
-    def read_fuse_one_byte(self, addr : int) -> bytearray:
-        """
-        Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
-        """
-        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, 1)
-
-
-    def write_fuse(self, addr : int, data : bytes) -> bytearray | None:
-        """
-        Write fuses (does not work with debugWIRE and in JTAG only in programming mode)
-        """
-        return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, data)
-
-    def read_lock(self, addr : int, size : int) -> bytearray:
-        """
-        Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
-        """
-        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, size)
-
-    def read_lock_one_byte(self) -> bytearray:
-        """
-        Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
-        """
-        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1)
-
-    def write_lock(self, addr : int , data : bytes) -> bytearray | None:
-        """
-        Write lock bits (does not work with debugWIRE and in JTAG only in programming mode)
-        """
-        return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, data)
-
-    def read_sig(self, addr : int, size : int) -> bytearray:
-        """
-        Read signature in a liberal way, i.e., throwing no errors
-        """
-        resp = self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
-        if size+addr > 3:
-            resp += [0xFF]*(addr+size)
-        return bytearray(resp[addr:addr+size])
-
-    def read_usig(self, addr : int, size : int) -> bytearray:
-        """
-        Read contents of user signature (does not work with debugWIRE)
-        """
-        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, size)
-
-    def write_usig(self, addr : int, data : bytes) -> bytearray | None:
-        """
-        Write user signature
-        """
-        return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE, addr, data)
-
-    def flash_read(self, address : int, numbytes : int, prog_mode : bool = False) -> bytearray:
-        """
-        Read flash content from the AVR
-
-        :param address: absolute address to start reading from
-        :param numbytes: number of bytes to read
-        :param prog_mode: optional, when False, FLASH_SPM is chosen, otherwise FLASH_PAGE
-        """
-        self.logger.debug("Reading %d bytes from flash at %X", numbytes, address)
-        # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
-        # However the address used here is already zero-offset, so no compensation is done here
-        if self.memory_info is None:
-            raise FatalError("No memory info available")
-        return self.device.read(self.memory_info.memory_info_by_name('flash'),
-                                    address, numbytes, prog_mode=prog_mode)
 
     def program_counter_read(self) -> int:
         """
@@ -1051,3 +969,111 @@ class XAvrDebugger(AvrDebugger):
         """
         self.device.avr.reactivate()
         self.reset()
+
+######## Memory read/write
+
+    def read_fuse(self, addr : int, size : int) -> bytearray:
+        """
+        Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
+        """
+        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, size)
+
+    def read_fuse_one_byte(self, addr : int) -> bytearray:
+        """
+        Read fuses (does not work with debugWIRE and in JTAG only when programming mode)
+        """
+        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, 1)
+
+    def write_fuse(self, addr : int, data : bytes) -> bytearray | None:
+        """
+        Write fuses (does not work with debugWIRE and in JTAG only in programming mode)
+        """
+        return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_FUSES, addr, data)
+
+    def read_lock(self, addr : int, size : int) -> bytearray:
+        """
+        Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
+        """
+        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, size)
+
+    def read_lock_one_byte(self) -> bytearray:
+        """
+        Read lock bits (does not work with debugWIRE and in JTAG only when in programming mode)
+        """
+        return self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, 0, 1)
+
+    def write_lock(self, addr : int , data : bytes) -> bytearray | None:
+        """
+        Write lock bits (does not work with debugWIRE and in JTAG only in programming mode)
+        """
+        return self.device.avr.memory_write(Avr8Protocol.AVR8_MEMTYPE_LOCKBITS, addr, data)
+
+    def read_sig(self, addr : int, size : int) -> bytearray:
+        """
+        Read signature in a liberal way, i.e., throwing no errors
+        """
+        resp = self.device.avr.memory_read(Avr8Protocol.AVR8_MEMTYPE_SIGNATURE, 0, 3)
+        if size+addr > 3:
+            resp += [0xFF]*(addr+size)
+        return bytearray(resp[addr:addr+size])
+
+    def flash_read(self, address : int, numbytes : int, prog_mode : bool = False) -> bytearray:
+        """
+        Read flash content from the AVR
+        """
+        self.logger.debug("Reading %d bytes from flash at %X", numbytes, address)
+        # The debugger protocols (via pymcuprog) use memory-types with zero-offsets
+        # However the address used here is already zero-offset, so no compensation is done here
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
+        return self.device.read(self.memory_info.memory_info_by_name('flash'),
+                                    address, numbytes, prog_mode=prog_mode)
+
+    def usig_read(self, address : int, numbytes : int, prog_mode : bool=False) -> bytes:
+        """
+        Read contents of user signature (does not work with debugWIRE)
+        """
+        self.logger.debug("Reading %d bytes from USER_ROW at 0x%X", numbytes, address)
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
+        return self.device.read(self.memory_info.memory_info_by_name('user_row'), address,
+                                        numbytes, prog_mode)
+
+
+    def usig_write(self, address : int, data : bytes, prog_mode : bool=False) -> str | None:
+        """
+        Write user signature (does not work with debugWIRE)
+        """
+        self.logger.debug("Writing %d bytes to USER_ROW at 0x%X", len(data), address)
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
+        result : str | None = self.device.write(
+                                         self.memory_info.memory_info_by_name('user_row'),
+                                         address,
+                                         data, prog_mode)
+        time.sleep(0.03) # 0.02 is strictly necessary, let's be conservative ...
+        return result
+
+
+    def eeprom_read(self, address : int, numbytes : int, prog_mode : bool=False) -> bytes:
+        """
+        Read EEPROM content from the AVR
+        Needs to be handled here because depending on programm_mode, different memtypes have to be used
+        """
+        self.logger.debug("Reading %d bytes from EEPROM at 0x%X", numbytes, address)
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
+        return self.device.read(self.memory_info.memory_info_by_name('eeprom'), address,
+                                        numbytes, prog_mode)
+
+    def eeprom_write(self, address : int , data : bytes, prog_mode : bool=False) -> None:
+        """
+        Write EEPROM content to the AVR
+        Needs to be handled here because depending on programm_mode, different memtypes have to be used
+        """
+        self.logger.debug("Writing %d bytes to EEPROM at 0x%X", len(data), address)
+        if self.memory_info is None:
+            raise FatalError("No memory info available")
+        return self.device.write(self.memory_info.memory_info_by_name('eeprom'), address,
+                                         data, prog_mode)
+

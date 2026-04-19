@@ -261,12 +261,12 @@ def setup_logging(args : argparse.Namespace, log_rsp : bool) -> None:
         getLogger('pyedbglib.hidtransport.hidtransportbase').setLevel(logging.CRITICAL)
         # suppress spurious error messages from pyedbglib
         getLogger('pyedbglib.protocols').setLevel(logging.CRITICAL)
-        # suppress errors of not connecting: It is intended!
-        getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
         # we do not want to see the "read flash" messages
         getLogger('pymcuprog.avr8target').setLevel(logging.ERROR)
         # we do not want to see the message 'Looking for ...' from getdeviceinfo
         getLogger('pymcuprog.deviceinfo.deviceinfo').setLevel(logging.ERROR)
+        # suppress errors of not connecting: It is intended!
+        #######getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
 
 #pylint: disable=too-many-branches
 def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tuple [None|int, str, str]:

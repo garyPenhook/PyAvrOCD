@@ -1,7 +1,7 @@
 """
 Device Specific Classes which use AVR8Protocol implementation
 """
-from typing import Any, Tuple
+from typing import Any
 
 import logging
 
@@ -33,55 +33,37 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         self._nvmcbase : int = device_info.get('nvmctrl_base', 0)
         self._syscbase : int = device_info.get('syscfg_base', 0)
 
-    # The next two methods redirect reading/writing of special memory types to reading/writing of SRAM
     def memory_read(self, memory_name : int, start_address : int, numbytes : int) -> bytearray:
         """
         Read device memory
-
-        :param memory_name: Memory type identifier as defined in the protocol
-        :type memory_name: int
-        :param start_address: First address to read
-        :type start_address: int
-        :param numbytes: Number of bytes to read
-        :type numbytes: int
-        :returns: Data read out
-        :rtype: bytearray
         """
-        data : bytearray = self.protocol.memory_read(*self._mem_transform(memory_name, start_address), numbytes)
-        self.protocol.memory_read(memory_name, start_address, numbytes)
-        self.logger_loc.debug("Reading from address 0x%X in memory area 0x%X %d bytes",
-                                  start_address, memory_name, numbytes)
-        self.logger_loc.debug("Correct API call: [ %s ]", ",".join(format(byte, '02x') for byte in
-                                  self.protocol.memory_read(memory_name, start_address, numbytes)))
-        self.logger_loc.debug("Transformed API call: [ %s ]", ",".join(format(byte, '02x') for byte in data))
+        data : bytearray = self.protocol.memory_read(memory_name,
+                                self._addr_transform(memory_name, start_address), numbytes)
+        self.logger_loc.debug("Read %d bytes on transformed addr 0x%X", numbytes,
+                                  self._addr_transform(memory_name, start_address))
         return data
 
     def memory_write(self, memory_name : int, start_address : int , data : bytes) -> bytearray | None:
         """
         Write device memory
-
-        :param memory_name: Memory type identifier as defined in the protocol
-        :type memory_name: int
-        :param start_address: First address to write
-        :type start_address: int
-        :param data: Data to write
-        :type data: bytearray
         """
-        return self.protocol.memory_write(*self._mem_transform(memory_name, start_address), data)
+        self.logger_loc.debug("Writing %d bytes to transformed address 0x%X", len(data),
+                                  self._addr_transform(memory_name, start_address))
+        return self.protocol.memory_write(memory_name, self._addr_transform(memory_name, start_address), data)
 
-    def _mem_transform(self, memory_name : int, start_address : int) -> Tuple[ int, int ]:
+    def _addr_transform(self, memory_name : int, start_address : int) -> int:
         """
-        Transforms memory type to another one and changes start_address on the way
+        Transforms start_address
         """
         if memory_name == Avr8Protocol.AVR8_MEMTYPE_FUSES:
-            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._fusebase)
+            return start_address + self._fusebase
         if memory_name == Avr8Protocol.AVR8_MEMTYPE_LOCKBITS:
-            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._lockbase)
+            return start_address + self._lockbase
         if memory_name == Avr8Protocol.AVR8_MEMTYPE_SIGNATURE:
-            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._sigbase)
+            return start_address + self._sigbase
         if memory_name == Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE:
-            return (Avr8Protocol.AVR8_MEMTYPE_SRAM, start_address + self._usbase)
-        return (memory_name, start_address)
+            return start_address + self._usbase
+        return start_address
 
 
     # The next two methods are needed because different targets access the registers

@@ -45,10 +45,11 @@ class MonitorCommand():
     the right action. The return value of the dispatch method is
     a pair consisting of an action identifier and the string to be displayed.
     """
-    def __init__(self, iface : str, args : argparse.Namespace, toolname : str) -> None:
+    def __init__(self, iface : str, args : argparse.Namespace, toolname : str, arch : str) -> None:
         self._iface : str = iface
         self._debugger_active : bool = False
         self._toolname : str = toolname
+        self._arch : str = arch
         self._debugger_activated_once : bool = False
         self.logger : logging.Logger = logging.getLogger('pyavrocd.monitor')
         # state variables (will be set by set_default_values)
@@ -103,7 +104,7 @@ class MonitorCommand():
         """
         Set state variables to default values.
         """
-        self._leaveonexit = (self._iface == 'debugwire' and self._args.atexit and \
+        self._leaveonexit = (self._iface == 'debugwire' and bool(self._args.atexit) and \
                                  self._args.atexit[0] == 'l') or \
                             (self._iface != 'debugwire' and (self._args.atexit is None or \
                                  self._args.atexit[0] != 's'))
@@ -114,23 +115,25 @@ class MonitorCommand():
         self._cache = self._args.caching[0] != 'd'           # default: caching enabled
         self._erase_before_load = (self._iface == 'jtag' and self._args.erasebeforeload is None) or \
                                   (self._iface == 'jtag' and self._args.erasebeforeload[0] != 'd') or \
-                                  (self._args.erasebeforeload and self._args.erasebeforeload[0] == 'e')
+                                  (bool(self._args.erasebeforeload) and self._args.erasebeforeload[0] == 'e')
                                                              # default: enable on jtag targets
         self._read_before_write = (self._iface in ['debugwire', 'updi'] and \
                                        (not self._args.load or self._args.load[0] != 'w')) or \
-                                       (self._args.load and self._args.load[0] in ['r', 'n'])
+                                       (bool(self._args.load) and self._args.load[0] in ['r', 'n'])
                                                              # default: readbeforewrite when
                                                              # debugWIRE or updi, otherwise: writeonly
-        self._only_cache = self._args.load and self._args.load[0] == 'n'
+        self._only_cache = bool(self._args.load) and self._args.load[0] == 'n'
                                                              # 'noinitialload' only if requested
-        self._noload = (self._args.onlywhenloaded and self._args.onlywhenloaded[0] == 'd') or \
-                         (self._args.attach and \
+        self._noload = (bool(self._args.onlywhenloaded) and self._args.onlywhenloaded[0] == 'd') or \
+                         (bool(self._args.attach) and \
                               (self._args.onlywhenloaded is None or \
                                    self._args.onlywhenloaded[0] != 'e'))
                                                              # default: onlywhenloaded enable (when not --attach)
         self._range = self._args.rangestepping[0] != 'd'     # default: rangestepping enable
         self._safe = self._args.singlestep[0] != 'i'         # default: singlestep safe
-        self._timersfreeze = self._args.timers[0] == 'f'     # default: timers run
+        self._timersfreeze = (self._args.timers[0] == 'f') or \
+                             (self._arch == 'avr8x')         # default: timers run, except for (U)PDI targets
+
         self._verify = self._args.verify[0] != 'd'           # default: verify enable
         self._power = True
         self._old_exec = False
@@ -477,6 +480,8 @@ Timers:                   """ + ("frozen when stopped"
         return self._mon_unknown_arg(0)
 
     def _mon_timers(self, optix : int) -> tuple[ str, str ]:
+        if self._arch == 'avr8x':
+            return("", "On (U)PDI targets, timers are frozen when execution is stopped")
         if optix == 2 or (optix == 0 and self._timersfreeze is True):
             self._timersfreeze = True
             resp = "Timers are frozen when execution is stopped"

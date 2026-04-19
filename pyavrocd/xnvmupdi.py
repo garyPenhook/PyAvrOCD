@@ -39,6 +39,7 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         NvmAccessProviderCmsisDapAvr.__init__(self, device_info)
         self.avr : AvrDevice = XTinyXAvrTarget(transport, device_info=device_info)
         self.logger_local.debug("manage=%s", self.manage)
+        self.options : dict[ str, Any ] = {} # necessary for USER_ROW writing
 
     def read(self, memory_info : dict[ str, Any ], offset : int,
                  numbytes : int, prog_mode : bool=False) -> bytearray:
@@ -69,7 +70,71 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
         The super class will handle it
         """
         _dummy = prog_mode
-        super().write(memory_info, offset, data)
+        #super().write(memory_info, offset, data)
+
+######################################################################################################
+        #Here we have the real routine because of the USER_ROW pagealing bug.
+        memtype_string = memory_info[DeviceMemoryInfoKeys.NAME]
+        memtype = self.avr.memtype_write_from_string(memtype_string)
+        if memtype == 0:
+            msg = "Unsupported memory type: {}".format(memtype_string)
+            self.logger.error(msg)
+            raise PymcuprogError(msg)
+
+        if memtype_string not in [MemoryNames.EEPROM, MemoryNames.USER_ROW]:
+            # For UPDI parts single byte access is enabled for EEPROM so no need to align to page boundaries
+            # Same for USER_ROW!
+            self.logger.debug("Aligning!")
+            data_to_write, address = utils.pagealign(data,
+                                                     offset,
+                                                     memory_info[DeviceMemoryInfoKeys.PAGE_SIZE],
+                                                     memory_info[DeviceMemoryInfoKeys.WRITE_SIZE])
+        else:
+            data_to_write = data
+            address = offset
+
+        if memtype_string != MemoryNames.FLASH:
+            # Flash is offset by the debugger config
+            address += memory_info[DeviceMemoryInfoKeys.ADDRESS]
+
+        allow_blank_skip = False
+        if memtype_string in MemoryNames.FLASH:
+            allow_blank_skip = True
+
+        user_row_write_locked_device = (memtype_string == MemoryNames.USER_ROW) and \
+            ('user-row-locked-device' in self.options and self.options['user-row-locked-device'])
+
+        if memtype_string in (MemoryNames.FLASH, MemoryNames.EEPROM, MemoryNames.FUSES, MemoryNames.LOCKBITS) or \
+            user_row_write_locked_device:
+            # For Flash we have to write exactly one page but for EEPROM we could write less than one page,
+            # but not more.  For fuses and lockbits only one byte at a time can be written.
+            # For user row on a locked device exactly one page must be written
+            write_chunk_size = memory_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+            if memtype_string != MemoryNames.EEPROM:
+                data_to_write = utils.pad_to_size(data_to_write, write_chunk_size, 0xFF)
+        else:
+            write_chunk_size = len(data_to_write)
+
+        self.logger.debug("Writing %d bytes of data in chunks of %d bytes to %s...",
+                         len(data_to_write),
+                         write_chunk_size,
+                         memory_info[DeviceMemoryInfoKeys.NAME])
+
+        first_chunk_size = write_chunk_size - address%write_chunk_size
+        self.avr.write_memory_section(memtype,
+                                      address,
+                                      data_to_write[:first_chunk_size],
+                                      write_chunk_size,
+                                      allow_blank_skip=allow_blank_skip)
+        address += first_chunk_size
+        if len(data_to_write) > first_chunk_size:
+            self.avr.write_memory_section(memtype,
+                                          address,
+                                          data_to_write[first_chunk_size:],
+                                          write_chunk_size,
+                                          allow_blank_skip=allow_blank_skip)
+######################################################################################################
+
 
     def erase_page(self, pageaddr : int, memory_info: dict[ str, Any ], prog_mode : bool) -> bool:
         """
@@ -138,3 +203,4 @@ class XNvmAccessProviderCmsisDapUpdi(NvmAccessProviderCmsisDapUpdi):
 
         # Return the raw signature bytes, but swap the endianness as target sends ID as Big endian
         return bytearray([sig[2], sig[1], sig[0]])
+
