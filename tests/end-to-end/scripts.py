@@ -243,13 +243,13 @@ all_scripts = {
 
 # set/read memory cells (huge MCUs, some ram at 0x200)
     "updipeekpoke" : (
-    ('huge', 'medium', 'large', 'small', 'updi', 'noadc', 'nonarduino', 
+    ('huge', 'medium', 'large', 'small', 'updi', 'noadc', 'nonarduino',
          'noautopc'),
     "",
     "",
     "",
     (("set logging file log/peekpoke.log", ""),) + prolog + \
-    (("set {char}0x800000=0xcd",""), 
+    (("set {char}0x800000=0xcd",""),
      ("set {char}0x800001=0xab",""),
      ("x/hx 0x800000", "0x800000:\t0xabcd"), # virtual port A / not general registers!
      ("info reg r1","r1             0x0"),

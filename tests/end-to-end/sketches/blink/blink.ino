@@ -4,7 +4,7 @@
 volatile byte cycle = 0; // cycle counter
 volatile unsigned long privmillis = 0;
 
-#ifdef TCB0_INT_vect // Modern MCU 
+#ifdef TCB0_INT_vect // Modern MCU
 // Set up TCB0 for periodic interrupt
 // Define the ISR
 ISR(TCB0_INT_vect) {
@@ -82,7 +82,7 @@ void setup() {
   TCCR0B = 0x02;         // set prescaler 8 on slow ATtinys
 #endif
 #endif
-#endif 
+#endif
   // now force that the interrupt is actually used
   volatile unsigned long start = millis();
   start += 100;
