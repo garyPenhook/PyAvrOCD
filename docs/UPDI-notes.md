@@ -2,7 +2,7 @@
 
 ## EEPROM
 
-EEPROM access does not work - check! 
+EEPROM access does not work - check!
 
 The problem was that I had copied over the subtraction of the memory segment starting from the SRAM access in the avrdebugger module (without understanding it).  For JTAG and dw, it did not make a difference. However, for UPDI it makes a big difference. Here, we have to add it!
 

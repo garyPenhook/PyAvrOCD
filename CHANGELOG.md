@@ -6,7 +6,7 @@
      - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.
      - Now, `sram_masked_read` and `sram_masked_write` will read from registers/write to registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
      - EEPROM read/write works now after deleting the erroneous subtraction of the EEPROM segment start address in `eeprom_read/write` in the memory module.
-     - USER_ROW write works now correctly after eliminating the page-alignment in the `write` method of  `XNvmAccessProviderCmsisDapUpdi`, *and* a short wait was introduced `using_write` in `XAvrDebugger`. 
+     - USER_ROW write works now correctly after eliminating the page-alignment in the `write` method of  `XNvmAccessProviderCmsisDapUpdi`, *and* a short wait was introduced `using_write` in `XAvrDebugger`.
      - The monitor option `erasebeforeload` behaved strangely. All possible `None` values in `set_default_state` in `Monitor` are now normalized to `bool` in order to avoid the problem of testing them later for True and False.
 - **Added:**
      - UPDI functionality
