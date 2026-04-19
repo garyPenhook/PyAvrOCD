@@ -1,6 +1,3 @@
-
-BAUD  = 9600UL
-
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
@@ -14,7 +11,7 @@ OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
 ## Compilation options, type man avr-gcc if you're curious.
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I.
+CPPFLAGS = -DF_CPU=$(F_CPU) -I.
 CFLAGS = -Og -ggdb3 -std=gnu99 -Wall
 ## Use short (8-bit) data types
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
@@ -54,7 +51,7 @@ all:	$(TARGET).hex
 debug:
 	@echo
 	@echo "Source files:"   $(SOURCES)
-	@echo "MCU, F_CPU, BAUD:"  $(MCU), $(F_CPU), $(BAUD)
+	@echo "MCU, F_CPU:"  $(MCU), $(F_CPU)
 	@echo
 
 fresh:

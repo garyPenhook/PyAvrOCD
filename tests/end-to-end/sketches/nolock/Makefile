@@ -12,3 +12,4 @@ fresh:
 	- avrdude -c xplainedpro -p $(MCU) -e -U lock:w:0x00:m
 	- avrdude -c xplainedmini -p $(MCU) -e -U lock:w:0x00:m
 	- avrdude -c arduino_as_isp -p $(MCU) -e -P $(PORT) -U lock:w:0x00:m
+	- avrdude -c pkobn_updi -p $(MCU) -e -U lock:w:0x00:m

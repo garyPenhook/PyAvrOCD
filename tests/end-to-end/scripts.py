@@ -243,40 +243,39 @@ all_scripts = {
 
 # set/read memory cells (huge MCUs, some ram at 0x200)
     "updipeekpoke" : (
-    ('huge', 'medium', 'large', 'small', 'updi', 'noadc', 'nonarduino', 'noautopc',
+    ('huge', 'medium', 'large', 'small', 'updi', 'noadc', 'nonarduino', 
          'noautopc'),
     "",
     "",
     "",
     (("set logging file log/peekpoke.log", ""),) + prolog + \
-    (("set {char}0x800000=0xcd",""),
+    (("set {char}0x800000=0xcd",""), 
      ("set {char}0x800001=0xab",""),
-     ("x/hx 0x800000", "0x800000:\t0xabcd"),
+     ("x/hx 0x800000", "0x800000:\t0xabcd"), # virtual port A / not general registers!
      ("info reg r1","r1             0x0"),
      ("set {char}0x800001=0x56",""),
      ("set $r1=0x8c",""),
-     ("info reg r1","r1             0x8c"),
-     ("x/bx 0x800001","0x800001:\t0x56"),
-     ("set {char}0x80003F=0x1F",""),
+     ("info reg r1","r1             0x8c"),  # general registers
+     ("x/bx 0x800001","0x800001:\t0x56"),    # versus virtual port A
+     ("set {char}0x80003F=0x1F",""),         # SREG
      ("info reg SREG","SREG           0x1f"),
      ("x/bx 0x80003F","0x80003f:\t0x1f"),
      ("set $SREG=0xF1",""),
      ("x/bx 0x80003F","0x80003f:\t0xf1"),
-     #We cannot set the SP because GDB will then send ton's of m-records
-     #("set $SP=0x123",""),
-     #("monitor onlywhenloaded disable",""),
-     #("si",""),
-     #("x/hx 0x80003D","0x80003d:	0x0123"),
-     #("info reg SP","SP             0x123"),
-     #("set {int}0x80003D=0x00FF",""),
-     #("si",""),
-     #("info reg SP","SP             0xff"),
-     ("set {char}0x802800=0x34",""),
+     ("set $SP=0xFFFF",""),                  # SP
+     ("print $SP==(*0x80003D+0x800000)", " = 1", " = true"),
+     ("set {char}0x802800=0x34",""),         # internal SRAM
      ("set {char}0x802801=0x12",""),
      ("x/hx 0x802800", "0x802800:\t0x1234"),
-     ("set {char}0x810000=0xdc",""),
+     ("set {char}0x810000=0xdc",""),         # EEPROM
      ("set {char}0x810001=0xfe",""),
-     ("x/hx 0x810000", "0x810000:\t0xfedc")) + epilog),
+     ("x/hx 0x810000", "0x810000:\t0xfedc"),
+     ("x/hx 0x801400", "0x801400:\t0xfedc"), # EEPROM addressed through data space
+     ("set {char}0x850000=0x56",""),         # USER ROW
+     ("set {char}0x850001=0x34",""),
+     ("x/hx 0x850000", "0x850000:\t0x3456"),
+     ("x/hx 0x801300", "0x801300:\t0x3456"), # USER ROW addressed through data space
+     ) + epilog),
 
 
 # Tests all ways how signals are raised
@@ -414,7 +413,7 @@ all_scripts = {
      ("load", "Start address 0x"),
      ("break Vcc.cpp:Vcc::setIntref", "Breakpoint 1"),
      ("cont", ""),
-     ("p intref", "$1 = 1"),
+     ("p intref", "$1 = 1", "$1 = 550"),
      ("fin", "result ="),
      ("next", "if (result"),
      ("p result", "$2 = "),
@@ -478,6 +477,7 @@ all_scripts = {
          "Not implemented"),
      ("monitor erasebeforeload",
          "Flash memory will be erased before loading executable",
+         "Flash memory will not be erased before loading executable",
          "On debugWIRE targets, flash memory cannot be erased before loading executable",
          "Not implemented"),
      ("monitor erasebeforeload disable",
@@ -513,11 +513,16 @@ all_scripts = {
      ("monitor onlywhenloaded", "Execution is always possible"),
      ("monitor onlywhenloaded enable", "Execution is only possible after a previous load command"),
      ("monitor onlywhenloaded", "Execution is only possible after a previous load command"),
-     ("monitor timers", "Timers will run when execution is stopped"),
-     ("monitor timers freeze", "Timers are frozen when execution is stopped"),
-     ("monitor timers", "Timers are frozen when execution is stopped"),
-     ("monitor timers run", "Timers will run when execution is stopped"),
-     ("monitor timers", "Timers will run when execution is stopped"),
+     ("monitor timers", "Timers will run when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
+     ("monitor timers freeze", "Timers are frozen when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
+     ("monitor timers", "Timers are frozen when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
+     ("monitor timers run", "Timers will run when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
+     ("monitor timers", "Timers will run when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
      ("monitor singlestep",  "Single-stepping is interrupt-safe"),
      ("monitor singlestep interruptible",  "Single-stepping is interruptible"),
      ("monitor singlestep",  "Single-stepping is interruptible"),
@@ -551,12 +556,13 @@ all_scripts = {
      ("monitor onlywhenloaded", "Execution is always possible"),
      ("monitor rangestepping", "Range stepping is disabled", "No range stepping"),
      ("monitor singlestep interruptible",  "Single-stepping is interruptible"),
-     ("monitor timers", "Timers are frozen when execution is stopped"),
+     ("monitor timers", "Timers are frozen when execution is stopped",
+          "On (U)PDI targets, timers are frozen when execution is stopped"),
      ("monitor verify", "Load operations are not verified")) + epilog),
 
 # test timer settings
     "timers" : (
-    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
+    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'arduino', 'noadc',
          'noautopc'),
     "timers",
     "",

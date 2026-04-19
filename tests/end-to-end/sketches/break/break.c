@@ -3,12 +3,18 @@
 // In the end stop on a break instruction and do not continue
 #include <avr/io.h>
 #include <util/delay.h>
+
 #include "../includes/ledpindefs.h"
 
 #define DELAYTIME 200
 
+#if __AVR_ARCH__ == 103  // UPDI
+#define setBit(reg, mask)    reg |= mask
+#define clearBit(reg, mask)  reg &= ~mask
+#else
 #define setBit(sfr, bit)     (_SFR_BYTE(sfr) |= (1 << bit))
 #define clearBit(sfr, bit)   (_SFR_BYTE(sfr) &= ~(1 << bit))
+#endif
 
 void breakop() {
   asm("break");
@@ -16,7 +22,6 @@ void breakop() {
 
 int main(void) {
 
-  // Init
   setBit(LED1_DDR, LED1);                      /* set LED pin for output */
   setBit(LED2_DDR, LED2);                      /* set LED pin for output */
   setBit(LED1_PORT, LED1);

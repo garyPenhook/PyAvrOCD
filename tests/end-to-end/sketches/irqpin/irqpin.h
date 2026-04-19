@@ -74,5 +74,10 @@
 #elif defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__)
 #define IRQPIN 3
 #else
-#error "MCU not supported"
+#define IRQPIN 3
+//#error "MCU not supported"
+#endif
+
+#ifndef digitalPinToInterrupt
+#define digitalPinToInterrupt(p) (p)
 #endif

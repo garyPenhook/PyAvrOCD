@@ -13,14 +13,14 @@ void setup()
 #endif
   pinMode(IRQPIN, OUTPUT);
   digitalWrite(IRQPIN, LOW);
-  attachInterrupt(0, irqserver, LOW);
+  attachInterrupt(digitalPinToInterrupt(IRQPIN), irqserver, LOW);
 }
 
 void loop()
 {
   int pcount;
-  digitalWrite(IRQPIN, LOW);
-  shortwait(1);
+  //digitalWrite(IRQPIN, LOW);
+  shortwait(5);
   outsidecount++;
   digitalWrite(IRQPIN, HIGH);
   delay(200); // necessary to give enough time for printing!

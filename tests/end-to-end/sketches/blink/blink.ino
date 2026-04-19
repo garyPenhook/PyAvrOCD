@@ -4,6 +4,15 @@
 volatile byte cycle = 0; // cycle counter
 volatile unsigned long privmillis = 0;
 
+#ifdef TCB0_INT_vect // Modern MCU 
+// Set up TCB0 for periodic interrupt
+// Define the ISR
+ISR(TCB0_INT_vect) {
+  // Your code here
+  TCB0.INTFLAGS = TCB_CAPT_bm;    // Clear the interrupt flag
+  irq_routine();
+}
+#else // Classic MCU
 #ifdef TIM0_COMPA_vect
 ISR(TIM0_COMPA_vect)
 #elif defined(TIMER0_COMPA_vect)
@@ -11,15 +20,17 @@ ISR(TIMER0_COMPA_vect)
 #else
 ISR(TIMER0_COMP_vect)
 #endif
+
 {
   irq_routine();
 }
+#endif
 
 void irq_routine(void) {
   if (cycle < 5)
     privmillis += (16000000UL/F_CPU);
   else
-    privmillis += (16000000UL/F_CPU); // time is 5 times faster!
+    privmillis += (16000000UL/F_CPU)*5; // time is 5 times faster!
 }
 
 unsigned long mymillis(void) {
@@ -43,9 +54,16 @@ void test_cycle() {
 
 void setup() {
   LedInit();   // initialize digital pin LED as an output.
+
+#ifdef TCB0 // Modern MCU
+  TCB0.CTRLB = TCB_CNTMODE_INT_gc;  // Periodic interrupt mode
+  TCB0.CCMP = F_CPU/1000;           // Set interval for one milli second
+  TCB0.INTCTRL = TCB_CAPT_bm;       // Enable interrupt
+  TCB0.CTRLA = TCB_ENABLE_bm;       // Enable timer
+#else      // Classic MCU
 #ifdef OCR0A
   OCR0A = 0x80;           // prepare for having a COMPA interrupt
-#else
+#elif
   OCR0 = 0x80;           // prepare for having a COMP interrupt
 #endif
 #ifdef TIMSK
@@ -64,6 +82,7 @@ void setup() {
   TCCR0B = 0x02;         // set prescaler 8 on slow ATtinys
 #endif
 #endif
+#endif 
   // now force that the interrupt is actually used
   volatile unsigned long start = millis();
   start += 100;

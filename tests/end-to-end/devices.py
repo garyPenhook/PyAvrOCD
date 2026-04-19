@@ -5,6 +5,10 @@ micro_clock = {'1.2' : ('1M2', '1200000UL'), '9.6' : ('9M6', '9600000UL'),
 mini_clock = {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
       '8' : ('8MHz_internal', '8000000UL'),
       '16' : ('16MHz_external', '16000000UL')}
+updi_clock = {'1' : ('internal_1MHz', '1000000UL'), '4' : ('internal_4MHz', '4000000UL'),
+      '8' : ('internal_8MHz', '8000000UL'),
+      '16' : ('internal_16MHz', '16000000UL'),
+      '20' : ('internal_20MHz', '20000000UL')}
 attiny_rc_clock = {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
       '8' : ('8MHz_internal', '8000000UL')}
 attiny_clock = mini_clock
@@ -219,8 +223,8 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                    "Leonardo"),
 
                 # UPDI targets: MegaCoreX
-                "atmega4809": (mini_clock, ('large', 'updi'),
-                                   "MegaCoreX:megaavr:4809,bootloader=no_bootloader,clock=",
+                "atmega4809": (updi_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:4809:bootloader=no_bootloader,clock=",
                                    "Curiosity Nano or Uno WiFi Rev2 or Nano Every")
 
 
