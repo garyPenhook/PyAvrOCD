@@ -122,7 +122,7 @@ def main():
                 compiled += [ script[1] ]
         tests_done += 1
         with open("pyavrocd.options", "w", encoding='utf-8') as f:
-            f.write("\n".join(['-d', args.dev, '-m', 'all'] + script[3].split(" ")))
+            f.write("\n".join(['-d', args.dev, '-m', 'all', '-C', '400'] + script[3].split(" ")))
         sleep(1)
         if not run_script(logger, sn, script):
             logger.error("Failed to run script '%s'", sn)
