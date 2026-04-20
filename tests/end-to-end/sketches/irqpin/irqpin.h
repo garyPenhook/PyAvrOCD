@@ -7,7 +7,7 @@
 #elif defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
 #define IRQPIN 8
 #elif defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__)
-#define IRQPIN 1
+#define IRQPIN 9 // using clock-wise mapping
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define IRQPIN 2
 #elif defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny461__) || defined(__AVR_ATtiny861__)
@@ -74,5 +74,10 @@
 #elif defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__)
 #define IRQPIN 3
 #else
-#error "MCU not supported"
+#define IRQPIN 7
+//#error "MCU not supported"
+#endif
+
+#ifndef digitalPinToInterrupt
+#define digitalPinToInterrupt(p) (p)
 #endif

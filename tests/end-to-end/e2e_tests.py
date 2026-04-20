@@ -30,7 +30,7 @@ def main():
                             type=str,
                             dest='clock',
                             help='MCU clock frequency in MHz',
-                            choices=['1', '8', '16', '1.2', '9.6', 'none' ],
+                            choices=['1', '8', '4', '16', '16i', '1.2', '9.6', 'none' ],
                             required=True)
     parser.add_argument('-d', '--device',
                             type=str,
@@ -105,9 +105,10 @@ def main():
                 if os.path.exists("sketches/" + script[1] + "/" + script[1] + ".ino"): # Arduino sketch
                     logger.info("Compile '%s.ino' for '%s' clock on %s", script[1], args.clock, mcu_name)
                     cmd = "arduino-cli compile -b " + fqbn + aclock + \
-                    ' -e --build-property="compiler.c.extra_flags=-Og -ggdb3 ' + script[2] + '"' + \
-                    ' --build-property="compiler.cpp.extra_flags=-Og -ggdb3 ' + script[2] + '" --output-dir ' + \
-                    "sketches/" + script[1] + " sketches/" + script[1]
+                    ' -e --build-property="compiler.c.extra_flags=-Og -ggdb3 -fno-lto ' + script[2] + '"' +\
+                    ' --build-property="compiler.c.elf.extra_flags=-Og -ggdb3 -fno-lto ' + script[2] + '"'+\
+                    ' --build-property="compiler.cpp.extra_flags=-Og -ggdb3 -fno-lto ' + script[2] + \
+                    '" --output-dir ' + "sketches/" + script[1] + " sketches/" + script[1]
                 else: # C/C++-program
                     logger.info("Compile C/C++ program '%s' for clock '%s' on %s", script[1], args.clock, mcu_name)
                     cmd = "make -C sketches/" + script[1] + " PORT=" + args.port + " MCU=" + \
@@ -121,7 +122,7 @@ def main():
                 compiled += [ script[1] ]
         tests_done += 1
         with open("pyavrocd.options", "w", encoding='utf-8') as f:
-            f.write("\n".join(['-d', args.dev, '-m', 'all'] + script[3].split(" ")))
+            f.write("\n".join(['-d', args.dev, '-m', 'all', '-C', '400'] + script[3].split(" ")))
         sleep(1)
         if not run_script(logger, sn, script):
             logger.error("Failed to run script '%s'", sn)
@@ -170,15 +171,19 @@ def run_script(logger, test_name, script):
             sleep(interact[1])
             ix += 1
             continue
-        if interact[0] == "$SUCCESS_IF":
-            if last_response.find(interact[1]) >= 0: # preliminary success / skip
+        if interact[0] == "$SUCCESS_IF": # preliminary success / skip
+            if last_response.find(interact[1]) >= 0 or \
+               (len(interact) > 2 and last_response.find(interact[2]) >= 0) or \
+               (len(interact) > 3 and last_response.find(interact[3]) >= 0):
                 child.close()
                 print("SKIP")
                 return True
             ix += 1
             continue
-        if interact[0] == "$FAIL_IF":
-            if last_response.find(interact[1]) >= 0: # preliminary failure
+        if interact[0] == "$FAIL_IF": # preliminary failure
+            if last_response.find(interact[1]) >= 0 or \
+               (len(interact) > 2 and last_response.find(interact[2]) >= 0) or \
+               (len(interact) > 3 and last_response.find(interact[3]) >= 0):
                 logger.debug("FAILED: %s in line %s because '%s' was not expected",  test_name, ix-1, interact[1])
                 child.close()
                 print("FAIL")

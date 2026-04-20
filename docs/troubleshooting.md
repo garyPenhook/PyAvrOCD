@@ -37,6 +37,10 @@ When using *debugWIRE*, the communication speed is severely limited from the beg
 
 This happens when the line marked to be stopped at does not contain any machine code. The problem gets worse when the switch `Optimize for Debugging` in the Arduino IDE 2 is not activated or, if you are working in a CLI environment, you did not use the `-Og` compiler option.
 
+### When single-stepping, execution jumps around
+
+Probably the same reason as above.
+
 ### Single-stepping takes forever
 
 You requested a single step, and the debugger seems to take forever to complete this single step. There are two possible causes. First, when single-stepping a SLEEP instruction, the MCU will go into sleep mode. The debugger will return from it, either when an interrupt wakes up the MCU or when you interrupt execution using Ctrl-C. Second, [single-steping a source code line that contains an (implicit) loop](limitations.md#single-stepping-lines-containing-loops) can lead to a severe slowdown. In order to recover, interrupt execution, set a breakpoint somewhere after this line, and then request to continue execution.

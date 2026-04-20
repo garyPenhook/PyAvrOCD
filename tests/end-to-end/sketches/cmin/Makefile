@@ -4,9 +4,7 @@ OBJDUMP = avr-objdump
 AVRSIZE = avr-size
 AVRDUDE = avrdude
 
-## The name of your project (without the .c)
-# TARGET = blinkLED
-## Or name it automatically after the enclosing directory
+## Name it automatically after the enclosing directory
 TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 # Object files: will find all .c/.h files in current directory
@@ -32,6 +30,8 @@ LDFLAGS += -Wl,--gc-sections
 ## LDFLAGS += -Wl,-u,vfprintf -lprintf_min      ## for smaller printf
 TARGET_ARCH = -mmcu=$(MCU)
 
+## Explicit pattern rules:
+##  To make .o files from .c files
 %.o: %.c $(HEADERS) Makefile
 	 $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<;
 
@@ -59,10 +59,14 @@ debug:
 	@echo
 
 fresh:
-	make squeaky_clean
+	make clean
 	make all
 	make disasm
 
+# Optionally create listing file from .elf
+# This creates approximate assembly-language equivalent of your code.
+# Useful for debugging time-sensitive bits,
+# or making sure the compiler does what you want.
 disassemble: $(TARGET).lst
 
 disasm: disassemble
@@ -80,11 +84,46 @@ clean:
 squeaky_clean:
 	rm -f *.elf *.hex *.obj *.o *.d *.eep *.lst *.lss *.sym *.map *~ *.eeprom
 
+##########------------------------------------------------------##########
+##########              Programmer-specific details             ##########
+##########           Flashing code to AVR using avrdude         ##########
+##########------------------------------------------------------##########
+
 flash: $(TARGET).hex
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U flash:w:$<
 
 ## An alias
 program: flash
+
+flash_eeprom: $(TARGET).eeprom
+	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U eeprom:w:$<
+
+avrdude_terminal:
+	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -nt
+
+## If you've got multiple programmers that you use,
+## you can define them here so that it's easy to switch.
+## To invoke, use something like `make flash_arduinoISP`
+flash_usbtiny: PROGRAMMER_TYPE = usbtiny
+flash_usbtiny: PROGRAMMER_ARGS =  # USBTiny works with no further arguments
+flash_usbtiny: flash
+
+flash_usbasp: PROGRAMMER_TYPE = usbasp
+flash_usbasp: PROGRAMMER_ARGS =  # USBasp works with no further arguments
+flash_usbasp: flash
+
+flash_arduinoISP: PROGRAMMER_TYPE = avrisp
+flash_arduinoISP: PROGRAMMER_ARGS = -b 19200 -P /dev/ttyACM0
+## (for windows) flash_arduinoISP: PROGRAMMER_ARGS = -b 19200 -P com5
+flash_arduinoISP: flash
+
+flash_109: PROGRAMMER_TYPE = avr109
+flash_109: PROGRAMMER_ARGS = -b 9600 -P /dev/ttyUSB0
+flash_109: flash
+
+##########------------------------------------------------------##########
+##########       Fuse settings and suitable defaults            ##########
+##########------------------------------------------------------##########
 
 ## Mega 48, 88, 168, 328 default values
 LFUSE = 0x62

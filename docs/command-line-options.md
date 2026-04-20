@@ -10,16 +10,18 @@ PyAvrOCD will then look for a debug probe, establish a connection to it, and wai
 
 If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, the command line options may be interesting to you because you may want to change some of them using a [configuration file](install-link.md#configuration).
 
-## Command line options
+## Command-line options
 
 | Option&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `--help`<br/> `-h`                                           | Gives help text and exits.                                   |
 | `--webhelp`<br/>`-H`                                         | Opens web page with help text.                               |
 | `--attach`<br/>`-a`                                          | Connect to the target without a `RESET`, if possible. This works only if the debugging mode has been activated in a previous session, i.e., you need to have terminated the previous session with `monitor atexit stay`, or fuses are not managed by PyAvrOCD. |
-| `--command`<br>`-c`                                          | Command to set the gdb port (OpenOCD style), which is used in the Arduino IDE 2 interface. This is an alternative to the `--port` option. |
+| `-c`                                                         | Command to set the gdb port (OpenOCD style), which is used in the Arduino IDE 2 debugging interface by using. e.g., `-c "gdb_port 50000"`. This is an alternative to the `--port` option. |
+| `--comm-speed`<br>`-C`                                       | Communication speed for (U)PDI in kbps. The recommended maximal communication speed is less than `F_CPU`/17777 kbps. Default is min(900,`F_CPU`/17777). Since the F_CPU default is 1,000,000, the default is 56 kbps if no value for `F_CPU` is provided. |
 | `--device` <br>`-d`                                          | The argument to this option specifies the MCU type of the target chip in lower case.  This option is mandatory. If a '?' mark is given, all supported MCUs are listed. |
 | `--debug-clock`<br>`-D`                                      | JTAG clock frequency for debugging in kHz. This value should be less than a quarter of the MCU clock frequency. The default is min(2000, `F_CPU`/5000) in kHz. |
+| `-f`                                                         | OpenOCD command line option with one argument that is used by the Arduino IDE 2 debugging interface. It is ignored by PyAvrOCD. |
 | `--F_CPU`<br>`-F`                                            | Frequency of CPU clock (Hz). It is used to determine the default value for `--debug-clock` and will be passed to `simavr` if called. The default is 1,000,000 Hz. |
 | `--interface`<br>`-i`                                        | Debugging interface to use. Should be one of `debugwire`, `jtag`, `pdi`, or `updi`. Only necessary if an MCU supports more than one interface or if one wants to see only the supported chips with a particular interface. |
 | `--manage`<br/>`-m`                                          | Can be given multiple times and specifies which fuses should be managed by PyAvrOCD. Possible arguments are `all`, `none`, `bootrst`, `nobootrst`,  `dwen`, `nodwen`, `ocden`, `noocden`, `eesave`, `noeesave`, `lockbits`, and `nolockbits`. Later values in the command line override earlier ones. Any fuses not managed by PyAvrOCD need to be changed 'manually' before and/or after the GDB server is activated. The default for this option is `none`, i.e., all fuses have to be dealt with by the user. |
@@ -36,10 +38,10 @@ If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, 
 | `--memory-map-disable`                                       | This option, which does not take a value, will disable the usage of the XML memory map. This option is only there for testing purposes. |
 | `--skip-signature-verification`                              | Do not perform chip signature verification. This is another option for testing purposes. |
 
-## Additional command line options derived from monitor commands
+## Additional command-line options derived from monitor commands
 
 You can also use the [monitor command options](monitor-commands.md) as command-line options when invoking PyAvrOCD. For example, you may specify `--verify enable,` which has the same effect as issuing the command `monitor verify enable` in the debugger after a connection to the GDB server has been established. One-character abbreviations for such option values are possible, and with the usual abbreviation rules for options, one can shorten this to `--veri e`.
 
-In addition to options, one can specify file names prefixed with a '@'-sign. Such files can contain additional arguments. Arguments read from such a file must be one per line and are treated as if they were in the same place as the original file referencing argument on the command line. If the file does not exist, no error is raised.
+## Providing command-line options in configuration files
 
-The argument `@pyavrocd.options` is always added to the end of the command line. In other words, if there is such a file in the folder where the GDB server is invoked, then the arguments in this file will have precedence over the arguments on the command line. This is the way to override options on a per-project basis in an IDE, where the IDE invokes the GDB server.
+In addition to options, one can specify file names prefixed with a '@'-sign. In particular, the argument `@pyavrocd.options` is always added to the end of the command line. Such [configuration files](install-link.md#configuration) can contain additional arguments to those specified on the command line.

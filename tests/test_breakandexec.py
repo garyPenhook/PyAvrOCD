@@ -21,6 +21,7 @@ class TestBreakAndExec(TestCase):
         mock_dbg.memory_info.memory_info_by_name.return_value = {'size' : 100,'address' : 0x60 }
         mock_dbg.get_hwbpnum.return_value = 1
         mock_dbg.get_architecture.return_value = "avr8"
+        mock_dbg.get_iooffset.return_value = 0x20
         self.bp = BreakAndExec(mock_mon, mock_dbg, Mock())
         self.bp.mon.is_old_exec.return_value = False
         self.bp.mon.is_safe.return_value = True
@@ -702,21 +703,37 @@ class TestBreakAndExec(TestCase):
         self.assertEqual(self.bp._compute_destination_of_ibranch(0xF42F, 1, 20), 22)
         self.assertEqual(self.bp._compute_destination_of_ibranch(0xF7FF, 1, 20), 22)
 
-    def test_sim_two_word_instr_lds(self):
+    def test_sim_two_word_instr_lds_sram(self):
         self.set_up()
         self.bp.dbg.sram_read.return_value = bytearray(0x55)
         self.assertTrue(self.bp._two_word_instr(0x90F0))
         self.assertEqual(self.bp._sim_two_word_instr(0x90F0, 0x1000, 0x2002), 0x2006)
         self.bp.dbg.sram_read.assert_called_with(0x1000,1)
-        self.bp.dbg.sram_write.assert_called_with(15,bytearray(0x55))
+        self.bp.dbg.register_write.assert_called_with(15,bytearray(0x55))
 
-    def test_sim_two_word_instr_sts(self):
+    def test_sim_two_word_instr_sts_sram(self):
         self.set_up()
-        self.bp.dbg.sram_read.return_value = bytearray(0x44)
+        self.bp.dbg.register_read.return_value = bytearray(0x44)
         self.assertTrue(self.bp._two_word_instr(0x92E0))
         self.assertEqual(self.bp._sim_two_word_instr(0x92E0, 0x1000, 0x2002), 0x2006)
-        self.bp.dbg.sram_read.assert_called_with(14,1)
+        self.bp.dbg.register_read.assert_called_with(14,1)
         self.bp.dbg.sram_write.assert_called_with(0x1000,bytearray(0x44))
+
+    def test_sim_two_word_instr_lds_reg(self):
+        self.set_up()
+        self.bp.dbg.register_read.return_value = bytearray(0x55)
+        self.assertTrue(self.bp._two_word_instr(0x90F0))
+        self.assertEqual(self.bp._sim_two_word_instr(0x90F0, 0x10, 0x2002), 0x2006)
+        self.bp.dbg.register_read.assert_called_with(0x10,1)
+        self.bp.dbg.register_write.assert_called_with(15,bytearray(0x55))
+
+    def test_sim_two_word_instr_sts_reg(self):
+        self.set_up()
+        self.bp.dbg.register_read.return_value = bytearray(0x44)
+        self.assertTrue(self.bp._two_word_instr(0x92E0))
+        self.assertEqual(self.bp._sim_two_word_instr(0x92E0, 0x10, 0x2002), 0x2006)
+        self.bp.dbg.register_read.assert_called_with(14,1)
+        self.bp.dbg.register_write.assert_called_with(0x10,bytearray(0x44))
 
     def test_sim_two_word_instr_jmp_small(self):
         self.set_up()

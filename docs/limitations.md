@@ -2,11 +2,19 @@
 
 The debugging system, consisting of the debug probe, the GDB server, and GDB itself, has a number of inherent limitations. Some aspects of the hardware may not be debuggable at all or only with some extra effort. And sometimes the behavior of the MCU in a debugging environment is significantly different from the behavior shown in a non-debugging environment. Finally, debugging your AVR chips can also be a risk to the health of your MCU.
 
+## Debug probes
+
+The Microchip/Atmel debug probes/programmers do not electrically disconnect from the target when inactive.
+
+When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines will not be electrically disconnected, even when the probe is inactive or only active on the debugWIRE line. In particular, the SNAP probe has a pretty low-impedance high-state MISO line and a low-impedance low-state SCK line. However, also the other probes can interfere with high impedance outputs. It is something to look out for if these lines do not behave as they should.
+
+For other debugging interfaces, such as **JTAG** or **UPDI**, the problem is not relevant since the debug control and data lines need to be exclusively accessed by the debug probe in any case.
+
 ## Bootloader
 
 Bootloaders will usually be erased when running the debugger.
 
-In a **debugWIRE** context, the entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse is disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
+In a **debugWIRE** context, the entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
 
 When debugging with **JTAG**, the chip will be erased each time a new binary is loaded. Suppose you want to keep the bootloader in memory. In that case, you can request not to erase the chip before loading a binary, erasing each flash page only when some code needs to be loaded into this page: `--erasebeforeload disable`. However, this will severely slow down the process of loading a binary.
 
@@ -40,7 +48,7 @@ The Arduino IDE 2 has the feature of displaying all the global variables, togeth
 
 ## Compiler optimizations
 
-When trying to debug a program compiled with the 'usual' compiler options, one often ends up in unexpected places or receives warnings.
+When trying to debug a program compiled with the 'usual' compiler optimization option `-Os`, one often ends up in unexpected places or receives warnings.
 
 Usually, the compiler optimizes for space, trying to fit as much program code as possible into the limited amount of flash memory. This, however, might imply that some code is reordered and inlined. This means that single-stepping can be confusing, that one cannot stop at some places, or that a `finish` command will lead to an error message.
 
@@ -56,13 +64,19 @@ Another effect of using the `-Og` compiler optimization could be that all of a s
 
 ## Link-time optimization
 
-Link-time optimization can optimize away important structural debug information about C++ objects and global variables.
+Link-time optimization (`-flto`) can optimize away important structural debug information about C++ objects and global variables.
 
-Link-time optimization is a relatively new technique and was introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
+Link-time optimization is a technique introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
 
 The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.
 
-All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed.
+All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed. In most of the debug-enabled Arduino cores, link-time optimization is disabled when the user has chosen to activate the `Optimize for Debugging` option.
+
+## Link-time jump relaxation
+
+When using the optimization option `-mrelax`, the line number information gets distorted.
+
+The optimization option `-mrelax` is supposed to merely replace absolute jumps and calls with relative ones, saving two bytes and one cycle of computation time. Unfortunately, in its current implementation, it distorts the line number information for debugging significantly, making debugging impossible.
 
 ## Breakpoints in interrupt routines
 
@@ -207,7 +221,7 @@ All in all, as Microchip states, you should not ship MCUs that have been used he
 
 ### Using only hardware breakpoints
 
-Can it be a solution to use only hardware breakpoints? It will definitely reduce flash wear to zero (well, except for reprogramming the target). And all GDB servers support that by trying to use hardware breakpoints as much as possible. Only when too many breakpoints are requested, software breakpoints are utilized.
+Can it be a solution to use only hardware breakpoints? It will definitely reduce flash wear to zero (well, except for reprogramming the target). And all GDB servers support that by trying to use hardware breakpoints as much as possible. Only when too many breakpoints are requested are software breakpoints utilized.
 
 You can enforce the use of *only* hardware breakpoints by employing the following `monitor` command.
 
@@ -215,7 +229,7 @@ You can enforce the use of *only* hardware breakpoints by employing the followin
 monitor breakpoint hardware
 ```
 
-After using this command, you always get an error when more than the number of available hardware breakpoints is requested. One must be aware, though, that there might be slight problems when single-stepping and when continuing from a breakpoint.
+After using this command, you always get an error when more than the number of available hardware breakpoints is in use when you request to start or continue execution. One must be aware, though, that there might be slight problems when single-stepping and when continuing from a breakpoint.
 
 A GDB step-over operation uses a temporary breakpoint, which can lead to the situation where, after starting a step-over operation with a single step on the GDB server level, it is discovered that too many breakpoints are necessary to complete the step-over operation. In this case, the initial single step is done, but then execution is stopped (in the middle of the step-over operation).
 

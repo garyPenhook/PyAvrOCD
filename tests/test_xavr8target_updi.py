@@ -41,19 +41,19 @@ class TestXAvr8TargetUpdi(TestCase):
         self.set_up()
         self.xa.protocol.memory_read.return_value=bytearray([0x7F])
         self.assertEqual(self.xa.statreg_read(), b'\x7F')
-        self.xa.protocol.memory_read.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                                            Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, 1)
+        self.xa.protocol.memory_read.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_SRAM,
+                                                            0x3F, 1)
 
     def test_statreg_write(self):
         self.set_up()
         self.xa.statreg_write(b'\x06')
-        self.xa.protocol.memory_write.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                                            Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, b'\x06')
+        self.xa.protocol.memory_write.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_SRAM,
+                                                            0x3F, b'\x06')
 
     def test_stack_pointer_write(self):
         self.set_up()
         self.xa.stack_pointer_write('b\x23\x01')
-        self.xa.protocol.memory_write.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_OCD, 0x18, 'b\x23\x01')
+        self.xa.protocol.memory_write.assert_called_with(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3D, 'b\x23\x01')
 
     def test_hardware_breakpoint_set_fail(self):
         self.set_up()

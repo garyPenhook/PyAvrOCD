@@ -1,5 +1,35 @@
 # Changelog
 
+### 1.20.0 (20-Apr-2025)
+
+- **Fixed:**
+     - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.
+     - Now, `sram_masked_read` and `sram_masked_write` will read from registers/write to registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
+     - EEPROM read/write works now after deleting the erroneous subtraction of the EEPROM segment start address in `eeprom_read/write` in the memory module.
+     - USER_ROW write works now correctly after eliminating the page-alignment in the `write` method of  `XNvmAccessProviderCmsisDapUpdi`, *and* a short wait was introduced `using_write` in `XAvrDebugger`.
+     - The monitor option `erasebeforeload` behaved strangely. All possible `None` values in `set_default_state` in `Monitor` are now normalized to `bool` in order to avoid the problem of testing them later for True and False.
+     - Computation of bad_pc_mask had to change in `_check_stuck_at_one_pc` (`XAvrDebugger`) in order to account for flash memory sizes that are different from powers of two.
+     - The PC mask computation had to change in avr-gdb as well. Now it is version 17.1.4.
+     - Attaching to a running MCU did not work for JTAG targets. Had to disable the `_manage_fuses` method in this case.
+- **Added:**
+     - UPDI functionality
+     - Erasing a locked MCU (is different from doing it for dw or JTAG)
+     - New option `-C` / `--comm-speed` meant for UPDI and PDI communication speed.
+     - New attributes in `XAvrDebugger`: `_sregaddr`, `_iooffset`, `_nolock`
+     - Since `activate_physical` in case of UPDI does not return a device id which contains the signature bytes, we use the special method `read_device_id()` from `nvmupdi` inside `_activate_interface`. This should have been handled either in the avr8target class or the nvm class!
+     - Since for UPDI targets, registers are not the first 32 SRAM bytes for UPDI, register reading is now performed by reading the entire register file once into a cache and then accessing single registers from the cache in `XAvrDebugger`
+     - Updates are also written to this cache, which, if changed, will be written back immediately before a run or step on EDBG level is performed (also in `XAvrDebugger`)
+     - New methods in `XAvrDebugger`: `register_read` and `register_write`
+     - USER_ROW read/write
+     - `Timers run` is not a possible option for (U)PDI targets anymore.
+- **Changed:**
+     - Only the relevant fuses are checked in `_manage_fuses`
+     - Instead of a constant SREGADDR and using 0x20 as a constant (when addressing I/Os), there now methods `get_sregaddr()` and `get_iooffset()` in `XAvrDebugger`
+     - In `_filter_unsafe_instruction` and `_sim_two_word_instr`, implicit (target address < `_iooffset`) and in the register read/write methods in `GdbHandler`, register reads and writes are now made explicit.
+     - In `xnvmmegajtag` and `xnvmupdi`, `erase_chip` has been restructured concerning `EESAVE`.
+     - Default for `erasebeforeload`: disabled for dw and updi, enabled for jtag
+     - Default for `readbeforewrite`: enabled for dw and updi, disabled for jtag
+
 ### 1.1.2 (10-Feb-2025)
 
 - **Fixed:**

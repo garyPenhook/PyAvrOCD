@@ -1,52 +1,10 @@
-
-##########------------------------------------------------------##########
-##########              Project-specific Details                ##########
-##########    Check these every time you start a new project    ##########
-##########------------------------------------------------------##########
-
-#MCU   = atmega168p
-#F_CPU = 1000000UL
-BAUD  = 9600UL
-## Also try BAUD = 19200 or 38400 if you're feeling lucky.
-
-## A directory for common include files and the simple USART library.
-## If you move either the current folder or the Library folder, you'll
-##  need to change this path to match.
-##LIBDIR = ../../AVR-Programming-Library
-
-##########------------------------------------------------------##########
-##########                 Programmer Defaults                  ##########
-##########          Set up once, then forget about it           ##########
-##########        (Can override.  See bottom of file.)          ##########
-##########------------------------------------------------------##########
-
-PROGRAMMER_TYPE = usbtiny
-# extra arguments to avrdude: baud rate, chip type, -F flag, etc.
-PROGRAMMER_ARGS =
-
-##########------------------------------------------------------##########
-##########                  Program Locations                   ##########
-##########     Won't need to change if they're in your PATH     ##########
-##########------------------------------------------------------##########
-
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 AVRSIZE = avr-size
 AVRDUDE = avrdude
 
-##########------------------------------------------------------##########
-##########                   Makefile Magic!                    ##########
-##########         Summary:                                     ##########
-##########             We want a .hex file                      ##########
-##########        Compile source files into .elf                ##########
-##########        Convert .elf file into .hex                   ##########
-##########        You shouldn't need to edit below.             ##########
-##########------------------------------------------------------##########
-
-## The name of your project (without the .c)
-# TARGET = blinkLED
-## Or name it automatically after the enclosing directory
+#The name of your project (without the .c)
 TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 # Object files: will find all .c/.h files in current directory
@@ -57,7 +15,7 @@ OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
 ## Compilation options, type man avr-gcc if you're curious.
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I.
+CPPFLAGS = -DF_CPU=$(F_CPU) -I.
 CFLAGS = -Og -ggdb3 -std=gnu99 -Wall
 ## Use short (8-bit) data types
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
@@ -97,7 +55,7 @@ all:	$(TARGET).hex
 debug:
 	@echo
 	@echo "Source files:"   $(SOURCES)
-	@echo "MCU, F_CPU, BAUD:"  $(MCU), $(F_CPU), $(BAUD)
+	@echo "MCU, F_CPU:"  $(MCU), $(F_CPU)
 	@echo
 
 fresh:

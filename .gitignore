@@ -21,3 +21,4 @@ tests/end-to-end/log/*.log
 build/**
 .coverage
 cov/**
+fuse.txt

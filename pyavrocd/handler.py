@@ -45,7 +45,8 @@ class GdbHandler():
         self.logger : logging.Logger = logging.getLogger('pyavrocd.handler')
         self.rsp_logger = logging.getLogger('pyavrocd.rsp')
         self.dbg : XAvrDebugger = avrdebugger
-        self.mon : MonitorCommand = MonitorCommand(self.dbg.get_iface(), args, toolname)
+        self.mon : MonitorCommand = MonitorCommand(self.dbg.get_iface(), args, toolname,
+                                                       self.dbg.get_architecture())
         self.mem : Memory = Memory(avrdebugger, self.mon)
         self.bp : BreakAndExec = BreakAndExec(self.mon, avrdebugger, self.mem.flash_read_word)
         self._dw_start : bool = bool(args.debugwire and args.debugwire[0])
@@ -262,7 +263,7 @@ class GdbHandler():
         self.logger.debug("Data received: %s", packet)
         if self.mon.is_debugger_active():
             newdata : bytes = binascii.unhexlify(packet)
-            self.dbg.register_file_write(newdata[:32])
+            self.dbg.register_file_write(bytearray(newdata[:32]))
             self.dbg.status_register_write(newdata[32:33])
             self.dbg.stack_pointer_write(newdata[33:35])
             self.dbg.program_counter_write((int(binascii.hexlify(
@@ -350,7 +351,7 @@ class GdbHandler():
             self.logger.debug("RSP packet: read SREG command: 0x%s", sreg_byte_string)
             self.send_packet(sreg_byte_string)
         else:
-            reg_byte_string : str =  (binascii.hexlify(self.dbg.sram_read(int(packet,16), 1))).\
+            reg_byte_string : str =  (binascii.hexlify(self.dbg.register_read(int(packet,16), 1))).\
                                    decode('ascii')
             self.logger.debug("RSP packet: read Reg%s command: 0x%s", packet, reg_byte_string)
             self.send_packet(reg_byte_string)
@@ -374,8 +375,11 @@ class GdbHandler():
             self.logger.debug("RSP packet: write SREG=%s",packet[3:])
             self.dbg.status_register_write(binascii.unhexlify(packet[3:]))
         else:
-            self.logger.debug("RSP packet: write REG%d=%s",int(packet[0:2],16),packet[3:])
-            self.dbg.sram_write(int(packet[0:2],16), binascii.unhexlify(packet[3:]))
+            reg : str
+            val : str
+            reg, val = packet.decode('utf-8').split('=')
+            self.logger.debug("RSP packet: write REG0x%s=0x%s", reg, val)
+            self.dbg.register_write(int(reg,16), bytearray([int(val,16)]))
         self.send_packet("OK")
 
 
@@ -423,7 +427,7 @@ class GdbHandler():
                 self.dbg.device.avr.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
                                                     Avr8Protocol.AVR8_OPT_RUN_TIMERS,
                                                     int(response[0]))
-                self.dbg.device.avr.reactivate()
+                self.dbg.reactivate()
             elif 'power o' in response[0]:
                 self.dbg.edbg_protocol.set_byte(EdbgProtocol.EDBG_CTXT_CONTROL,
                                                     EdbgProtocol.EDBG_CONTROL_TARGET_POWER,
@@ -440,7 +444,7 @@ class GdbHandler():
             elif 'live_tests' in response[0]:
                 self._live_tests.run_tests()
             elif 'test' == response[0]:
-                self.dbg.device.avr.reactivate()
+                self.dbg.reactivate()
         except AvrIspProtocolError:
             self.logger.critical("ISP programming failed. Wrong connection or wrong MCU?")
             if self.critical is None:
@@ -616,7 +620,7 @@ class GdbHandler():
             if self.mon.is_noinitialload():
                 self.logger.info("Only cached, not flashed!")
                 self.mon.disable_noinitialload() # after the first load operation, load physically again
-            self.dbg.device.avr.reactivate()
+            self.dbg.reactivate()
         self.send_packet("OK")
 
     def _vflash_erase_handler(self, _ : bytes) -> None:
@@ -769,7 +773,7 @@ class GdbHandler():
         self.dbg.switch_to_debmode()
         self.mem.programming_mode = False
         self.logger.info("Programming mode stopped")
-        self.dbg.device.avr.reactivate()
+        self.dbg.reactivate()
         if self.mon.is_noinitialload():
             self.logger.info("Only cached, not flashed!")
             self.mon.disable_noinitialload() # after the first load operation, load physically again

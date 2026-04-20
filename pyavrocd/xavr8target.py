@@ -11,20 +11,60 @@ from pyedbglib.hidtransport.hidtransportbase import HidTransportBase
 
 from pymcuprog.deviceinfo import deviceinfo
 from pymcuprog.deviceinfo.memorynames import MemoryNames
-from pymcuprog.deviceinfo.deviceinfokeys import DeviceInfoKeysAvr, DeviceMemoryInfoKeys
+from pymcuprog.deviceinfo.deviceinfokeys import DeviceInfoKeysAvr, DeviceMemoryInfoKeys, DeviceInfoKeys
 
 from pymcuprog.avr8target import TinyXAvrTarget, TinyAvrTarget,\
      MegaAvrJtagTarget, XmegaAvrTarget, AvrDevice
 
 
-
 class XTinyXAvrTarget(TinyXAvrTarget):
     """
-    Class handling sessions with TinyX AVR targets using the AVR8 generic protocol
+    Class handling sessions with TinyX (UPDI) AVR targets using the AVR8 generic protocol
     """
-    def __init__(self, transport : HidTransportBase) -> None:
+    def __init__(self, transport : HidTransportBase, device_info :  dict[ str, Any ] | None = None) -> None:
+        if device_info is None:
+            device_info = {}
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.tinyxtarget')
+        self._fusebase : int = device_info.get('fuses_address_byte', 0)
+        self._lockbase : int = device_info.get('lockbits_address_byte', 0)
+        self._sigbase : int =  device_info.get('signatures_address_byte', 0)
+        self._usbase : int =   device_info.get('user_row_address_byte', 0)
+        self._nvmcbase : int = device_info.get('nvmctrl_base', 0)
+        self._syscbase : int = device_info.get('syscfg_base', 0)
+
+    def memory_read(self, memory_name : int, start_address : int, numbytes : int) -> bytearray:
+        """
+        Read device memory
+        """
+        data : bytearray = self.protocol.memory_read(memory_name,
+                                self._addr_transform(memory_name, start_address), numbytes)
+        self.logger_loc.debug("Read %d bytes on transformed addr 0x%X", numbytes,
+                                  self._addr_transform(memory_name, start_address))
+        return data
+
+    def memory_write(self, memory_name : int, start_address : int , data : bytes) -> bytearray | None:
+        """
+        Write device memory
+        """
+        self.logger_loc.debug("Writing %d bytes to transformed address 0x%X", len(data),
+                                  self._addr_transform(memory_name, start_address))
+        return self.protocol.memory_write(memory_name, self._addr_transform(memory_name, start_address), data)
+
+    def _addr_transform(self, memory_name : int, start_address : int) -> int:
+        """
+        Transforms start_address
+        """
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_FUSES:
+            return start_address + self._fusebase
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_LOCKBITS:
+            return start_address + self._lockbase
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_SIGNATURE:
+            return start_address + self._sigbase
+        if memory_name == Avr8Protocol.AVR8_MEMTYPE_USER_SIGNATURE:
+            return start_address + self._usbase
+        return start_address
+
 
     # The next two methods are needed because different targets access the registers
     # in different ways: TinyX and XMega have a regfile mem type, the others have to access
@@ -50,27 +90,35 @@ class XTinyXAvrTarget(TinyXAvrTarget):
 
     def statreg_read(self) -> bytearray:
         """
-        Reads SREG
+        Reads out SREG (for this type of MCU not at 0x5F, but at 0x3F)
 
-        :returns: 1 Byte of SREG
-        :rtype: bytearray
+        :return: 1 byte of status register
         """
-        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                             Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, 1)
+        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3F, 1)
 
-    def statreg_write(self, data : bytes) -> None:
+
+    def statreg_write(self, data : bytes) -> bytearray:
         """
-        Writes SREG
+        Writes byte to SREG
+        :param: 1 byte of data
 
         """
-        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD,
-                                       Avr8Protocol.AVR8_MEMTYPE_OCD_SREG, data)
+        return self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3F, data)
 
     def stack_pointer_write(self, data : bytes) -> None:
         """
         Writes the stack pointer
         """
-        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_OCD, 0x18, data)
+        self.protocol.memory_write(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3D, data)
+
+    def stack_pointer_read(self) -> bytearray:
+        """
+        Reads the stack pointer
+
+        :returns: Stack pointer
+        :rtype: bytearray
+        """
+        return self.protocol.memory_read(Avr8Protocol.AVR8_MEMTYPE_SRAM, 0x3D, 0x02)
 
     def hardware_breakpoint_set(self, num : int, address : int) -> bytes | None:
         """
@@ -81,14 +129,10 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         :type address: int
         """
         if num < 1 or num > 1:
-            self.logger.error("Tried to set hardware breakpoint %d at 0x%X on JTAG target",
+            self.logger.error("Tried to set hardware breakpoint %d at 0x%X on UPDI target",
                                 num, address)
             return None
-        resp = self.protocol.jtagice3_command_response(
-            bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_SET, Avr8Protocol.CMD_VERSION0, 1, num]) +
-            binary.pack_le32(address) +
-            bytearray([3]))
-        return self.protocol.check_response(resp)
+        return self.breakpoint_set(address)
 
 
     def hardware_breakpoint_clear(self, num : int) -> bytes | None:
@@ -96,12 +140,166 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         Clears the hardware breakpoint <num>
         """
         if num < 1 or num > 1:
-            self.logger.error("Tried to clear hardware breakpoint %d on JTAG target",
+            self.logger.error("Tried to clear hardware breakpoint %d on UPDI target",
                                 num)
             return None
-        resp = self.protocol.jtagice3_command_response(
-            bytearray([Avr8Protocol.CMD_AVR8_HW_BREAK_CLEAR, Avr8Protocol.CMD_VERSION0, num]))
-        return self.protocol.check_response(resp)
+        return self.breakpoint_clear()
+
+    def attach(self) -> None:
+        """
+        Attach (in the beginning)
+
+        """
+        self.protocol.attach()
+
+    def reactivate(self) -> None:
+        """
+        Reactivate physical: Necessary to set the right timer mode
+        """
+        self.protocol.detach()
+        self.deactivate_physical()
+        self.activate_physical()
+        self.protocol.attach()
+        self.logger_loc.info("Physical interface re-activated")
+
+    def switch_to_progmode(self) -> None:
+        """
+        Simply detach and enter prog mode
+        """
+        self.logger_loc.debug("Detaching...")
+        self.protocol.detach()
+        self.logger_loc.debug("Entering progmode...")
+        self.protocol.enter_progmode()
+        self.logger_loc.debug("Switched to progmode")
+
+    def switch_to_debmode(self) -> None:
+        """
+        Simply leave prog mode and attach again
+        """
+        self.logger_loc.debug("Leaving progmode...")
+        self.protocol.leave_progmode()
+        self.logger_loc.debug("Trying to attach...")
+        self.protocol.attach()
+        self.logger_loc.debug("Switched to debug mode")
+
+
+    #pylint: disable=arguments-differ
+    def setup_debug_session(self, timers_run : bool = True,
+                            kbps : int = 100,
+                            **kwargs : Any) -> None:
+        """
+        Sets up a debug session for a tinyX AVR device
+
+        :param kbps: Communication speed in kbps
+        :param timers_run: whether timers should run while execution is suspended
+        """
+        _dummy = kwargs
+        self.logger_loc.info("Setting up debug session for UPDI target")
+        self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_XM_PDI_CLK, kbps)
+        self.logger_loc.info("UPDI communication speed: %d kbps", kbps)
+        self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                                   Avr8Protocol.AVR8_OPT_HV_UPDI_ENABLE,
+                                   0)
+        self.logger_loc.debug("UPDI HV programming disabled")
+        self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+                                   Avr8Protocol.AVR8_OPT_RUN_TIMERS,
+                                   timers_run)
+        self.logger_loc.debug("Configured timers as running: %d", timers_run)
+        self.protocol.set_variant(Avr8Protocol.AVR8_VARIANT_TINYX)
+        self.logger_loc.debug("Set variant: UPDI target")
+        self.protocol.set_function(Avr8Protocol.AVR8_FUNC_DEBUGGING)
+        self.logger_loc.debug("Set function: debugging")
+        self.protocol.set_interface(Avr8Protocol.AVR8_PHY_INTF_PDI_1W)
+        self.logger_loc.debug("Set interface: PDI 1 wire (UPDI)")
+
+    def setup_config(self, device_info  : dict[str, Any ]) -> None:
+        """
+        Sets up the device config for a tinyX AVR device
+
+        :param device_info: Target device information as returned by deviceinfo.deviceinfo.getdeviceinfo
+        :type device_info: dict
+        """
+        if device_info is None:
+            device_info = {}
+
+        # Parse the device info for memory descriptions
+        device_memory_info = deviceinfo.DeviceMemoryInfo(device_info)
+
+        flash_info : dict = device_memory_info.memory_info_by_name(MemoryNames.FLASH)
+        eeprom_info : dict = device_memory_info.memory_info_by_name(MemoryNames.EEPROM)
+        # Extract settings
+        fl_base : int = flash_info[DeviceMemoryInfoKeys.ADDRESS]
+        fl_page_size : int = flash_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        fl_size : int = flash_info[DeviceMemoryInfoKeys.SIZE]
+        ee_base : int = eeprom_info[DeviceMemoryInfoKeys.ADDRESS]
+        ee_page_size : int = eeprom_info[DeviceMemoryInfoKeys.PAGE_SIZE]
+        ee_size : int = eeprom_info[DeviceMemoryInfoKeys.SIZE]
+        nvmctrl_addr : int = device_info.get(DeviceInfoKeysAvr.NVMCTRL_BASE, 0)
+        ocd_addr : int = device_info.get(DeviceInfoKeysAvr.OCD_BASE, 0)
+        user_row_base : int = device_memory_info.memory_info_by_name(MemoryNames.USER_ROW)[DeviceMemoryInfoKeys.ADDRESS]
+        user_row_size : int = device_memory_info.memory_info_by_name(MemoryNames.USER_ROW)[DeviceMemoryInfoKeys.SIZE]
+        sig_row_base : int = device_memory_info.\
+          memory_info_by_name(MemoryNames.SIGNATURES)[DeviceMemoryInfoKeys.ADDRESS]
+        fuses_base : int = device_memory_info.memory_info_by_name(MemoryNames.FUSES)[DeviceMemoryInfoKeys.ADDRESS]
+        fuse_size : int = device_memory_info.memory_info_by_name(MemoryNames.FUSES)[DeviceMemoryInfoKeys.SIZE]
+        lock_base : int = device_memory_info.memory_info_by_name(MemoryNames.LOCKBITS)[DeviceMemoryInfoKeys.ADDRESS]
+        device_id : int = device_info.get(DeviceInfoKeys.DEVICE_ID, 0)
+        hv_implementation : bool = device_info.get(DeviceInfoKeysAvr.HV_IMPLEMENTATION, 0)
+
+        # Setup device structure and write to tool
+        # TINYX_PROG_BASE (2@0x00)
+        devdata : bytearray = bytearray([fl_base & 0xff, (fl_base >> 8) & 0xff])
+        # TINYX_FLASH_PAGE_BYTES (1@0x02)
+        devdata += bytearray([fl_page_size & 0xff])
+        # TINYX_EEPROM_PAGE_BYTES  (1@0x03)
+        devdata += bytearray([ee_page_size])
+        # TINYX_NVMCTRL_MODULE_ADDRESS (2@0x04)
+        devdata += bytearray([nvmctrl_addr & 0xff, (nvmctrl_addr >> 8) & 0xff])
+        # TINYX_OCD_MODULE_ADDRESS (2@0x06)
+        devdata += bytearray([ocd_addr & 0xff, (ocd_addr >> 8) & 0xff])
+
+        # Pad to get to TINYX_FLASH_BYTES
+        devdata += bytearray([0x00]*(0x12-len(devdata)))
+
+        # TINYX_FLASH_BYTES (4@0x12)
+        devdata += bytearray([fl_size & 0xFF, (fl_size >> 8) & 0xFF, (fl_size >> 16) & 0xFF, (fl_size >> 24) & 0xFF])
+        # TINYX_EEPROM_BYTES (2@0x16)
+        devdata += bytearray([ee_size & 0xff, (ee_size >> 8) & 0xff])
+        # TINYX_USER_SIG_BYTES_BYTES (2@0x18)
+        devdata += bytearray([user_row_size & 0xff, (user_row_size >> 8) & 0xff])
+        # TINYX_FUSE_BYTES (1@0x1A)
+        devdata += bytearray([fuse_size & 0xff])
+
+        # Pad to get to TINYX_EEPROM_BASE
+        devdata += bytearray([0x00]*(0x20-len(devdata)))
+
+        # TINYX_EEPROM_BASE (2@0x20)
+        devdata += bytearray([ee_base & 0xFF, (ee_base >> 8) & 0xFF])
+        # TINYX_USER_ROW_BASE (2@0x22)
+        devdata += bytearray([user_row_base & 0xFF, (user_row_base >> 8) & 0xFF])
+        #TINYX_SIGROW_BASE (2@0x24)
+        devdata += bytearray([sig_row_base & 0xFF, (sig_row_base >> 8) & 0xFF])
+        #TINYX_FUSES_BASE (2@0x26)
+        devdata += bytearray([fuses_base & 0xFF, (fuses_base >> 8) & 0xFF])
+        # TINYX_LOCK_BASE (2@0x28)
+        devdata += bytearray([lock_base & 0xFF, (lock_base >> 8) & 0xFF])
+        # TINYX_DEVICE_ID (2@0x2A)
+        devdata += bytearray([device_id & 0xFF, (device_id >> 8) & 0xFF])
+        # TINYX_PROG_BASE_MSB (1@0x2C)
+        devdata += bytearray([(fl_base >> 16) & 0xFF])
+        # TINYX_FLASH_PAGE_BYTES_MSB (1@0x2D)
+        devdata += bytearray([(fl_page_size >> 8) & 0xFF])
+        # TINYX_ADDRESS_SIZE (1@0x2E)
+        if device_info.get(DeviceInfoKeysAvr.ADDRESS_SIZE, '16-bit') == '24-bit':
+            # Use 24-bit addressing mode
+            devdata += bytearray([0x01])
+        else:
+            # Default is 16-bit addressing mode
+            devdata += bytearray([0x00])
+        # TINYX_HV_IMPLEMENTATION (1@0x2F)
+        devdata += bytearray([hv_implementation & 0xFF])
+
+        self.protocol.write_device_data(devdata)
 
 
 
@@ -110,7 +308,8 @@ class XTinyAvrTarget(TinyAvrTarget):
     Implements Tiny AVR (debugWIRE) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport : HidTransportBase) -> None:
+    def __init__(self, transport : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc = logging.getLogger('pyavrocd.tinytarget')
 
@@ -178,9 +377,8 @@ class XTinyAvrTarget(TinyAvrTarget):
 
     def reactivate(self) -> None:
         """
-        For debugWIRE, reactivating is simply a reset
+        For debugWIRE, reactivating is nothing
         """
-        self.protocol.reset()
 
     def setup_config(self, device_info : dict[str, Any ]) -> None:
         """
@@ -345,7 +543,8 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
     Implements Mega AVR (JTAG) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport  : HidTransportBase) -> None:
+    def __init__(self, transport  : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.megatarget')
 
@@ -404,19 +603,22 @@ class XMegaAvrJtagTarget(MegaAvrJtagTarget):
 
     def reactivate(self) -> None:
         """
-        Reactivate physical: Necessary to get set the right timer mode
+        Reactivate physical: Necessary to set the right timer mode
         """
         self.protocol.detach()
         self.deactivate_physical()
         self.activate_physical()
         self.protocol.attach()
-        self.protocol.reset()
         self.logger_loc.info("Physical interface re-activated")
 
-    def setup_debug_session(self, clkprg : int=200, clkdeb : int=1000, timers_run : bool=True) -> None:
+    def setup_debug_session(self, clkprg : int = 200,
+                                clkdeb : int = 1000,
+                                timers_run : bool = True,
+                                **kwargs : Any) -> None:
         """
         Sets up a programming session on an Mega AVR (JTAG)
         """
+        _dummy = kwargs
         self.logger_loc.info("Setting up debug session for JTAG target")
         self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_MEGA_DBG_CLK, clkdeb)
         self.logger_loc.info("Debugging JTAG frequency: %d kHz", clkdeb)
@@ -631,7 +833,8 @@ class XXmegaAvrTarget(XmegaAvrTarget):
     Implements XMEGA (PDI) functionality of the AVR8 protocol
     """
 
-    def __init__(self, transport : HidTransportBase):
+    def __init__(self, transport : HidTransportBase, **kwargs : Any) -> None:
+        _dummy = kwargs
         super().__init__(transport)
         self.logger_loc : logging.Logger = logging.getLogger('pyavrocd.xmegatarget')
 

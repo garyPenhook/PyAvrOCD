@@ -1,6 +1,6 @@
 # PyAvrOCD
 
-PyAvrOCD[^1] is a Python GDB server[^2] for 8-bit AVR MCUs (currently only classic ATtinys and ATmegas), enabling you to debug programs running on these MCUs using the [GNU Project Debugger GDB](https://www.sourceware.org/gdb/). PyAvrOCD communicates with Microchip's debug probes, such as [Atmel-ICE](https://www.microchip.com/en-us/development-tool/atatmel-ice) and [MPLAB Snap](https://www.microchip.com/en-us/development-tool/pg164100), using the software infrastructure provided by [pymcuprog](https://github.com/microchip-pic-avr-tools/pymcuprog) and [pyedgblib](https://github.com/microchip-pic-avr-tools/pyedbglib). In addition, it provides a pass-through service for the UNO-based debug probe [dw-link](https://felias-fogg.github.io/dw-link) and the simulation tool [simavr](https://github.com/buserror/simavr).
+PyAvrOCD[^1] is a Python GDB server[^2] for 8-bit AVR MCUs (currently only classic ATtinys and ATmegas), enabling you to debug programs running on these MCUs using the [GNU Project Debugger GDB](https://www.sourceware.org/gdb/). PyAvrOCD communicates with Microchip's debug probes, such as [MPLAB Snap](https://www.microchip.com/en-us/development-tool/pg164100) and the embedded debuggers on Explained and Curiosity boards. In addition, it provides a pass-through service for the UNO-based debug probe [dw-link](https://felias-fogg.github.io/dw-link) and the simulation tool [simavr](https://github.com/buserror/simavr).
 
 Why another open-source GDB server for AVR MCUs (others are [AVaRICE](https://github.com/avrdudes/avarice) and [Bloom](https://github.com/bloombloombloom/Bloom))? The main intention is to provide a *cross-platform* AVR GDB server. In other words, it is *the missing AVR debugging solution* for  [Arduino IDE 2](https://www.arduino.cc/en/software/) and [PlatformIO](https://platformio.org). In particular, the integration with the Arduino IDE 2 is pretty tight, allowing one to start debugging without much hassle (see [quickstart guides](quick_arduino.md)).
 
@@ -14,9 +14,10 @@ After [installing the package](install-link.md), the following steps are necessa
 2. [Preparing the target board for debugging](board-preparation.md)
 3. [Setting the right fuses](fuse-preparation.md)
 4. [Connecting the debug probe to the target](connect-to-target.md)
-5. [Invoking the GDB server](command-line-options.md)
-6. [Debugging a program on the target](debugging.md)
-7. [Restoring the target board to its original state](restore-original-state.md)
+5. [Compiling the program to be tested](compilation-options.md)
+6. [Invoking the GDB server](command-line-options.md)
+7. [Debugging a program on the target](debugging.md)
+8. [Restoring the target board to its original state](restore-original-state.md)
 
 Once you have a symbolic debugger connected to the GDB server, you can control the server's behavior using [`monitor` commands](monitor-commands.md).
 

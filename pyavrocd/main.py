@@ -40,11 +40,11 @@ def options(cmd: list[str]) -> argparse.Namespace:
     Option processing. Returns processed options.
     """
     parser : argparse.ArgumentParser
-    parser = argparse.ArgumentParser(usage="%(prog)s [options]",
+    parser = argparse.ArgumentParser(prog="pyavrocd",
+            usage="%(prog)s [options]\nThis is a GDB server for classic AVR8 MCUs",
             fromfile_prefix_chars='@',
-            #formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            #epilog="Monitor options can also be specified, e.g. '--verify enable'",
-            description='GDB server for debugWIRE and JTAG AVR MCUs'
+            formatter_class=argparse.RawTextHelpFormatter, #ArgumentDefaultsHelpFormatter,
+            #description='GDB server for debugWIRE and JTAG AVR MCUs'
                                          )
     parser.add_argument("-H", "--webhelp",
                             action='store_true',
@@ -54,11 +54,17 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             action='store_true',
                             help="Start without resetting the MCU")
 
-    parser.add_argument("-c", "--command",
+    parser.add_argument("-c",
                             action='append',
                             dest='cmd',
                             type=str,
                             help=argparse.SUPPRESS) # "Command to set gdb port (OpenOCD style)")
+
+    parser.add_argument("-C", "--comm-speed",
+                            metavar="CS",
+                            dest='kbps',
+                            type=int,
+                            help="Communication speed for (U)PDI (kbps) (default: 56)")
 
     parser.add_argument("-d", "--device",
                             dest='dev',
@@ -255,12 +261,12 @@ def setup_logging(args : argparse.Namespace, log_rsp : bool) -> None:
         getLogger('pyedbglib.hidtransport.hidtransportbase').setLevel(logging.CRITICAL)
         # suppress spurious error messages from pyedbglib
         getLogger('pyedbglib.protocols').setLevel(logging.CRITICAL)
-        # suppress errors of not connecting: It is intended!
-        getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
         # we do not want to see the "read flash" messages
         getLogger('pymcuprog.avr8target').setLevel(logging.ERROR)
         # we do not want to see the message 'Looking for ...' from getdeviceinfo
         getLogger('pymcuprog.deviceinfo.deviceinfo').setLevel(logging.ERROR)
+        # suppress errors of not connecting: It is intended!
+        getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
 
 #pylint: disable=too-many-branches
 def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tuple [None|int, str, str]:
@@ -300,8 +306,11 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     if args.clkdeb is None:
         args.clkdeb = min(2000, args.F_CPU//5000)
 
-    if args.clkprg < 0 or args.clkdeb < 0:
-        print("Negative frequency values are discouraged")
+    if args.kbps is None:
+        args.kbps = min(900, args.F_CPU//17777)
+
+    if args.clkprg < 0 or args.clkdeb < 0 or args.kbps < 0:
+        print("Negative frequency or communication speed values are discouraged")
         return 1, "", ""
 
     device : str = args.dev
@@ -394,8 +403,8 @@ def number_of_connected_edbg_tools(logger : logging.Logger) -> int:
     """
     prodids = (0x2140, 0x2141, 0x2144, 0x2111, 0x2169, 0x2145, 0x2175, 0x2FC0, 0x2177, 0x2180)
     try:
-        logger.debug("Microchip debuggers: %s", [d for d in usb.core.find(find_all=True) if
-                        d.idVendor in [0x3EB, 0x4d8]])
+        #logger.debug("Microchip debuggers: %s", [d for d in usb.core.find(find_all=True) if
+        #                d.idVendor in [0x3EB, 0x4d8]])
         if platform.system() == 'Windows':
             return len([d for d in pymcuprog.backend.Backend().get_available_hid_tools() if
                         d.vendor_id == 0x3EB and d.product_id in prodids ])
@@ -416,7 +425,7 @@ def tool_reboot(backend : pymcuprog.backend.Backend,
                     logger : logging.Logger) -> bool:
     """
     Reboots tool and waits for it to reappear.
-    In case it takes too long (> 5sec), False is returned, otherwise True.
+    In case it takes too long (> 20sec), False is returned, otherwise True.
     """
     logger.info("Rebooting debugger...")
     backend.reboot_tool()
@@ -462,7 +471,7 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
 
     # check whether simavr should be started, and if so, do that exclusively
     if handle_simavr(args, device):
-        return 0
+        return 0 # returning after simavr has finished
 
     # now report startup
     logger.info("This is PyAvrOCD version %s", importlib.metadata.version("pyavrocd"))
@@ -496,10 +505,10 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         logger.critical("No compatible tool discovered")
         return 1 # exit with error code
     if len(available) > 1:
-        logger.critical("More than one compatible tool! Use -u or -t to distinguish.")
+        logger.critical("More than one compatible tool! Use -t or -u to select.")
         d : pyedbglib.hidtransport.hidtransportbase.HidTool
         for d in available:
-            logger.critical("> Tool: %s, S/N: %s", d.product_string, d.serial_number)
+            logger.critical(" Tool: %s, SN: %s", d.product_string, d.serial_number)
         return 1 # exit with error code
 
     tool : ToolUsbHidConnection = ToolUsbHidConnection(serialnumber=args.serialnumber,
@@ -510,9 +519,9 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
         backend.connect_to_tool(tool)
         toolname = backend.transport.hid_device.get_product_string()
         tool.serialnumber = backend.transport.hid_device.get_serial_number_string()
-        logger.info("Connected to %s", toolname)
-    except OSError as e:
-        if str(e) == "open failed":
+        logger.info("Connected to %s, SN: %s", toolname, tool.serialnumber)
+    except (PymcuprogToolConnectionError, OSError) as e:
+        if "open failed" in str(e):
             logger.critical("Debug probe busy, cannot connect")
         else:
             logger.critical("Could not connect to debug probe: %s", str(e))

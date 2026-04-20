@@ -26,6 +26,7 @@ class TestXAvrDebugger(TestCase):
         args.manage = ['bootrst', 'lockbits', 'dwen', 'ocden']
         args.clkprg = 500
         args.clkdeb = 4000
+        args.kbps = 100
         args.timers = 'r'
         args.load = 'n'
         args.attach = False

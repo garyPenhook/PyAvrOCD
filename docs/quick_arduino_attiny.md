@@ -19,11 +19,11 @@ This quickstart guide demonstrates how to use the Arduino IDE 2 for debugging on
 
 Open the `Preferences` dialog of the Arduino IDE and paste the following `Board Manager URLs` into the list:
 
-	https://downloads.pyavrocd.io/package_debug_enabled_index.json
-Close the `Preference` dialog with `OK`. Now, you can install the core, `ATTinyCore (Debug enabled)`.
+	https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
+Close the `Preference` dialog with `OK`. Now, you can install the core, `TinyCore`.
 
 * Select `Tools` -> `Board` -> `Board Managers` ... . This will open the Boards Manager dialog.
-* In the search field, type `ATTinyCore (Debug enabled)` and install the most recent version.
+* In the search field, type `TinyCore` and install the most recent version.
 
 ### Step 2: Install *dw-link* firmware on an Uno
 
@@ -73,8 +73,8 @@ The yellow LED is the *system LED*, and the red one is the *ATtiny-LED*. The sys
 
 ### Step 4: Start Debugging
 
-- Load the sketch you want to debug  (e.g., `dw-link-x.y.z/examples/varblink/varblink.ino`) into the IDE by choosing `Open...` in the `File` menu.
-- Select `ATtiny25/45/85 (no bootloader)` as the board under `Tools` -> `Board` -> `ATTinyCore`.
+- Load the sketch you want to debug into the IDE by choosing `Open...` in the `File` menu.
+- Select `ATtiny25/45/85` as the board under `Tools` -> `Board` -> `TinyCore`.
 - In the `Tools` menu,  choose `1 MHz (internal)` as the `Clock Source`  (assuming that the ATtiny is as it comes from the factory and no fuse has been changed).
 - In the `Sketch` menu, select `Optimize for Debugging`.
 - Compile the code by clicking the `Verify` button in the upper left corner.

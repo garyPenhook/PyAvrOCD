@@ -37,6 +37,7 @@ nav:
     - Preparing the target board: 'board-preparation.md'
     - Setting the right fuses: 'fuse-preparation.md'
     - Connecting to the target: 'connect-to-target.md'
+    - Compiling the program: 'compilation-options.md'
     - Invoking the server: 'command-line-options.md'
     - Debugging on the target: 'debugging.md'
     - Monitor commands: 'monitor-commands.md'

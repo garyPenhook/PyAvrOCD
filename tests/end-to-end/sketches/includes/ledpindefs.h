@@ -49,9 +49,9 @@
  #define LED1_DDR  DDRB
  #define LED1      PB5
 // LED on board on dev boards
- #define LED1_PORT PORTB
- #define LED1_DDR  DDRB
- #define LED1      PB0
+ #define LED2_PORT PORTB
+ #define LED2_DDR  DDRB
+ #define LED2      PB0
 #elif defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__) || \
   defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 // SCK
@@ -232,6 +232,16 @@
  #define LED1_PORT PORTB
  #define LED1_DDR  DDRB
  #define LED1      PB1
+#elif defined(__AVR_ATmega4809__)
+// Curiosity Nano
+ #define LED1_PORT PORTF.OUT
+ #define LED1_DDR  PORTF.DIR
+ #define LED1      PIN5_bm
+#elif defined(__AVR_ATmega4808__)
+// Thinary Nano
+ #define LED1_PORT PORTC.OUT
+ #define LED1_DDR  PORTC.DIR
+ #define LED1      PIN2_bm
 #else
  #error "MCU is not supported"
 #endif

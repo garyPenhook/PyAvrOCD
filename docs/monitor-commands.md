@@ -1,6 +1,8 @@
 # Monitor commands
 
-PyAvrOCD implements several `monitor` commands. These can be used to control important aspects of the GDB server. One important command is the `monitor debugwire enable` command, which enables debugWIRE mode on MCUs supporting this interface.
+PyAvrOCD implements several `monitor` commands. These can be used to control important aspects of the GDB server. Two important commands are the `monitor debugwire enable` and `monitor debugwire disable` commands, which enable and disable, respectively, debugWIRE mode on MCUs supporting this interface. When using Arduino IDE 2, you can type such commands into the last line of the `Debug Console`.
+
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-5.png" width="70%"></p>
 
 | Command                                                      | Action                                                       |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -16,7 +18,7 @@ PyAvrOCD implements several `monitor` commands. These can be used to control imp
 | `monitor` `rangestepping `[`enable` \| `disable`]            | The GDB range-stepping command is supported or disabled. The default is that it is `enable`d. |
 | `monitor` `reset`                                            | Resets the MCU.                                              |
 | `monitor` `singlestep` [`safe` \| `interruptible`]           | Single-stepping can be performed in a `safe` way, where single steps are shielded against interrupts. Otherwise, a single step can lead to a jump into the interrupt dispatch table. The `safe` option is the default. |
-| `monitor` `timer` [`run` \| `freeze`]                        | Timers can either be `frozen` when execution is stopped, or they can `run` freely. The latter option is helpful when PWM output is crucial, and it is the default. Note that changing the timer mode will imply an MCU reset. |
+| `monitor` `timer` [`run` \| `freeze`]                        | Timers can either be `frozen` when execution is stopped, or they can `run` freely. The latter option is helpful when PWM output is crucial, and it is the default. Changing the timer mode will imply an MCU reset. Note that on (U)PDI targets the timers are always frozen when the CPU is stopped. |
 | `monitor` `verify` [`enable `\|` disable`]                   | Verify flash after loading each flash page. The default setting is for this option to be `enable`d. |
 | `monitor` `version`                                          | Show version of the gdbserver.                               |
 

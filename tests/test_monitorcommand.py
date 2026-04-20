@@ -16,17 +16,17 @@ class TestMonitorCommand(TestCase):
         self.moj = None
 
     def set_up(self):
-        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool")
-        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool")
+        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool", "avr8")
+        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool", "avr8")
 
     def test_consistency_failure(self):
         self.set_up()
         monopts['bla'] = [1,2,3]
-        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool")
+        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool", "avr8")
         monopts.pop('bla')
         temp = monopts['LiveTests']
         del monopts['LiveTests']
-        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool")
+        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool", "avr8")
         monopts['LiveTests'] = temp
 
     def test_defaults_atmega128(self):

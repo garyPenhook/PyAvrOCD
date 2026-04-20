@@ -31,7 +31,7 @@ One can categorize the registers marked with `ocd-rw=""` (and `ocd-rw=""`) as fo
 Going over the critical registers, I conclude the following. It seems that **all** entries are not meaningful. On the other hand, two entries are missing:
 
 - `CANEN1`: Is read-only and in this case only contains 'reserved bits'. No need to protect it!
-- `CANIE1`: R/W, contains only resewrved bits. No reason tho protect it.
+- `CANIE1`: R/W, contains only reserved bits. No reason to protect it.
 - `CANSIT1`: Read-only and all bits reserved. No reason to protect it.
 - `CANTCON`: Timer control register R/W. No reason to protect it.
 - `CANTIM`: Read-only, timer/counter. No reason to protect it.

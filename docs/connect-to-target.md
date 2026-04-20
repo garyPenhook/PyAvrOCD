@@ -33,7 +33,7 @@ In this case, it is essential to consult the user guide of the programmer and th
 
 In principle, only two wires are necessary to connect your debug probe to a target chip or board: the debugWIRE line, which is the target chip's RESET line, and GND. Since the debugger also needs to know which voltage the target board uses, the Vcc line is also necessary. Note that none of the commercial debuggers source the target. They only have voltage-sensing lines to drive the level-shifting hardware.
 
-Since one also wants to change into and out of debugWIRE mode, change fuses, or upload firmware, it is necessary to connect all 6 SPI programming lines to the target: VTG, GND, RESET, MOSI, MISO, and SCK. For this reason, using all SPI programming lines makes a lot of sense. Moreover, most of the time, an SPI connector is already on the target board.
+Since one also wants to change into and out of debugWIRE mode, change fuses, or upload firmware, it is necessary to connect all 6 SPI programming lines to the target: VTG, GND, RESET, MOSI, MISO, and SCK. For this reason, using all SPI programming lines makes a lot of sense. Moreover, most of the time, an SPI connector is already on the target board. Note, however, that all debug probes have the tendency to occupy the SPI lines, so that they cannot be used reliably by other devices.
 
 ### SPI programming header
 

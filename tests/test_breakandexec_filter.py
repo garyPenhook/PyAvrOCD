@@ -20,6 +20,8 @@ class TestBreakAndExecFilter(TestCase):
         mock_dbg.memory_info.memory_info_by_name.return_value = {'size' : 100,'address' : 0x60 }
         mock_dbg.get_hwbpnum.return_value = 1
         mock_dbg.get_architecture.return_value = "avr8"
+        mock_dbg.get_sregaddr.return_value = 0x5F
+        mock_dbg.get_iooffset.return_value = 0x20
         self.bp = BreakAndExec(Mock(), mock_dbg, Mock())
 
     def verify_load_or_store(self, opcode, store=None, reg=None, ixreg=None, ixregval=None, predec=False, postinc=False):
@@ -32,30 +34,30 @@ class TestBreakAndExecFilter(TestCase):
                 ixreg = 30
             else:
                 raise FatalError("Wrong index register id")
-        sramwrite_calls = []
-        sramread_calls = []
-        sramread_returns = []
+        regwrite_calls = []
+        regread_calls = []
+        regread_returns = []
         if ixreg is not None:
-            sramread_calls = [call(ixreg,2)]
-            sramread_returns = [ bytearray([ixregval, 0]) ]
+            regread_calls = [call(ixreg,2)]
+            regread_returns = [ bytearray([ixregval, 0]) ]
         if store:
-            sramread_calls += [call(reg,1)]
-            sramread_returns += [ bytearray([0x99]) ]
+            regread_calls += [call(reg,1)]
+            regread_returns += [ bytearray([0x99]) ]
         else:
-            sramwrite_calls += [call(reg, bytearray([0x88]))]
+            regwrite_calls += [call(reg, bytearray([0x88]))]
         if predec:
             ixregval -= 1
         if postinc:
             ixregval += 1
         if predec or postinc:
-            sramwrite_calls += [call(ixreg, bytearray([ixregval, 0])) ]
+            regwrite_calls += [call(ixreg, bytearray([ixregval, 0])) ]
         self.bp.dbg.status_register_read.return_value = bytearray([0x88])
-        self.bp.dbg.sram_read.side_effect = sramread_returns
+        self.bp.dbg.register_read.side_effect = regread_returns
         self.assertTrue(self.bp._filter_unsafe_instruction(0x1000, opcode))
-        self.bp.dbg.sram_read.assert_has_calls(sramread_calls, any_order=False)
-        self.assertEqual(self.bp.dbg.sram_read.call_count,len(sramread_calls))
-        self.bp.dbg.sram_write.assert_has_calls(sramwrite_calls, any_order=False)
-        self.assertEqual(self.bp.dbg.sram_write.call_count, len(sramwrite_calls))
+        self.bp.dbg.register_read.assert_has_calls(regread_calls, any_order=False)
+        self.assertEqual(self.bp.dbg.register_read.call_count,len(regread_calls))
+        self.bp.dbg.register_write.assert_has_calls(regwrite_calls, any_order=False)
+        self.assertEqual(self.bp.dbg.register_write.call_count, len(regwrite_calls))
         if store:
             self.bp.dbg.status_register_write.assert_called_once_with(bytearray([0x99]))
         else:
@@ -330,53 +332,53 @@ class TestBreakAndExecFilter(TestCase):
     def test_filter_xch(self):
         self.set_up()
         self.bp.dbg.get_architecture.return_value = 'avr8e'
-        self.bp.dbg.sram_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x18])]
+        self.bp.dbg.register_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x18])]
         self.bp.dbg.status_register_read.return_value = bytearray([0x99])
         self.assertTrue(self.bp._filter_unsafe_instruction(0x1000, 0x9354)) # XCH Z, R21
-        self.bp.dbg.sram_read.assert_has_calls([call(30, 2), call(21, 1)])
-        self.assertEqual(self.bp.dbg.sram_read.call_count,2)
+        self.bp.dbg.register_read.assert_has_calls([call(30, 2), call(21, 1)])
+        self.assertEqual(self.bp.dbg.register_read.call_count,2)
         self.bp.dbg.status_register_read.assert_called_once()
         self.bp.dbg.status_register_write.assert_called_once_with(bytearray([0x18]))
-        self.bp.dbg.sram_write.assert_called_once_with(21, bytearray([0x99]))
+        self.bp.dbg.register_write.assert_called_once_with(21, bytearray([0x99]))
         self.bp.dbg.program_counter_write.assert_called_once_with(0x1002 >> 1)
 
     def test_filter_lac(self):
         self.set_up()
         self.bp.dbg.get_architecture.return_value = 'avr8e'
-        self.bp.dbg.sram_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x18])]
+        self.bp.dbg.register_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x18])]
         self.bp.dbg.status_register_read.return_value = bytearray([0x99])
         self.assertTrue(self.bp._filter_unsafe_instruction(0x1000, 0x9386)) # LAC Z, R24
-        self.bp.dbg.sram_read.assert_has_calls([call(30, 2), call(24, 1)])
-        self.assertEqual(self.bp.dbg.sram_read.call_count,2)
+        self.bp.dbg.register_read.assert_has_calls([call(30, 2), call(24, 1)])
+        self.assertEqual(self.bp.dbg.register_read.call_count,2)
         self.bp.dbg.status_register_read.assert_called_once()
         self.bp.dbg.status_register_write.assert_called_once_with(bytearray([0x81]))
-        self.bp.dbg.sram_write.assert_called_once_with(24, bytearray([0x99]))
+        self.bp.dbg.register_write.assert_called_once_with(24, bytearray([0x99]))
         self.bp.dbg.program_counter_write.assert_called_once_with(0x1002 >> 1)
 
     def test_filter_las(self):
         self.set_up()
         self.bp.dbg.get_architecture.return_value = 'avr8e'
-        self.bp.dbg.sram_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x28])]
+        self.bp.dbg.register_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x28])]
         self.bp.dbg.status_register_read.return_value = bytearray([0x99])
         self.assertTrue(self.bp._filter_unsafe_instruction(0x1000, 0x93b5)) # LAS Z, R27
-        self.bp.dbg.sram_read.assert_has_calls([call(30, 2), call(27, 1)])
-        self.assertEqual(self.bp.dbg.sram_read.call_count,2)
+        self.bp.dbg.register_read.assert_has_calls([call(30, 2), call(27, 1)])
+        self.assertEqual(self.bp.dbg.register_read.call_count,2)
         self.bp.dbg.status_register_read.assert_called_once()
         self.bp.dbg.status_register_write.assert_called_once_with(bytearray([0xB9]))
-        self.bp.dbg.sram_write.assert_called_once_with(27, bytearray([0x99]))
+        self.bp.dbg.register_write.assert_called_once_with(27, bytearray([0x99]))
         self.bp.dbg.program_counter_write.assert_called_once_with(0x1002 >> 1)
 
     def test_filter_lat(self):
         self.set_up()
         self.bp.dbg.get_architecture.return_value = 'avr8e'
-        self.bp.dbg.sram_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x28])]
+        self.bp.dbg.register_read.side_effect = [bytearray([0x5F, 0x00]), bytearray([0x28])]
         self.bp.dbg.status_register_read.return_value = bytearray([0x99])
         self.assertTrue(self.bp._filter_unsafe_instruction(0x1000, 0x9207)) # LAT Z, R0
-        self.bp.dbg.sram_read.assert_has_calls([call(30, 2), call(0, 1)])
-        self.assertEqual(self.bp.dbg.sram_read.call_count,2)
+        self.bp.dbg.register_read.assert_has_calls([call(30, 2), call(0, 1)])
+        self.assertEqual(self.bp.dbg.register_read.call_count,2)
         self.bp.dbg.status_register_read.assert_called_once()
         self.bp.dbg.status_register_write.assert_called_once_with(bytearray([0xB1]))
-        self.bp.dbg.sram_write.assert_called_once_with(0, bytearray([0x99]))
+        self.bp.dbg.register_write.assert_called_once_with(0, bytearray([0x99]))
         self.bp.dbg.program_counter_write.assert_called_once_with(0x1002 >> 1)
 
     def test_filter_xch_lax_wrong_Z_value(self):

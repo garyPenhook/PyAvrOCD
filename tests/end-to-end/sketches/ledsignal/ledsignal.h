@@ -19,6 +19,10 @@
 #define Serial Serial1
 #define ONVAL LOW
 #define OFFVAL HIGH
+#elif defined(__AVR_ATmega4809__)
+#define LED0 28 // Uno Wifi
+#define LED1 39 // The Curiosity Nano
+#define Serial Serial3
 #elif defined(LED_BUILTIN)
   #define LED1 LED_BUILTIN
 #else

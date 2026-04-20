@@ -32,20 +32,20 @@ Now select the field with the additional board manager URLs.
 Type the following URL into a new line:
 
 ```
-https://downloads.pyavrocd.io/package_debug_enabled_index.json
+https://felias-fogg.github.io/XMiniCore/package_felias-fogg_XMiniCore_index.json
 ```
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/additional-board-urls.png" width="50%">
+<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/additional-board-urls-xmini.png" width="50%">
 </p>
 
 You close the dialog by clicking on two `OK` buttons in succession.
 
 ### Step 2: Install a debug-enabled core
 
-Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "Debug" into the search line (2). After that, all cores with the word "Debug" in their description are displayed. Scroll down until you see one with the title "Atmel AVR Xplained-minis (Debug enabled)." Install this core by clicking on `Install` (3).
+Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "xmini" into the search line (2). After that, all cores with the word "xmini" in their description are displayed. Scroll down until you see one with the title "XminiCore." Install this core by clicking on `Install` (3).
 
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager.png" width="90%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager-xmini.png" width="90%"></p>
 
 Loading the core and all the necessary tools might take a while.
 
@@ -136,4 +136,4 @@ There is always the chance that something goes south, either debugging does not 
     If you have any attached circuitry, be it on a breadboard or a shield, use the `IOREF` pin to power it.
 
 
-    The reason for this is that the `IOREF` pin is under the switching control of the onboard debugger. So, if a power cycle is necessary to bring the MCU into debugWIRE mode, then the MCU as well as IOREF will be disconnected from power and then powered again. The 5V/3V pins are not switched and deliver always power. This could lead to the situation that the MCU will be powered through its I/O pins, which is not healthy for the chip and will also prohibit that the MCU switches to debugWIRE mode.
+    The reason for this is that the `IOREF` pin is under the switching control of the onboard debugger. So, if a power cycle is necessary to bring the MCU into debugWIRE mode, then the MCU as well as IOREF will be disconnected from power and then powered again. The 5V/3V pins are not switched and deliver always power. This could lead to the situation that the MCU will be powered through its I/O pins, which is not healthy for the chip and will also prohibit that the MCU switches to debugWIRE mode. If this is unavoidable, check out the [`README` file of XminiCore for a solution](https://github.com/felias-fogg/XMiniCore?tab=readme-ov-file#powering-external-circuitry).
