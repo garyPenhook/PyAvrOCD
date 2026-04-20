@@ -241,6 +241,8 @@ class XAvrDebugger(AvrDebugger):
         """
         if self._iface != 'jtag':
             return
+        if self.args.attach: # we do not change fuses when we want only to attach!
+            return
         self.switch_to_progmode()
         self.logger.info("Switched to programming mode")
         # clear lockbits if necessary
@@ -666,7 +668,7 @@ class XAvrDebugger(AvrDebugger):
     def stop_debugging(self, skip : bool = False, leave : bool = False, graceful : bool = True) -> None:
         """
         Stop the debug session and clean up in a safe way.
-        skip: if true, skip the debugging leave and fuse programming parts (when we could not connect)
+        skip: if true, skip the debugging-leave and fuse-programming parts (when we could not connect)
         leave: if true, leave debugging mode and unprogram the respective fuse
         graceful: do not talk about occurring exceptions
         """

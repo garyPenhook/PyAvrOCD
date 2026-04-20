@@ -414,10 +414,10 @@ verify [enable|disable]             - verify that loading was successful (def.)"
 
     def _mon_info(self, _ : int) -> tuple[ str, str ]:
         return ('info',"""PyAvrOCD version:         """ + importlib.metadata.version("pyavrocd") + """
+Debugging enabled:        """ + ("yes" if self._debugger_active else "no") + """
 Target:                   {}
 Debugger:                 """ + self._toolname + """
 Debugging interface:      """ + self._iface + (" (leave on exit)" if self._leaveonexit else " (stay on exit)") + """
-Debugging enabled:        """ + ("yes" if self._debugger_active else "no") + """
 Breakpoints:              """ + ("all types"
                                      if (not self._onlyhwbps and not self._onlyswbps) else
                                      ("only hardware bps"

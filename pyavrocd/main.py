@@ -54,7 +54,7 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             action='store_true',
                             help="Start without resetting the MCU")
 
-    parser.add_argument("-c", 
+    parser.add_argument("-c",
                             action='append',
                             dest='cmd',
                             type=str,
@@ -266,7 +266,7 @@ def setup_logging(args : argparse.Namespace, log_rsp : bool) -> None:
         # we do not want to see the message 'Looking for ...' from getdeviceinfo
         getLogger('pymcuprog.deviceinfo.deviceinfo').setLevel(logging.ERROR)
         # suppress errors of not connecting: It is intended!
-        #######getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
+        getLogger('pymcuprog.nvm').setLevel(logging.CRITICAL)
 
 #pylint: disable=too-many-branches
 def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tuple [None|int, str, str]:
