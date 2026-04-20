@@ -171,15 +171,19 @@ def run_script(logger, test_name, script):
             sleep(interact[1])
             ix += 1
             continue
-        if interact[0] == "$SUCCESS_IF":
-            if last_response.find(interact[1]) >= 0: # preliminary success / skip
+        if interact[0] == "$SUCCESS_IF": # preliminary success / skip
+            if last_response.find(interact[1]) >= 0 or \
+               (len(interact) > 2 and last_response.find(interact[2]) >= 0) or \
+               (len(interact) > 3 and last_response.find(interact[3]) >= 0):
                 child.close()
                 print("SKIP")
                 return True
             ix += 1
             continue
-        if interact[0] == "$FAIL_IF":
-            if last_response.find(interact[1]) >= 0: # preliminary failure
+        if interact[0] == "$FAIL_IF": # preliminary failure
+            if last_response.find(interact[1]) >= 0 or \
+               (len(interact) > 2 and last_response.find(interact[2]) >= 0) or \
+               (len(interact) > 3 and last_response.find(interact[3]) >= 0):
                 logger.debug("FAILED: %s in line %s because '%s' was not expected",  test_name, ix-1, interact[1])
                 child.close()
                 print("FAIL")

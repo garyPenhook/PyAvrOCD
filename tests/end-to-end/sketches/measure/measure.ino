@@ -1,14 +1,6 @@
 // measure supply voltage
 #include <Vcc.h>
 
-void success(void) {
-  while (1);
-}
-
-void fail(void) {
-  exit(3);
-}
-
 void setup (void) {
   int result;
   Vcc vcc = Vcc();
@@ -20,6 +12,14 @@ void setup (void) {
     success();
   }
   exit(0);
+}
+
+void fail(void) {
+  exit(3);
+}
+
+void success(void) {
+  while (1);
 }
 
 void loop (void) { }

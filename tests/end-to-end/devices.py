@@ -225,7 +225,10 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 # UPDI targets: MegaCoreX
                 "atmega4809": (updi_clock, ('large', 'updi'),
                                    "MegaCoreX:megaavr:4809:bootloader=no_bootloader,clock=",
-                                   "Curiosity Nano or Uno WiFi Rev2 or Nano Every")
+                                   "Curiosity Nano or Uno WiFi Rev2 or Nano Every"),
 
+                "atmega4808": (updi_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:4808:bootloader=no_bootloader,clock=",
+                                   "Thinary Nano Every"),
 
                     }

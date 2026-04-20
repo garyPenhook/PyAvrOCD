@@ -340,6 +340,43 @@ all_scripts = {
      ("print cnt", ""),
      ("print cnt > 50000", "= true", "= 1")) + epilog),
 
+# Checks range stepping for UPDI targets
+# We will reduce the number of available HWBPs by one using hardware breakpoints only
+# By doing so, we can reuse the rage_dw sketch.
+# _delay_ms (will be fast), loop with 2 exits (will be slow), loop with 0 exits (will be fast again)
+    "range_updi" : (
+    ('small', 'medium', 'large', 'huge', 'updi', 'arduino', 'noadc',
+         'noautopc'),
+    "range_dw",
+    "",
+    "",
+    (("set logging file log/range_updi.log", ""),) + prolog + \
+    (("load",  "Start address 0x"),
+     ("monitor breakpoints hardware", ""),
+     ("break range_dw.ino:23", "Breakpoint 1"),
+     ("cont", "LedOn"),
+     ("next", "_delay_ms"),
+     ("next", "LedOff"),
+     ("delete 1", ""),
+     ("break range_dw.ino:30", "Breakpoint 2"),
+     ("cont", "Breakpoint 2"),
+     ("next", "while"),
+     ("next", "$SKIP"),
+     ("$SLEEP", 2),
+     ("$INTERRUPT", "SIGINT"),
+     ("print cnt", ""),
+     ("print cnt > 1", "= true", "= 1"),
+     ("print cnt < 30", "= true", "= 1"),
+     ("delete 2", ""),
+     ("break 33", "Breakpoint 3"),
+     ("cont", "cnt = 0"),
+     ("next", "while"),
+     ("next", "$SKIP"),
+     ("$SLEEP", 3),
+     ("$INTERRUPT", "SIGINT"),
+     ("print cnt", ""),
+     ("print cnt > 50000", "= true", "= 1")) + epilog),
+
 # Checks range stepping for JTAG targets
 # _delay_ms (will be fast), loop with 4 exits (will be relatively fast),
 # loop with 5 exits (will be slow), deadloop (will be fast again)
@@ -703,7 +740,7 @@ all_scripts = {
     ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
          'noautopc'),
     "flashed",
-    "",
+    "-fno-lto",
     "",
     (("set logging file log/flash.log", ""),) + prolog + \
     (("load", "Start address 0x"),

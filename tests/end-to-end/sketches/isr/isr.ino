@@ -1,15 +1,17 @@
 #include <Arduino.h>
+#include <util/delay.h>
 #include "irqpin.h"
 
 volatile int irqcount = 0;
 volatile int outsidecount = 0;
+
 
 void setup()
 {
 #if FLASHEND >= 4095
   Serial.begin(38400);
   Serial.println(F("Startup ..."));
-  delay(500);
+  _delay_ms(500);
 #endif
   pinMode(IRQPIN, OUTPUT);
   digitalWrite(IRQPIN, LOW);
@@ -19,11 +21,11 @@ void setup()
 void loop()
 {
   int pcount;
-  //digitalWrite(IRQPIN, LOW);
-  shortwait(5);
+  digitalWrite(IRQPIN, LOW);
+  shortwait();
   outsidecount++;
   digitalWrite(IRQPIN, HIGH);
-  delay(200); // necessary to give enough time for printing!
+  _delay_ms(200); // necessary to give enough time for printing!
 #if FLASHEND >= 4095
   Serial.print("IRQ count: ");
   pcount = irqcount;
@@ -31,9 +33,9 @@ void loop()
 #endif
 }
 
-void shortwait(unsigned long ms)
+void shortwait()
 {
-  delay(ms);
+  _delay_ms(1);
 }
 
 void irqserver()

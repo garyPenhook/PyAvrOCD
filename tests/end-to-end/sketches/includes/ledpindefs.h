@@ -237,6 +237,11 @@
  #define LED1_PORT PORTF.OUT
  #define LED1_DDR  PORTF.DIR
  #define LED1      PIN5_bm
+#elif defined(__AVR_ATmega4808__)
+// Thinary Nano
+ #define LED1_PORT PORTC.OUT
+ #define LED1_DDR  PORTC.DIR
+ #define LED1      PIN2_bm
 #else
  #error "MCU is not supported"
 #endif
