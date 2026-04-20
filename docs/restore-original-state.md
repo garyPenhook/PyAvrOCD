@@ -14,4 +14,3 @@ If, after debugging, you want to restore a target board to its original state, a
 !!! warning "Burning the bootloader when there are many user-selectable options"
     If you have debugged a target for which the `Tools` menu offers many different options, make sure that all relevant options have the correct value before you use the `Burn Bootloader` command. In particular, make sure that the right `Clock` value is selected! Otherwise, it can happen that you need to apply an external clock to reanimate your chip.
 
- 
