@@ -110,9 +110,9 @@ The ATmega8515 does not have a debug interface.
 
 ## Modern ATmegas
 
-### Atmegas supported by *[MegaCoreX (work in progress)](supporting-cores.md#megacorex)*
+### Atmegas supported by *[MegaCoreX](supporting-cores.md#megacorex)*
 
-The following MCUs are not yet fully supported, but PyAvrOCD is in the process of being extended to also cover these MCUs (see updi branch).
+The megaAVR 0-series. The ATmega4809 also made it on some Arduino boards.
 
 - <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, <u>ATmega4808</u>
 - <u>ATmega809</u>, ATmega1609, ATmega3209, **ATmega4809**

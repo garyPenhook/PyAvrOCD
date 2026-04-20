@@ -10,7 +10,7 @@ The big question is now, what does it mean for SRAM in the UPDI setting?
 
 ## Memory access API
 
-The memory access API does not seem to work in the way described in the document. Well, they do actually. However, when accessing memory, one has to add the MEMTYPE_address_byte, except when we access flash.
+The memory access API does not seem to work in the way described in the document. Well, they do actually. However, when accessing memory, one has to add the MEMTYPE_address_byte, except when we access flash. Also, when accessing RAM, we usually do not want to add the offset, since we want to address everything starting at 0x0000 (but this is taken care of by subtracting the offset beforehand).
 
 ## General registers and I/O registers
 
@@ -31,14 +31,8 @@ This means
 
 - We need to have special read/write register functions in xavrdebug, which will "buffer" reads and writes and in the background use register file_read and _write (just before execution/singlestepping starts) DONE
 
-
-
-
-
 The lower end of the user SRAM (and therefore stack) for UPDI targets is much higher than that of JTAG/dw, i.e.,
 
 - `_stack_pointer_legal` should test against a much higher address. Perhaps, we can just ignore it.
 
-
-
-The role of shadow regs in the OCD area is not entirely clear! Do we have to write to them in order to change the regs? I believe not. But this needs to be tested.
+The role of shadow regs in the OCD area is not entirely clear! Do we have to write to them in order to change the regs? I believe not. But this needs to be tested. -> xedbg said: ignore the shadow!

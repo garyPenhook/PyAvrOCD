@@ -76,4 +76,4 @@ This is an **experimental** fork of the core for the megaAVR-0 chip family, such
 https://felias-fogg.github.io/MegaCoreX/package_MCUdude_MegaCoreX_index.json
 ```
 
-The debug support for this core is not bug-free (no pun intended). If you spot a bug, please report it.
+The debug support for this core might not be bug-free (no pun intended). If you spot a bug, please report it.

@@ -157,10 +157,39 @@ For the Atmel debuggers, the setup appears as follows, where the JTAG pin corres
 | Pin 9 (TDI)    | 9                         | TDI        | A7       |
 | Pin 10 (GND)   | 0                         | GND&nbsp;  | GND      |
 
-<!--
 
-## Connecting to UPDI and PDI
 
-Will be treated later when implemented.
+## Connecting to UPDI targets
 
--->
+There are a number of UPDI boards with an embedded debugger on board. For instance, all the AVR Curiosity Nano boards as well as the Arduino Uno WiFi Rev2 have a hardware debugger on board. In all these cases, it is enough to plug in the USB cable.
+
+However, even without a debugger on board, connecting to a UPDI target is very easy because you need only three lines: `UPDI`, `VTG`, and `GND`. For the MPLAB debuggers, this looks as follows.
+
+| MBLAP Debugger | Pin # | Target pin |
+| -------------- | ----- | ---------- |
+| Pin 1 (TVPP)   | 1     | NC&nbsp;   |
+| Pin 2 (TVDD)   | 2     | VTG        |
+| Pin 3 (GND)    | 3     | GND        |
+| Pin 4 (PGD)    | 4     | UPDI       |
+| Pin 5 (PGC)    | 5     | NC         |
+| Pin 6 (TAUX)   | 6     | NC         |
+| Pin 7 (TTDI)   | 7     | NC         |
+| Pin 8 (TTMS)   | 8     | NC&nbsp;   |
+
+For the UPDI v2 interface, PIn1 has to be connected to RESET on the target. However, this is only necessary, if one could use this pin to initiate a high-voltage pulse, which all the considered Microchip debuggers are not able to do.
+
+For the Atmel debuggers JTAGICE3, PowerDebugger, and Atmel-ICE, we have the following pinout.
+
+| Atmel Debugger | Mini-squid pin = JTAG pin | Target pin |
+| -------------- | ------------------------- | ---------- |
+| Pin 1 (TCK)    | 1                         | NC         |
+| Pin 2 (GND)    | 2                         | GND        |
+| Pin 3 (TDO)    | 3                         | UPDI       |
+| Pin 4 (VTG)    | 4                         | VTG        |
+| Pin 5 (TMS)    | 5                         | NC&nbsp;   |
+| Pin 6 (nSRST)  | 6                         | NC         |
+| Pin  7 (N.C.)  | 7&nbsp;                   | NC&nbsp;   |
+| Pin 8 (nTRST)  | 8                         | NC&nbsp;   |
+| Pin 9 (TDI)    | 9                         | NC         |
+| Pin 10 (GND)   | 0                         | NC&nbsp;   |
+
