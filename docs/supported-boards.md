@@ -39,7 +39,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **Arduino Leonardo**: JTAG pins are A0-A3, use [this board adapter](https://github.com/felias-fogg/PyAvrOCD/tree/main/pcbs/arduino-jtag)
 - Arduino Leonardo ETH
 - <u>Arduino Micro</u>
-- <s>Arduino Esplora</s>
+- <s>Arduino Esplora</s>: JTAG pins are not accessible
 - Arduino Mini: [MiniCore](supporting-cores.md#minicore) (if Mini 05); do not connect DTR pin of FTDI header
 - Arduino Ethernet: [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
 - <u>Arduino Fio</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header and do not connect XBee
@@ -59,7 +59,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Arduino Linino One
 - Arduino UNO WiFi (Rev 1):  [MiniCore](supporting-cores.md#minicore); cut `RESET EN` solder bridge
 - **Arduino Uno WiFi (Rev 2)**: [MegaCoreX](supporting-cores.md#megacorex)
-- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex)
+- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex); UPDI pad on the backside
 
 ## Sparkfun boards
 
@@ -94,9 +94,10 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Pro Trinket 5V/16MHz (FTDI): [MiniCore](supporting-cores.md#minicore)
 - Pro Trinket 3V/12MHz (FTDI): [MiniCore](supporting-cores.md#minicore)
 - ItsyBitsy 32u4 (3V)
-- ItsyBitsy 32u4 (5V)
+- <u>ItsyBitsy 32u4 (5V)</u>
 - Bluefruit Micro
 - ATmega32u4 Breakout Board
+- <u>SEESAW Breakout ATtiny817</u>
 
 ## Teensy boards
 
@@ -136,4 +137,12 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **ATtiny828 breakout board (assembled)**: [TinyCore](supporting-cores.md#tinycore)
 - **ATtiny167 dev. board**: [TinyCore](supporting-cores.md#tinycore)
 - **ATtiny43 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+- <u>ATtiny3217 breakout board (assembled)</u>
 
+## Miscellaneous boards
+
+- <u>MH-ET LIVE (ATtiny88)</u>: [TinyCore](supporting-cores.md#tinycore)
+- <u>Digispark (ATtiny85)</u>: [TinyCore](supporting-cores.md#tinycore)
+- <u>Digispark Pro (ATtiny167)</u>: [TinyCore](supporting-cores.md#tinycore)
+- <u>Pololu A-Star 328PB Micro</u>: [MiniCore](supporting-cores.md#minicore)
+- <u>Thinary Nano Every (ATmega4808)</u>: [MegaCoreX](supporting-cores.md#megacorex)

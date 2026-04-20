@@ -32,8 +32,6 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 - <s>ATtiny26</s>
 - <s>ATtiny40</s>
 
-
-
 ## Classic ATmegas
 
 ### ATmegas supported by [*MiniCore*](supporting-cores.md#minicore)
@@ -112,7 +110,7 @@ The ATmega8515 does not have a debug interface.
 
 ### Atmegas supported by *[MegaCoreX](supporting-cores.md#megacorex)*
 
-The megaAVR 0-series. The ATmega4809 also made it on some Arduino boards.
+This is the megaAVR 0-series. The ATmega4809 also made it on some Arduino boards.
 
-- <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, <u>ATmega4808</u>
+- <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, **ATmega4808**
 - <u>ATmega809</u>, ATmega1609, ATmega3209, **ATmega4809**
