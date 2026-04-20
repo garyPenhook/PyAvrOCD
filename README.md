@@ -9,8 +9,6 @@
 ![Pytest badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/felias-fogg/c0d539e3ad0d10252d2aab8ad325246a/raw/pytest.json)
 ![Coverage badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/felias-fogg/c0d539e3ad0d10252d2aab8ad325246a/raw/pycoverage.json&maxAge=30)
 [![Release workflow](https://github.com/felias-fogg/PyAvrOCD/actions/workflows/release.yml/badge.svg)](https://github.com/felias-fogg/PyAvrOCD/actions/workflows/release.yml)
-[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-raw/felias-fogg/PyAvrOCD?color=blue)](https://github.com/felias-fogg/PyAvrOCD/issues?q=is%3Aissue%20state%3Aopen)
-[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-closed-raw/felias-fogg/PyAvrOCD?color=blue)](https://github.com/felias-fogg/PyAvrOCD/issues?q=is%3Aissue%20state%3Aclosed)
 [![Commits since latest](https://img.shields.io/github/commits-since/felias-fogg/PyAvrOCD/latest?include_prereleases&logo=github)](https://github.com/felias-fogg/PyAvrOCD/commits/main)
 [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-raw/felias-fogg/PyAvrOCD?color=blue&logo=github)](https://github.com/felias-fogg/PyAvrOCD/issues?q=is%3Aissue%20state%3Aopen)
 [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-closed-raw/felias-fogg/PyAvrOCD?color=blue&logo=github)](https://github.com/felias-fogg/PyAvrOCD/issues?q=is%3Aissue%20state%3Aclosed)
