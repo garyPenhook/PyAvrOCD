@@ -4,7 +4,7 @@
 | -------------------------- | ------------ | ----------- | ------------------------ | --------------- | ------- |
 | Leonardo                   | Arduino      | ATmega32U4  | Caterina-Leonardo        | leonardo        | arduino |
 | Micro                      | Arduino      | ATmega32U4  | Caterina-Micro           | micro           | arduino |
-| Lilypad USB                | Arduino      | ATmega32U4  | Caterina-LilyPadUSB      | leonardo        | arduino |
+| <s>Lilypad USB</s>         | Arduino      | ATmega32U4  | Caterina-LilyPadUSB      | leonardo        | arduino |
 | Teensy++ 2.0               | Teensy       | AT90USB1286 | HalfKay                  | ?               | teensy  |
 | Teensy                     | Teensy       | ATmega32U4  | HalfKay                  | ?               | teensy  |
 | Feather 32U4               | Adafruit     | ATmega32U4  | Caterina-Feather32u4     | feather32u4     | arduino |
@@ -22,5 +22,7 @@
 | Seeeduino Lite             | Seeed Studio | ATmega32U4  | Caterina-Leonardo        | leonardo        | arduino |
 | Olimexino-32U4             | Olimex       | ATmega32U4  | ?                        | Olimexino_32U4  | arduino |
 | eduArdu                    | Olimex       | ATmega32U4  | ?                        | eduArdu         | arduino |
-| A-Star 32U4                | Pololu       | ATmega32U4  | Caterina-A-Star          | leonardo        | arduino |
+| A-Star 32U4 Prime          | Pololu       | ATmega32U4  | Caterina-A-Star          | leonardo        | arduino |
+| A-Star 32U4 Mini           | Pololu       | ATmega32U4  | Caterina-A-Star          |                 | arduino |
+| <s>A-Star 32U4 Micro</s>   | Pololu       | ATmega32U4  | Caterina-A-Star          |                 |         |
 

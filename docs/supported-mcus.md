@@ -1,14 +1,18 @@
 # Supported MCUs
 
-This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. Currently, only the classic parts are covered, but MCUs with PDI and UPDI debugging interfaces will follow soon. Some of the MCUs are supported by more than one core.
+This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. This list is extended continuously as development of PyAvrOCD proceeds.
 
 MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested.
 
+The list is structured by the Arduino cores that support the chips, where some of the MCUs are supported by more than one core.
+
 ## Classic ATtinys
 
-### ATtinys supported by [MicroCore](supporting-cores.md#microcore)
+### ATtinys supported by *[MicroCore](supporting-cores.md#microcore)*
 
 - **ATtiny13(A)**
+
+Because of its limited flash memory, debugging a sketch on this MCU is rather challenging.
 
 ### ATtinys supported by *[TinyCore](supporting-cores.md#tinycore)* and *[ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)*
 
@@ -26,11 +30,16 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 ### Other ATtinys without a debug interface
 
 - <s>ATtiny4, ATtiny5, ATtiny9, ATtiny10</s>
-
 - <s>ATtiny11, ATtiny12, ATtiny15</s>
-- <s>ATtiny20</s>
+- <s>ATtiny20 </s>, <s>ATtiny40</s>
+- <s>ATtiny22</s>
 - <s>ATtiny26</s>
-- <s>ATtiny40</s>
+- <s>ATtiny28</s>
+- <s>ATtiny102, ATtiny104</s>
+
+## Modern ATtinys
+
+There is no support for the tinyAVR 0-, 1-, and 2-series devices yet. But this will change shortly.
 
 ## Classic ATmegas
 
@@ -46,6 +55,8 @@ MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrO
 The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to debugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
 
 ### ATmegas supported by [*XMiniCore*](supporting-cores.md#xminicore)
+
+The following MCUs are already supported by MiniCore. However, XMiniCore goes some way to make it easier to deal with the Microchip Xplained Mini development boards so that debugging becomes plug-and-play.
 
 - **ATmega328P** (Xplained Mini board)
 - **ATmega168PB** (Xplained Mini board)
@@ -102,15 +113,19 @@ The ATmega8515 does not have a debug interface.
 * ATmega128rfa1
 * ATmega406
 
-### Other ATmegas without a debug interface
-
-- <s>ATmega163</s>
-
 ## Modern ATmegas
 
 ### Atmegas supported by *[MegaCoreX](supporting-cores.md#megacorex)*
 
-This is the megaAVR 0-series. The ATmega4809 also made it on some Arduino boards.
+This is the megaAVR 0-series. The ATmega4809 made it on some Arduino boards.
 
 - <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, **ATmega4808**
 - <u>ATmega809</u>, ATmega1609, ATmega3209, **ATmega4809**
+
+## AVR-Dx devices
+
+No support yet.
+
+## XMegas
+
+There is no support yet for XMegas yet. Since they are not supported by any active Arduino core and do not have any support in PlatformIO, the chances are not very high that I will dive into that.
