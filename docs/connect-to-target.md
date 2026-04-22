@@ -13,7 +13,7 @@ Atmel-ICE, Power Debugger, and JTAGICE3 all feature a keyed 10-pin, 50-mil JTAG 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/Atmel-adapter.JPG" width="70%">
 </p>
-The [dw-link](https://felias-fogg.github.io/dw-link) debugger uses the header on the Arduino Uno. The most convenient way is to prepare an ISP cable with a broken-out RESET and VCC cable as shown in the the following picture.
+The [dw-link](https://felias-fogg.github.io/dw-link) debugger uses the header on the Arduino Uno. The most convenient way is to prepare an ISP cable with a broken-out RESET and VCC cable as shown in the following picture.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/dw-link-spi.jpeg" width="70%">
@@ -129,35 +129,33 @@ Otherwise, you must connect the wires individually, referring to the Arduino Meg
 <img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/pickit4+mega.jpeg" width="70%">
 </p>
 
-The pin mapping for the PICkit4 looks as follows, where I have added the Arduino pins in the last column.
+The pin mapping for the PICkit4 looks as follows, where I have added the Arduino pins in the last two columns.
 
-| MBLAP Debugger | Pin # | Target pin | JTAG pin | Mega pin |
-| -------------- | ----- | ---------- | -------- | -------- |
-| Pin 1 (TVPP)   | 1     | NC&nbsp;   | &nbsp;   |          |
-| Pin 2 (TVDD)   | 2     | VTG        | 4        | 5V       |
-| Pin 3 (GND)    | 3     | GND        | 2, 10    | GND      |
-| Pin 4 (PGD)    | 4     | TDO        | 3        | A6       |
-| Pin 5 (PGC)    | 5     | TSCK       | 1        | A4       |
-| Pin 6 (TAUX)   | 6     | RESET      | 6        | RESET    |
-| Pin 7 (TTDI)   | 7     | TDI        | 9        | A7       |
-| Pin 8 (TTMS)   | 8     | TMS&nbsp;  | 5&nbsp;  | A5       |
+| MBLAP Debugger | Pin # | Target pin | JTAG pin | Mega pin | Leonardo pin |
+| -------------- | ----- | ---------- | -------- | -------- | ------------ |
+| Pin 1 (TVPP)   | 1     | NC&nbsp;   | &nbsp;   |          |              |
+| Pin 2 (TVDD)   | 2     | VTG        | 4        | 5V       | 5V           |
+| Pin 3 (GND)    | 3     | GND        | 2, 10    | GND      | GND          |
+| Pin 4 (PGD)    | 4     | TDO        | 3        | A6       | A1           |
+| Pin 5 (PGC)    | 5     | TSCK       | 1        | A4       | A3           |
+| Pin 6 (TAUX)   | 6     | RESET      | 6        | RESET    | RESET        |
+| Pin 7 (TTDI)   | 7     | TDI        | 9        | A7       | A0           |
+| Pin 8 (TTMS)   | 8     | TMS&nbsp;  | 5&nbsp;  | A5       | A2           |
 
-For the Atmel debuggers, the setup appears as follows, where the JTAG pin corresponds to the mini-squid numbering. I have additionally added the corresponding Mega pin.
+For the Atmel debuggers, the setup appears as follows, where the JTAG pin corresponds to the mini-squid numbering. I have additionally added the corresponding Mega and Leonardo pins.
 
-| Atmel Debugger | Mini-squid pin = JTAG pin | Target pin | Mega pin |
-| -------------- | ------------------------- | ---------- | -------- |
-| Pin 1 (TCK)    | 1                         | TCK        | A4       |
-| Pin 2 (GND)    | 2                         | GND        | GND      |
-| Pin 3 (TDO)    | 3                         | TDO        | A6       |
-| Pin 4 (VTG)    | 4                         | VTG        | 5V       |
-| Pin 5 (TMS)    | 5                         | TMS&nbsp;  | A5       |
-| Pin 6 (nSRST)  | 6                         | RESET      | RESET    |
-| Pin  7 (N.C.)  | 7&nbsp;                   | NC&nbsp;   |          |
-| Pin 8 (nTRST)  | 8                         | NC&nbsp;   |          |
-| Pin 9 (TDI)    | 9                         | TDI        | A7       |
-| Pin 10 (GND)   | 0                         | GND&nbsp;  | GND      |
-
-
+| Atmel Debugger | Mini-squid pin = JTAG pin | Target pin | Mega pin | Leonardo pin |
+| -------------- | ------------------------- | ---------- | -------- | ------------ |
+| Pin 1 (TCK)    | 1                         | TCK        | A4       | A3           |
+| Pin 2 (GND)    | 2                         | GND        | GND      | GND          |
+| Pin 3 (TDO)    | 3                         | TDO        | A6       | A1           |
+| Pin 4 (VTG)    | 4                         | VTG        | 5V       | 5V           |
+| Pin 5 (TMS)    | 5                         | TMS&nbsp;  | A5       | A2           |
+| Pin 6 (nSRST)  | 6                         | RESET      | RESET    | RESET        |
+| Pin  7 (N.C.)  | 7&nbsp;                   | NC&nbsp;   |          |              |
+| Pin 8 (nTRST)  | 8                         | NC&nbsp;   |          |              |
+| Pin 9 (TDI)    | 9                         | TDI        | A7       | A0           |
+| Pin 10 (GND)   | 0                         | GND&nbsp;  | GND      | GND          |
 
 ## Connecting to UPDI targets
 
@@ -176,7 +174,7 @@ However, even without a debugger on board, connecting to a UPDI target is very e
 | Pin 7 (TTDI)   | 7     | NC         |
 | Pin 8 (TTMS)   | 8     | NC&nbsp;   |
 
-For the UPDI v2 interface, PIn1 has to be connected to RESET on the target. However, this is only necessary if one could use this pin to initiate a high-voltage pulse, which none of the considered Microchip debuggers are able to do.
+For the UPDI v2 interface, debugger pin 1 has to be connected to RESET on the target. However, this is only necessary if one could use this pin to initiate a high-voltage pulse, which none of the considered Microchip debuggers are able to do.
 
 For the Atmel debuggers JTAGICE3, PowerDebugger, and Atmel-ICE, we have the following pinout.
 
