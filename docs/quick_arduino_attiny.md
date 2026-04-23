@@ -86,8 +86,6 @@ The yellow LED is the *system LED*, and the red one is the *ATtiny-LED*. The sys
 
 ![debug window](pics/ide2-3.png)
 
-A more [extensive example](#step-4-edit-and-compile-a-sketch) for a debugging session is given in the quickstart guide about the Xmini board.
-
 Be aware that after finishing the debug session, the MCU is still in debugWIRE mode! You can change that by typing `monitor debugwire disable` in the last line of the `Debug Console`.
 
 ### After debugging has finished

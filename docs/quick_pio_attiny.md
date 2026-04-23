@@ -129,7 +129,7 @@ After having done that, the ATtiny is in debugWIRE mode, the executable will be 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/pio-debug-attiny-4.png" width="90%">
 </p>
-From here on, I believe, you know your way around. Otherwise, consult, e.g., the [debugging section of another quickstart guide](#step-5-debug-the-program).
+From here on, I believe, you know your way around.
 
 ### Step 7: Start over or terminate the debugging session
 

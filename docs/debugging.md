@@ -44,7 +44,7 @@ The debugging panes are organized as follows (see picture above). Pane A contain
 
 Pane B shows the active threads, but there is just one in our case. Pane C displays the call stack starting from the bottom, i.e., the current frame is the topmost. Pane D displays variable values. Unfortunately, global variables are not shown if *link-time optimizations* are enabled, which is the default. Pane E can be populated with watch expressions, for example, with the names of global variables.  Finally, in pane F, the active breakpoints are listed.
 
-The panes below pane F are interesting if you are deep into the MCU hardware. The `CORTEX PERIPHERALS` pane displays all I/O registers of the MCU, decodes their meanings, and allows you to change the contents of these registers. The `CORTEX REGISTERS` pane displays the general registers. For more information on debugging, refer to the Arduino [debugging tutorial](https://docs.arduino.cc/software/ide-v2/tutorials/ide-v2-debugger/). There is also an [extensive example](quick_arduino.md#step-4-edit-and-compile-a-sketch) in the [Arduino IDE 2 quickstart guide](quick_arduino.md).
+The panes below pane F are interesting if you are deep into the MCU hardware. The `CORTEX PERIPHERALS` pane displays all I/O registers of the MCU, decodes their meanings, and allows you to change the contents of these registers. The `CORTEX REGISTERS` pane displays the general registers. For more information on debugging, refer to the Arduino [debugging tutorial](https://docs.arduino.cc/software/ide-v2/tutorials/ide-v2-debugger/).
 
 ### Correcting the bug and starting over
 
@@ -64,7 +64,7 @@ You may finally want to disable the `Optimize for Debugging` option in the `Sket
 
 Debugging a program/sketch in PlatformIO/VSC is very similar to doing the same thing in the Arduino IDE 2. The reason is that both IDEs are based on VS Code. Compared to the Arduino IDE 2, PlatformIO/VSC offers several features that work better, such as easy adaptability through the `platformio.ini` configuration file and support for disassembled code. However, it may not be the proper IDE for beginners.
 
-In any case, if you are opting for PlatformIO/VSC, you are probably familiar with the tool, and I do not need to preach to the converted. The necessary  `platform.ini`  that can be used to integrate PyAvrOCD and to start the debugger is provided [here](debugging-software.md#platformio-and-visual-studio-code). In addition, examples are provided in the PlatformIO quickstart guides about debugging an [ATmega1284P using Atmel-ICE](quick_pio.md#step-5-debug-the-program) and an [ATtiny85 using dw-link](quick_pio.md#step-6-debug-the-program).
+In any case, if you are opting for PlatformIO/VSC, you are probably familiar with the tool, and I do not need to preach to the converted. The necessary  `platform.ini`  that can be used to integrate PyAvrOCD and to start the debugger is provided [here](debugging-software.md#platformio-and-visual-studio-code).
 
 ## Debugging using Gede
 
