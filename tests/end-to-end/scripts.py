@@ -115,20 +115,36 @@ all_scripts = {
     "",
     "",
     (("set logging file log/cblink.log", ""),) + prolog + \
-    (("load", "Start address 0x"),
-     ("break main", "Breakpoint 1"),
-     ("cont", "Breakpoint 1, main"),
-     ("next", "setBit(LED2_DDR, LED2);"),
-     ("next", "setBit(LED1_PORT, LED1);"),
+    (("monitor atexit stay", "MCU will stay in debug mode on exit",
+          "Stay in debugWIRE at exit"),
+     ("load", "Start address 0x"),
+     ("break episode", "Breakpoint 1"),
+     ("cont", "Breakpoint 1"),
+     ("next", "setBit(LED2_PORT, LED2);"),
      ("break", "Breakpoint 2"),
      ("ignore 2 3", ""),
      ("delete 1", ""),
      ("continue", "Breakpoint 2"),
-     ("n", "setBit(LED2_PORT, LED2);"),
-     ("n", "_delay_ms(DELAYTIME);"),
+     ("n", "_delay_ms"),
      ("monitor range", ""),
      ("$SUCCESS_IF", "Range stepping is not yet implemented"),
      ("next", "clearBit(LED1_PORT, LED1);")) + epilog),
+
+# Just attaching to the sketch we left
+    "attach" : (
+    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino',
+         'noautopc'),
+    "",
+    "",
+    "--attach",
+    (("file sketches/cblink/cblink.elf", ""),
+     ("set logging file log/attach.log", "")) + prolog[0:6] + \
+    (("bt", "in main"),
+     ("break episode", "Breakpoint 1"),
+     ("continue", ""),
+     ("p cnt", ""),
+     ("p cnt > 3", " = 1", " = true")) + epilog),
+
 
 # set/read memory cells (small MCUs, ram start = 0x60)
     "smallpeekpoke" : (
@@ -445,9 +461,7 @@ all_scripts = {
     "",
     "",
     (("set logging file log/measure.log", ""),) + prolog + \
-    (("monitor atexit stay", "MCU will stay in debug mode on exit",
-          "Stay in debugWIRE at exit"),
-     ("load", "Start address 0x"),
+    (("load", "Start address 0x"),
      ("break Vcc.cpp:Vcc::setIntref", "Breakpoint 1"),
      ("cont", ""),
      ("p intref", "$1 = 1", "$1 = 550"),
@@ -457,18 +471,6 @@ all_scripts = {
      ("b success", "Breakpoint 2"),
      ("b fail", "Breakpoint 3"),
      ("cont", "success () at")) + epilog),
-
-# Just attaching to the sketch we left
-    "attach" : (
-    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino',
-         'noautopc'),
-    "",
-    "",
-    "--attach",
-    (("file sketches/measure/measure.ino.elf", ""),
-     ("set logging file log/attach.log", "")) + prolog[0:6] + \
-    (("stepi", "void success(void)"),
-     ("bt", "in setup")) + epilog),
 
 # tests monitor commands across different gdb servers
 # start always with the universal default setting, if it exists

@@ -6,8 +6,23 @@
 
 #define DELAYTIME 100
 
+#define _SFR_BYTE(x) (x)
+
 #define setBit(sfr, bit)     (_SFR_BYTE(sfr) |= (1 << bit))
 #define clearBit(sfr, bit)   (_SFR_BYTE(sfr) &= ~(1 << bit))
+
+volatile unsigned int cnt;
+
+void episode() {
+  setBit(LED1_PORT, LED1);
+  setBit(LED2_PORT, LED2);
+  _delay_ms(DELAYTIME);
+  
+  clearBit(LED1_PORT, LED1);
+  clearBit(LED2_PORT, LED2);
+  _delay_ms(DELAYTIME);
+  cnt++;
+}
 
 
 int main(void) {
@@ -18,15 +33,7 @@ int main(void) {
 
   // Mainloop
   while (1) {
-
-    setBit(LED1_PORT, LED1);
-    setBit(LED2_PORT, LED2);
-    _delay_ms(DELAYTIME);
-
-    clearBit(LED1_PORT, LED1);
-    clearBit(LED2_PORT, LED2);
-    _delay_ms(DELAYTIME);
-
+    episode();
   }
   return 0;                                          /* end mainloop */
 }
