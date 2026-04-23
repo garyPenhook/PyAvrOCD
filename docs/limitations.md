@@ -14,9 +14,7 @@ For other debugging interfaces, such as **JTAG** or **UPDI**, the problem is not
 
 Bootloaders will usually be erased when running the debugger.
 
-In a **debugWIRE** context, the entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
-
-When debugging with **JTAG**, the chip will be erased each time a new binary is loaded. Suppose you want to keep the bootloader in memory. In that case, you can request not to erase the chip before loading a binary, erasing each flash page only when some code needs to be loaded into this page: `--erasebeforeload disable`. However, this will severely slow down the process of loading a binary.
+The entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
 
 ## Low CPU clock frequency
 
