@@ -1,25 +1,30 @@
 # Installing & configuring the debugging software
 
-The GDB server PyAvrOCD provides an interface to the debug probe on one side. The other side can be an IDE, a debug GUI, or the GDB debugger. Installation of the software is usually straightforward when you follow the instructions on the respective download pages. In addition, we will also cover the [installation of a software simulator](#a-software-simulator-simavr).
+The GDB server PyAvrOCD provides an interface to the hardware debug probe. In addition to that, you need an IDE, a debug GUI, or the stand-alone GDB client.
 
 ## Arduino IDE 2
 
-[Arduino IDE 2](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/) is probably the most straightforward option. After having installed it, you can extend the IDE's capabilities by [adding third-party platforms](https://support.arduino.cc/hc/en-us/articles/360016466340-Add-third-party-platforms-to-the-Boards-Manager-in-Arduino-IDE). This is done by adding [additional Board Manager URLs](https://support.arduino.cc/hc/en-us/articles/360016466340-Add-third-party-platforms-to-the-Boards-Manager-in-Arduino-IDE) in the preferences dialog, installing a platform, and selecting a board in the Board Manager. For example, you can add the following `Board Manager URL` :
-
-```
-https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
-```
-
-After that, you can install the platform referred to in the index file, `TinyCore`, which is a fork of Spence Konde's  `ATTinyCore-2.0.0` platform. And this is all! Now, you can press the debug button and start debugging. Well, before you can do that, you must probably [modify the target board](board-preparation.md), and you need to [connect the debug probe to the target board](connect-to-target.md).
-
-The set of available debug-enabled cores is covered in the [section on Arduino cores](supporting-cores.md).
+[Arduino IDE 2](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/)
+is probably the most straightforward option. After having installed
+it, you can extend the IDE's capabilities by adding third-party
+platforms in the `Additional Board Manager URLs` field of the
+`Preferences` dialog. The set of available debug-enabled cores and how
+to install them is covered in the [section on Arduino cores](supporting-cores.md).
 
 ## PlatformIO and Visual Studio Code
 
-[PlatformIO](https://platformio.org) is a cross-platform, cross-architecture, multiple framework professional tool for embedded systems engineers. Installed as an extension to the popular Visual Studio Code, it provides a powerful IDE for embedded programming and debugging. Using the `platformio.ini` file, integrating an external debugging framework is very easy. If you want to debug a program on an ATmega328P, the `platformio.ini` file could look as follows. A more elaborate example can be found at [https://github.com/felias-fogg/pio-atmega1284p-example](https://github.com/felias-fogg/pio-atmega1284p-example).
+[PlatformIO](https://platformio.org) is a cross-platform,
+cross-architecture, multiple framework professional tool for embedded
+systems engineers. Installed as an extension to the popular Visual
+Studio Code, it provides a powerful IDE for embedded programming and
+debugging. Using the `platformio.ini` file, integrating an external
+debugging framework is very easy.
 
-```ini
-[platformio]
+<details>
+<summary><b>A platformio.ini example</b></summary>
+<p></p>
+<pre>
+<code class="language-text hljs">[platformio]
 default_envs = debug
 
 [env:atmega328p]
@@ -55,10 +60,17 @@ debug_build_flags =
     -Og
     -ggdb3
     -DDEBUG
-debug_svd_path = /path/to/svd-file ;; <-- specify path to SVD file
-```
-
+debug_svd_path = /path/to/svd-file ;; <-- specify path to SVD file</code>
+</pre>
+<p>
 Note that debugging in the IDE can only start when the debug environment is made the current environment.
+</p>
+<p>
+A more elaborate example can be found at
+<a href="https://github.com/felias-fogg/pio-atmega1284p-example">https://github.com/felias-fogg/pio-atmega1284p-example</a>.
+</p>
+</details>
+<p></p>
 
 Recently, PyAvrOCD has been extended to [deal with *System View Description* files](https://arduino-craft-corner.de/index.php/2025/08/01/system-view-descriptions-of-avr-mcus/), which enable the IDE to view and manipulate I/O registers in a very comfortable way. In order to use this feature, you need to download the set of SVD files from the [latest release of PyAvrOCD](https://github.com/felias-fogg/PyAvrOCD/releases/latest) and copy the appropriate SVD file to the PlatformIO project folder, or you can also access it in the `pyavrocd-util` folder, which is stored alongside `pyavrocd`. The SVD files are all stored in the directory `pyavrocd-util/svd`.
 
@@ -66,7 +78,7 @@ I noticed that the avr-gdb debugger in the PlatformIO toolchain is quite dated a
 
 ## Other IDEs
 
-There are a few other possible options for IDEs. The most crucial point is that remote debugging and the specification of alternative debuggers are supported. I believe it should be possible to integrate PyAvrOCD into  [**CLion**](https://www.jetbrains.com/clion/) and [**Eclipse**](https://eclipseide.org/projects/). How to integrate an AVR-GDB server into CLion is, for example, described [here](https://bloom.oscillate.io/docs/clion-debugging-setup). Integration into [**Visual Studio Code**](https://code.visualstudio.com) and **[Eclipse Theia](https://theia-ide.org)** should be straightforward because one could make use of the Visual Studio Code extension [cortex-debug](https://github.com/Marus/cortex-debug) that is also used in the Arduino IDE 2.
+There are a few other possible options for IDEs. I believe it should be possible to integrate PyAvrOCD into  [**CLion**](https://www.jetbrains.com/clion/) and [**Eclipse**](https://eclipseide.org/projects/). How to integrate an AVR-GDB server into CLion is, for example, described [here](https://bloom.oscillate.io/docs/clion-debugging-setup). Integration into [**Visual Studio Code**](https://code.visualstudio.com) and **[Eclipse Theia](https://theia-ide.org)** should be straightforward because one could make use of the Visual Studio Code extension [cortex-debug](https://github.com/Marus/cortex-debug) that is also used in the Arduino IDE 2.
 
 If you have a clear description of how to integrate PyAvrOCD in an IDE, I'd be happy to add it here.
 
@@ -78,32 +90,44 @@ If you have a clear description of how to integrate PyAvrOCD in an IDE, I'd be h
 
 The most basic option is simply to install avr-gdb, the GDB debugger for AVR chips. You can use the version shipped with the PyAvrOCD binaries, which contains a few important patches for AVR MCUs.
 
-It is not necessary to configure anything when you use avr-gdb. However, I find it very helpful to have the following commands in the global initialization file `.gdbinit`, which has to be stored in the user directory:
+It is not necessary to configure anything when you use
+avr-gdb. However, I find it very helpful to have the few commands in the global initialization file `.gdbinit`.
 
-```gdb
-define hook-quit
+<details>
+<summary><b>A .gdbinit example</b></summary>
+<pre>
+<code class="language-text hljs">define hook-quit
     set confirm off
 end
 set history save on
 set history size 10000
 set history filename ~/.gdb_history
-set logging overwrite 1
-```
+set logging overwrite 1</code>
+</pre>
+</details>
+<p></p>
 
 ## A software simulator: simavr
 
 The software simulator `simavr` is included in the Arduino IDE 2 tools and in the binary package. If you have installed PyAvrOCD differently, you need to install the simulator first. While the package managers under macOS and Linux offer the stable version 1.7, this release unfortunately does not play well with PyAvrOCD. You can either download a binary from the latest [Github Actions CI](https://github.com/buserror/simavr/actions) or you can build it from source.
 
-If you want or need to build simavr from source, clone or download the [simavr GitHub repo](https://github.com/buserror/simavr) and make sure that you have avr-gcc, avr-libc, libelf-dev, and freeglut installed (using your preferred package managers). Then call `make`, perhaps with the DESTDIR argument:
-
-```bash
-make install DESTDIR=~/.local/
-```
+<details>
+<summary><b>How to build simavr from source</b></summary>
+<p></p>
+<p>
+If you want or need to build simavr from source, clone or download the
+<a href="https://github.com/buserror/simavr">simavr GitHub repo</a> and make sure that you have avr-gcc, avr-libc, libelf-dev, and freeglut installed (using your preferred package managers). Then call <code>make</code>, perhaps with the DESTDIR argument:
+</p>
+<pre>
+<code class="language-bash hljs">make install DESTDIR=~/.local/</code>
+</pre>
 
 This works under macOS and Linux. The instructions in the repo provided for Windows appear to be outdated. For the Mac, one could alternatively build from source by using the following commands:
 
-```
-brew tap osx-cross/avr
+<pre>
+<code class="language-bash hljs">brew tap osx-cross/avr
 brew install --HEAD simavr
-```
-
+</code>
+</pre>
+</details>
+<p></p>

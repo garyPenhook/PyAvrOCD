@@ -1,12 +1,6 @@
 # Troubleshooting
 
-Sometimes, things do not go according to plan, and it becomes necessary to debug the debugging setup. A first good step is to have a look at the logging output. If you spot a log entry marked `[CRITICAL]`, it may tell you already what went wrong. If you see, for example, the message
-
-```text
-[CRITICAL] Target is not powered
-```
-
-then it is very likely that you forgot to power the target board, or you made a wiring error.
+If things go not according to plan, a first good step is to have a look at the logging output of PyAvrOCD. If you spot a log entry marked `[CRITICAL]`, it may tell you already what went wrong.
 
 In general, one can distinguish between problems that prohibit the start of the GDB server and problems appearing while debugging.
 
@@ -21,7 +15,7 @@ For most of the error messages, it should be obvious what to do. However, there 
 > xattr -d com.apple.quarantine FILE
 ```
 
-* `No compatible tool discovered`: This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that another process currently uses it, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install-link.md).
+* `No compatible tool discovered`: This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that another process currently uses it, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install.md).
 
 - `[Errno 48] Address already in use`: This error can happen after the GDB server was terminated before the debugger. If you are working in a CLI environment, you can start PyAvrOCD with a different port using the `--port` option and tell GDB about the port when connecting with the `target remote` command. However, waiting a few minutes will also resolve the problem.
 - `ISP programming failed. Wrong connection or wrong MCU?` This error message is displayed when, on a debugWIRE target, the DWEN fuse cannot be set because ISP/SPI programming cannot be initiated. It could be a wiring problem, which, in my experience, is the most likely reason. It could also mean that the MCU is not accessible anymore by ISP programming. One can try to [forcefully exit debugWIRE mode](limitations.md#exit-debugwire-mode). Otherwise, [high-voltage programming](limitations.md#high-voltage-programming) might be the last resort.

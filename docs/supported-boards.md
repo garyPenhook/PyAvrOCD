@@ -9,20 +9,18 @@ In addition, for supported boards, possible board modifications, and other infor
 
 Most of the supported Microchip boards have an embedded debugger on board, which makes it easy to work with. You do not have to modify the boards physically or change fuses. When working with debugWIRE targets, the power cycling is done automatically.
 
-- **ATmega328P** **Xplained Mini**:  [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega328P** **Xplained Mini**:  [XMiniCore](supporting-cores.md#xminicore); onboard debugger, no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega168PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega168PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); onboard debugger, no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega328PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); no physical modifications or fuse settings necessary,  power-cycling is automatic.
+- **ATmega328PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); onboard debugger, no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega324PB Xplained Pro:** [MightyCore](supporting-cores.md#mightycore); serial I/O is routed via
-  `Serial1` instead of `Serial`. The LED is connected to digital
-  pin 23. No physical modifications or fuse settings necessary.
+- **ATmega324PB Xplained Pro:** [MightyCore](supporting-cores.md#mightycore); onboard debugger, serial I/O is routed via `Serial1` instead of `Serial`. The LED is connected to digital pin 23. No physical modifications or fuse settings necessary.
 - <u>AT90USBKEY2 (AT90USB1287)</u>
 - <u>ATmega256RFR2 Xplained Pro</u>
 - **AVR Butterfly (ATmega169)**: [MegaCore](supporting-cores.md#megacore)
 - <u>MEGA-1284P Xplained</u>: [MightyCore](supporting-cores.md#mightycore)
-- **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex)
+- **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex); onboard debugger
 
 ## Arduino boards
 
@@ -40,14 +38,14 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Arduino Leonardo ETH
 - <u>Arduino Micro</u>
 - <s>Arduino Esplora</s>: JTAG pins are not accessible
-- Arduino Mini: [MiniCore](supporting-cores.md#minicore) (if Mini 05); do not connect DTR pin of FTDI header
-- Arduino Ethernet: [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
-- <u>Arduino Fio</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header and do not connect XBee
+- Arduino Mini: [MiniCore](supporting-cores.md#minicore) (if Mini 05); do not connect the DTR pin of the FTDI header
+- Arduino Ethernet: [MiniCore](supporting-cores.md#minicore); do not connect the DTR pin of the FTDI header
+- <u>Arduino Fio</u>:  [MiniCore](supporting-cores.md#minicore); do not connect the DTR pin of the FTDI header, and do not connect an XBee
 - Arduino BT:  [MiniCore](supporting-cores.md#minicore); remove capacitor `C1` (which you do not have to resolder after debugging)
 - <s>LilyPad Arduino USB</s>: JTAG pins are not accessible
-- <u>LilyPad Arduino</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
-- <u>Arduino Pro</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
-- <u>Arduino Pro Mini</u>:  [MiniCore](supporting-cores.md#minicore); do not connect DTR pin of FTDI header
+- <u>LilyPad Arduino</u>:  [MiniCore](supporting-cores.md#minicore); do not connect the DTR pin of the FTDI header
+- <u>Arduino Pro</u>:  [MiniCore](supporting-cores.md#minicore); do not connect the DTR pin of the FTDI header
+- <u>Arduino Pro Mini</u>:  [MiniCore](supporting-cores.md#minicore); do not connect the DTR pin of the FTDI header
 - Arduino NG (ATmega168):  [MiniCore](supporting-cores.md#minicore); no modifications necessary
 - <s>Arduino NG (ATmega8)</s>: no debugging interface
 - Arduino Robot Control
@@ -58,8 +56,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Arduino Industrial 101
 - Arduino Linino One
 - Arduino UNO WiFi (Rev 1):  [MiniCore](supporting-cores.md#minicore); cut `RESET EN` solder bridge
-- **Arduino Uno WiFi (Rev 2)**: [MegaCoreX](supporting-cores.md#megacorex)
-- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex); UPDI pad on the backside
+- **Arduino Uno WiFi (Rev 2)**: [MegaCoreX](supporting-cores.md#megacorex); board has an onboard debugger
+- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex); [UPDI pad on the backside](board-preparation.md#preparing-a-updi-target)
 
 ## Sparkfun boards
 
@@ -72,7 +70,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Mega Pro 5V: [MegaCore](supporting-cores.md#megacore)
 - RedBot (ATmega328P): [MiniCore](supporting-cores.md#minicore)
 - <u>Serial-7-Segment-Display</u> (ATmega328P): [MiniCore](supporting-cores.md#minicore)
-- ATmega128RFA1 Development board
+- ATmega128RFA1 Development Board
 - LilyPad USB Plus
 - SerLcd
 - Digital Sandbox (ATmega328P): [MiniCore](supporting-cores.md#minicore)
@@ -132,12 +130,22 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 ## Azduino boards by Spence Konde
 
 - **ATtiny841 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+
 - **ATtiny1634 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+
 - **ATtiny88 breakout board (assembled)**: [TinyCore](supporting-cores.md#tinycore)
+
 - **ATtiny828 breakout board (assembled)**: [TinyCore](supporting-cores.md#tinycore)
+
 - **ATtiny167 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+
 - **ATtiny43 dev. board**: [TinyCore](supporting-cores.md#tinycore)
+
+<!--
+
 - <u>ATtiny3217 breakout board (assembled)</u>
+
+-->
 
 ## Miscellaneous boards
 
@@ -145,4 +153,4 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>Digispark (ATtiny85)</u>: [TinyCore](supporting-cores.md#tinycore)
 - <u>Digispark Pro (ATtiny167)</u>: [TinyCore](supporting-cores.md#tinycore)
 - <u>Pololu A-Star 328PB Micro</u>: [MiniCore](supporting-cores.md#minicore)
-- <u>Thinary Nano Every (ATmega4808)</u>: [MegaCoreX](supporting-cores.md#megacorex)
+- **Thinary Nano Every (ATmega4808)**: [MegaCoreX](supporting-cores.md#megacorex)

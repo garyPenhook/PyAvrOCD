@@ -8,7 +8,7 @@ In a terminal window, you invoke PyAvrOCD as follows:
 
 PyAvrOCD will then look for a debug probe, establish a connection to it, and wait for the GDB debugger to connect to it. You can influence its behavior with the command-line options shown below.
 
-If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, the command line options may be interesting to you because you may want to change some of them using a [configuration file](install-link.md#configuration).
+If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, the command line options may be interesting to you because you may want to change some of them using a [configuration file](install.md#configuration).
 
 ## Command-line options
 
@@ -44,4 +44,4 @@ You can also use the [monitor command options](monitor-commands.md) as command-l
 
 ## Providing command-line options in configuration files
 
-In addition to options, one can specify file names prefixed with a '@'-sign. In particular, the argument `@pyavrocd.options` is always added to the end of the command line. Such [configuration files](install-link.md#configuration) can contain additional arguments to those specified on the command line.
+In addition to options, one can specify file names prefixed with a '@'-sign. In particular, the argument `@pyavrocd.options` is always added to the end of the command line. Such [configuration files](install.md#configuration) can contain additional arguments to those specified on the command line.

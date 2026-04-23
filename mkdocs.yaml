@@ -30,7 +30,7 @@ nav:
     - Arduino IDE 2: 'quick_arduino.md'
     - PlatformIO: 'quick_pio.md'
   - Installation & Configuration:
-    - PyAvrOCD: 'install-link.md'
+    - PyAvrOCD: 'install.md'
     - Debugging software: 'debugging-software.md'
     - Arduino cores: 'supporting-cores.md'
   - Usage:

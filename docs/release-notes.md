@@ -1,5 +1,14 @@
 # Release Notes
 
+## Release v1.2.0
+
+- Added: UPDI targets can now be debugged
+- Added: Option `--comm-speed` meant for UPDI and PDI communication speed.
+- Changed: `timers run` cannot be set for UPDI targets
+- Fixed PC masking when flash memory size is not a power of two in PyAvrOCD as well as in AVR-GDB.
+- Fixed: Setting a single register in the RSP handler works now.
+- Fixed: Reattaching an MCU did not work for JTAG targets, but is now possible.
+
 ## Release v1.1.2
 
 - Fixed: Recognition of  ATtiny48/88 did not work as advertised, but now it does again.

@@ -1,12 +1,19 @@
 # Installing a debug-enabled Arduino core
 
-Arduino cores or platforms are the means to support MCUs and boards for integration into the Arduino IDE 2 (and into the Arduino CLI). They are the key to making debugging for particular chips available in the Arduino IDE 2. Meanwhile, there exists a number of debug-enabled Arduino cores. Sometimes, they are forks, sometimes improved new versions of older cores, and sometimes they are extensions of existing cores. Note that PyAvrOCD can support an MCU, but there is no corresponding core. This means that debugging by means of GDB is possible, but there is no Arduino IDE support (so far).
+Arduino cores are the key to making debugging available in the Arduino
+IDE 2 for particular chips. If you want to install a new core, in most
+cases, you first have to add a *boards manager* URL in the
+`Preferences` dialog.
 
-If you want to install a core, in most cases, you first have to add a *package index*  URL to the list of `Additional boards manager URLs`, which you find in the `Preferences` dialog. Once this has been done, you can search in the `Boards Manager` (accessible through the `Tools` menu or the board icon on the left side of the Arduino IDE 2 window) for the core, and then install it.
+{!details-boards-manager-url.md!}
+
+Once this has been done, you can search in the <code>Boards Manager</code> for the core, and install it.
+
+{!details-install-core.md!}
 
 ### [ATTinyCore (Debug enabled)](https://github.com/felias-fogg/ATTinyCore)
 
-This is my fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is deprecated. You can install it after including the following URL:
+This is a fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is deprecated. However, it might still be of interest to people who use the micronucleus boot loaders, which are not supported by TinyCore. You can install it after including the following URL:
 
 ```
 https://felias-fogg.github.io/ATTinyCore/package_drazzy.com_ATTinyCore_index.json
@@ -14,7 +21,7 @@ https://felias-fogg.github.io/ATTinyCore/package_drazzy.com_ATTinyCore_index.jso
 
 ### [TinyCore](https://github.com/MCUdude/TinyCore)
 
-This is a fork of Spence Konde's ATTinyCore version 2.0.0. It is the preferred way of supporting classic ATtinys.  It does not support the micronucleus bootloader, however. You can install it after including the following URL:
+This is a fork of Spence Konde's ATTinyCore version 2.0.0. It is the preferred way of supporting classic ATtinys.  It does not support the micronucleus bootloaders, however. You can install it after including the following URL:
 
 ```
 https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
@@ -54,7 +61,7 @@ https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
 
 ### [MegaCore](https://github.com/MCUdude/MegaCore)
 
-A core for most 64 and 100-pin AVRs. All of the listed MCUs are debuggable, but the ATmega128 has the problem that only hardware breakpoints are allowed. You can make the core installable by adding:
+A core for most 64 and 100-pin AVRs. For example, the Arduino Mega (2560) is supported by this core. All of the [listed MCUs](https://github.com/MCUdude/MegaCore#supported-microcontrollers) are debuggable, but the ATmega128 has the problem that only hardware breakpoints are allowed. You can make the core installable by adding:
 
 ```
 https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json

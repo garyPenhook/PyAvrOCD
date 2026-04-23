@@ -1,8 +1,6 @@
 # Supported MCUs
 
-This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. This list is extended continuously as development of PyAvrOCD proceeds.
-
-MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested.
+This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. It is extended continuously as the development of PyAvrOCD proceeds. MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested. All other MCUs listed are supposed to be compatible because their close cousins are. However, this assumption can be wrong, as I noticed when developing dw-link.
 
 The list is structured by the Arduino cores that support the chips, where some of the MCUs are supported by more than one core.
 

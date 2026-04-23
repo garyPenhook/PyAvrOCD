@@ -14,7 +14,7 @@ Instead of connecting to a target, it is also possible to run a simulator (for s
 
 After c[ompiling the sketch](compilation-options.md#compiling-an-arduino-sketch-in-the-arduino-ide-2), it is time to start debugging by clicking the debug button in the top row. This will start the GDB server.
 
-Instead of the message shown in the following screenshot, an error message "No compatible tool" may be displayed. The reason may be that the Arduino IDE 2 reserved the debugger's serial line for the `Serial Monitor`. Simply close the `Serial Monitor` console and try again. On Linux, another reason could be that the udev rules have not yet been installed (see [installation instructions](install-link.md#installation)). Or maybe you forgot to connect a debug probe altogether.
+Instead of the message shown in the following screenshot, an error message "No compatible tool" may be displayed. The reason may be that the Arduino IDE 2 reserved the debugger's serial line for the `Serial Monitor`. Simply close the `Serial Monitor` console and try again. On Linux, another reason could be that the udev rules have not yet been installed (see [installation instructions](install.md#installation)). Or maybe you forgot to connect a debug probe altogether.
 
 ![ide2-2](https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/ide2-2.png)
 

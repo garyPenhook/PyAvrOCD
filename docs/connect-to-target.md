@@ -159,7 +159,7 @@ For the Atmel debuggers, the setup appears as follows, where the JTAG pin corres
 
 ## Connecting to UPDI targets
 
-There are a number of UPDI boards with an embedded debugger on board. For instance, all the AVR Curiosity Nano boards, as well as the Arduino Uno WiFi Rev2, have a hardware debugger on board. In all these cases, it is enough to plug in the USB cable.
+There are a number of UPDI boards that come with an embedded debugger. For instance, all the AVR Curiosity Nano boards, as well as the Arduino Uno WiFi Rev2, have a hardware debugger on board. In all these cases, it is enough to plug in the USB cable.
 
 However, even without a debugger on board, connecting to a UPDI target is very easy because you need only three lines: `UPDI`, `VTG`, and `GND`. For the MPLAB debuggers SNAP and PICkit4, this looks as follows.
 
@@ -173,6 +173,10 @@ However, even without a debugger on board, connecting to a UPDI target is very e
 | Pin 6 (TAUX)   | 6     | NC         |
 | Pin 7 (TTDI)   | 7     | NC         |
 | Pin 8 (TTMS)   | 8     | NC&nbsp;   |
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/thinary+pickit4.jpg" width="70%">
+</p>
 
 For the UPDI v2 interface, debugger pin 1 has to be connected to RESET on the target. However, this is only necessary if one could use this pin to initiate a high-voltage pulse, which none of the considered Microchip debuggers are able to do.
 

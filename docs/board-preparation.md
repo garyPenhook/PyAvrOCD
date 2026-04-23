@@ -77,7 +77,7 @@ The `SPIEN` fuse could be disabled. In this case, the above comments apply. Othe
 
 Again, UPDI targets are easy to deal with. Ensure that there is no capacitive or resistive load or active component on the UPDI line and that the UPDI pin is accessible.
 
-On the **Nano Every**, for example, this pin cannot be accessed through the board pins, but there is a pad on the backside of the PCB that can be used to access the UPDI line. And the USB-UART converter is usually disconnected from this pin so that one can connect to the pin without any problems.
+On the **Nano Every**, UPDI cannot be accessed through the board pins, but there is a pad on the backside of the PCB that can be used to access the UPDI line. It is the middle pad of the line of three pads closer to the edge of the board (see picture below). And the onboard USB-UART converter is usually disconnected from this pin, so that one can connect to the pin without any problems.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/nano-every.png" width="60%">

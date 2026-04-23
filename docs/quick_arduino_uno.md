@@ -1,18 +1,11 @@
 ## Quickstart guide: dw-link & Arduino UNO R3
 
-This quickstart guide shows how to try out embedded debugging as offered by the Arduino IDE 2 without requiring you to invest in a debug probe. It explains
-
-- how to turn an Arduino UNO R3 into a [debugWIRE](https://debugwire.de/) debug probe using the [dw-link](https://felias-fogg.gitghub.io/dw-link/) firmware,
-- how to set up the [Arduino IDE 2](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/) so that you can use its debugging feature,  and
-- how to use this combo in order to do embedded debugging on another Arduino UNO R3.
-
-This means that you need two UNO boards to try out debugging. Of course, any other ATmega328P boards will do, as long as on one of them you can remove or disconnect the `RESET ENABLE` capacitor (see below).
+This quickstart guide shows how to try out embedded debugging as offered by the Arduino IDE 2 without requiring you to invest in a debug probe. It will turn an Arduino Uno into a debug probe.
 
 ### Required hardware
 
-- Two Arduino UNO R3,
+- Two Arduino UNO R3 (or similar),
 - one USB cable (for the connection to the host),
-- a pushbutton that can be plugged into the UNO header,
 - 6 jumper wires (male-male),
 - a 10 µF electrolyte capacitor (optionally), and
 - an LED with a 200 Ω resistor soldered to one leg (optionally).
@@ -35,197 +28,79 @@ The completed board setup may then look as follows.
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/dw-link.png" width="50%">
 </p>
 
-### Step 2: Extend the list of boards manager URLs
+### Step 2: Install the debug-enabled MiniCore
 
-Since the stock Arduino AVR Boards core does not support debugging, we need to shop elsewhere. [MiniCore](https://github.com/MCUdude/MiniCore) brings support for ATmega328(P)(B) and a few other chips, and is, in addition, debug-enabled. The first step to install it is to extend the list of `Additional boards manager URLs`. Start the `Preferences` dialog, which you find, depending on your operating system,  either in the `Arduino IDE` or the `File` menu.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/preferences.png" width="30%">
-</p>
-
-
-
-Now select the field with the additional board manager URLs.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/preferences-dialog.png" width="50%">
-</p>
-
-
-
-Type the following URL into a new line:
+Since the stock Arduino AVR Boards core does not support debugging, we need to shop elsewhere. For this reason, you need to add a new *boards manager URL* in the `Preferences` dialog so that `MiniCore` can be installed:
 
 ```
 https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/additional-board-urls.png" width="50%">
-</p>
+{!details-boards-manager-url.md!}
 
+Next you have to install the `MiniCore`. Activate the `Boards Manager`, select `MiniCore`, and click on `Install`.
 
-You close the dialog by clicking on two `OK` buttons in succession.
+{!details-install-core.md!}
 
-### Step 3: Install the debug-enabled MiniCore
-
-Now you need to activate the `boards manager` by clicking on the board symbol in the left side bar (1). After the boards manager pane has been opened, type "MiniCore" into the search line (2). Install MiniCore by clicking on `Install` (3).
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/IDE-boardmanager.png" width="90%"></p>
-
-Loading MiniCore and all the necessary tools might take a while.
-
-### Step 4: Prepare the target board for debugging
+### Step 3: Prepare the target board for debugging
 
 On an original UNO board, you need to cut a solder bridge labeled `RESET EN` in order to disconnect the auto-RESET enabling capacitor.
 
+<details>
+<summary><b>Picture showing the cut</b></summary>
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/cutconn.jpg" width="60%">
 </p>
-On other boards, [similar modifications are most likely necessary](https://debugwire.de/board-modifications/).
+</details>
+<p></p>
+
+On other boards, [similar modifications are most likely necessary](board-preparation.md#preparing-a-debugwire-target).
 
 !!! Warning
     Not disconnecting the capacitor (or other loads) from the RESET line of the MCU may lead to the situation that debugWIRE mode is activated on the MCU, but it is impossible to communicate with the MCU. In particular, one cannot leave debugWIRE mode anymore.
 
-In addition to these physical modifications, we also want to add a pushbutton, with one pin going into digital header slot 2 of the board. The other pin needs to be connected to GND. In my case, I use the header slot 4, which then has to be an output, which is `LOW`.
 
-### Step 5: Connect the target board with the debug probe
+### Step 4: Connect the target board with the debug probe
 
-Connecting the target and debug probe boards is not entirely straightforward. You have to connect all ISP connections, except for the RESET line. This goes into the header slot 8 on the debug probe. A Fritzing sketch looks as follows.
+You have to connect all SPI programming pins except for the RESET line. This goes into the header slot 8 on the debug probe. A Fritzing sketch looks as follows.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/Uno-debug-new.png" width="70%">
 </p>
 
-The USB connector must be plugged into the hardware debugger. In reality, this could look like the following.
+The USB connector must be plugged into the hardware debugger.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/uno+dwlink.JPG" width="60%">
-</p>
+### Step 5: Load sketch and select board
 
-### Step 6: Select the board type
+Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> MiniCore -> ATmega328`.
 
-After having set up the hardware, you have to select the right board. First, click on `Select Board` in the top bar and choose `Select other board and port ...`.
+### Step 6: Compile the sketch
 
+Activate `Optimize for Debugging` in the `Sketch` menu. This only needs to be done once. Then click on the `Verify` button (leftmost button) in the top bar. This will compile the sketch.
 
+### Step 7: Start debugging
 
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/select-board.png" width="20%"></p>
-
-Then type "328" in the search field (1), select the right board (2), and finally click the `OK` button. We do not care much about the serial port. However, we might as well select the serial line that is connected to our debug probe.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/select-other-uno.png" width="50%"></p>
-
-
-
-### Step 7: Edit and compile a sketch
-
-Let us choose a simple sketch that is a little bit more challenging than the `Blink` example. The `Debounce` example will do. Let us load it and modify it for our needs.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/debounce-example.png" width="80%"></p>
-
-This sketch will toggle the LED state (on pin 13) when a button is pressed. The program logic contains a basic form of debouncing so that noise induced by the button contact opening and closing is ignored. The button in this sketch is supposed to be at digital input line 2. As mentioned above, the GND pin shall be the header slot 4. For this reason, we replace the empty line 32 in the `Debounce.ino` sketch with the following line
-
-```C++
-const int buttonGND = 4;  // the number of the pushbutton GND pin
-```
-
-Further, we need to replace  line 45 with
-
-```C++
-   pinMode(buttonPin, INPUT_PULLUP);
-```
-
- and the empty line 47 with
-
-```C++
-   pinMode(buttonGND, OUTPUT);
-```
-
-Before compiling and uploading the sketch, you should set the `Optimize for Debugging` flag in the `Sketch` menu. This flag will make sure that the produced machine code resembles the program flow in the source code in order to make debugging easier.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/optimize-for-debug.png" width="30%"></p>
-
-Now it is time to compile the sketch. Click the `Verify` button (a check mark symbol) in the top bar, which will compile the sketch. Loading the compiled code will then be done when the debugger is started.
-
-### Step 8: Start debugging
-
-Now it is time to start debugging by clicking the `Debug` button (bug in front of a triangle) in the top row.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-0.png" width="90%"></p>
-
-Then the IDE tries to discover a debug probe. If it finds one, it will connect and check whether the target is already in the debugWIRE mode. If this is not the case, the IDE requests a power cycle, i.e., disconnecting power from the target board and then reconnecting power. The debug probe dw-link will start to flash every second.
+Now it is time to start debugging by clicking the `Debug` button (bug in front of a triangle) in the top bar. If the target MCU is not already in debugWIRE mode, the debugger will request 'power cycling'.
 
 <p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-0a.png" width="90%"></p>
 
-Power-cycling is something you have to do manually by removing the jumper cable and reinserting it. Sometimes, this does not work out according to plan, and an error message is issued. Usually, at a second attempt, it works out with the MCU already being in debugWIRE mode.
+Power cycling means to remove the Vcc jumper cable and after a few seconds to reinsert it. After a while, the `DEBUG` pane should open.
 
-### Step 9: Debug the sketch
+### Step 8: Debug the sketch
 
-If the debugger has successfully started and the binary has been loaded into flash, execution will begin. It will always stop in the first line of the `main` function in `main.cpp`, which is an Arduino internal function. The line where execution has been stopped is marked yellow (perhaps with an additional yellow triangle) (A). Since this line is in a file different from the user sketch, it is loaded into the editor, and the loaded files are all shown in the top bar of the editor (B). The central debugging control is located in the debugging pane at the top (C). The buttons have the following meanings, from left to right:
+You can now start and stop execution, inspect variables, set breakpoints, and the like (see section on [debugging](debugging.md)). Clicking on the red square in the top bar of the DEBUG pane will terminate the current debugging episode.
 
-- *Reset*ting the device
-- *Continue* execution or *pause*
-- *Step over*: execute one source line
-- *Step into*: execute stepping into the function, if in this line one is called
-- *Step out*: finish the current function and stop after the line where it was called
-- *Restart*: Same as Reset
-- *Stop*: Terminate debugging
+### Step 9: Start over or terminate the debugging session
 
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-1.png" width="90%"></p>
+After leaving the debugger, you edit the sketch and start again at step 6. Note that you always have to recompile and restart the debugger before any changes you made to the sketch are effective.
 
-Pressing the `Continue` button in the situation depicted in the picture above would start execution. However, before we do this, let us set a breakpoint. For this purpose, we first select the original sketch file `Debounce.ino` at the top row of the editor pane.
+Instead of starting a new edit/compile/debug cycle, you may want to end debugging. In this case, you should switch the MCU back from debugWIRE mode to normal mode, in which SPI programming is possible. In order to achieve that, type `monitor debugwire disable` into the prompt line of the `Debug Console` before ending the last debug episode.
+It may also be a good idea to disable the `Optimize for Debugging` flag in the `Sketch` menu.
 
-This will bring up the sketch file. Scroll down to line 75 and set a breakpoint by clicking to the left of the line number (1). A red dot will mark the breakpoint. Now press the `Continue` button (2).
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-2.png" width="90%"></p>
-
-Sketch execution will be immediately stopped in line 75. Now we want to examine the values of some of the variables. If you hover the mouse over a variable, its value will be shown. If we wish always to track the value of the variable, we can use the watch window. Move with the mouse to the correct part of the `WATCH` bar. Then a plus sign will appear. Clicking on it allows you to enter "watch" expressions.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-2a.png" width="90%"></p>
-
-If we add `buttonState` and `ledState` to the `WATCH` pane, we see that they are both currently 1. If we now click the `Continue` button, the `ledState` variable will be toggled (i.e., the LED will go dark) and the sketch will run and wait for a change of the button state.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-3.png" width="90%"></p>
-
-Pressing the button changes the level and will stop again in line 75, as shown below. The value of both variables is now 0. From here on, you can explore the debugger on your own. Hovering the mouse over symbols and names will bring up a short explanation. In this tutorial, we will now stop and press the exit symbol (red square).
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-4.png" width="90%"></p>
-
-### Step 10: Start over or terminate the debugging session
-
-You can now edit the sketch and start again at step 7. Note that you always have to recompile and restart the debugger before any changes you made to the sketch are effective. In fact, changing the source text while you are debugging is not a good idea, because the correspondence between the compiled code and the source code will be lost.
-
-Instead of starting a new edit/compile/debug cycle, you may want to call it a day and end debugging. In this case, you want perhaps to switch the MCU back from debugWIRE mode to normal mode, in which SPI programming is possible. In order to achieve that, type `monitor debugwire disable` into the prompt line of the `Debug Console` before ending the debug session.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-5.png" width="90%"></p>
-
-If you scroll down in the `Debug Console`, you will see that the command was successful. Now you can definitely leave the debugger.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-6.png" width="90%"></p>
-
-It may also be a good idea to disable the `Optimize for Debugging` flag in the `Sketch` menu, because not doing so will result in larger flash code next time you compile a sketch.
-
-If you want to restore your UNO to its original state, you also need to burn the bootloader again. If you want the original Optiboot bootloader, then you have to change the board to Arduino UNO, which we will assume. However, you also have the option to burn the urboot bootloader, which is now standard in MiniCore, which has a number of advantages over Optiboot.
-
-Regardless of your choice, select the serial line connected to dw-link.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/choose-serial-uno.png" width="50%"></p>
-
-
-
-Select as the programmer `Arduino as ISP`.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/choose-programmer-uno.png" width="40%"></p>
-
-Then select the Burn Bootloader entry in the tools menu.
-
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/choose-burn-bootloader.png" width="25%"></p>
-
-The debug probe, which now acts as a programmer, should then be able to handle the rest.
-
-As a final measure, you may want to restore the solder bridge `RESET EN` or reinsert a removed capacitor. If possible, you can instead try to fit onto the board some pins that can be shortened with a jumper instead.
+If you want to restore your Uno to the original state, consult the section on "[Restoring the target](restore-original-state.md)."
 
 ### Potential problems
 
-There is always the chance that something goes south, either debugging does not start at all, or something funny happens while debugging. If the status LED of dw-link starts to blink furiously, then the hardware debugger has hit an unrecoverable error. Typing `monitor info` into the input field of the GDB debugger can then help you find out about the error number, which is decoded in the [Troubleshooting](troubleshooting.md#internal-and-fatal-dw-link-errors) section.
+If the status LED of dw-link starts to blink furiously, then the hardware debugger has hit an unrecoverable error. Typing `monitor info` into the input field of the GDB debugger can then help you find out about the error number, which is decoded in the [Troubleshooting](troubleshooting.md#internal-and-fatal-dw-link-errors) section.
 It may also be a good idea to consult the [Limitations](limitations.md) section.
 
