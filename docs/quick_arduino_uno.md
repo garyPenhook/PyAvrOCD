@@ -92,7 +92,7 @@ You can now start and stop execution, inspect variables, set breakpoints, and th
 
 ### Step 9: Start over or terminate the debugging session
 
-After leaving the debugger, you edit the sketch and start again at step 6. Note that you always have to recompile and restart the debugger before any changes you made to the sketch are effective.
+After leaving the debugger, you can edit the sketch and start again at step 6. Note that you always have to recompile and restart the debugger before any changes you made to the sketch are effective.
 
 Instead of starting a new edit/compile/debug cycle, you may want to end debugging. In this case, you should switch the MCU back from debugWIRE mode to normal mode, in which SPI programming is possible. In order to achieve that, type `monitor debugwire disable` into the prompt line of the `Debug Console` before ending the last debug episode.
 It may also be a good idea to disable the `Optimize for Debugging` flag in the `Sketch` menu.

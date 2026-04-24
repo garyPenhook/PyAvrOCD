@@ -22,7 +22,7 @@ Add a new *boards manager URL* in the `Preferences` dialog:
 	https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
 {!details-boards-manager-url.md!}
 
-Next you have to install the new core. Activate the `Boards Manager`, select `TinyCore`, and click on `Install`.
+Next, you have to install the new core. Activate the `Boards Manager`, select `TinyCore`, and click on `Install`.
 
 {!details-install-core.md!}
 
@@ -31,7 +31,7 @@ Next you have to install the new core. Activate the `Boards Manager`, select `Ti
 
 ### Step 2: Connect the target with the debug probe
 
-You need to set up the hardware on a breadboard and use a few jumper wires to connect the ATtiny to the debug probe. Note that the notch or dot on the ATtiny is oriented towards the left.
+You need to set up the hardware on a breadboard and use a few jumper wires to connect the ATtiny to the debug probe. Further, as is obvious from the Fritzing sketch, you need an external power supply. Note that the notch or dot on the ATtiny is oriented towards the left.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/snap+attiny85.png" width="80%">
@@ -39,18 +39,19 @@ You need to set up the hardware on a breadboard and use a few jumper wires to co
 
 
 
-Here is a table of all connections to check that you have made all the connections.
+Here is a table of all connections that you can use in order to check whether you have made all the connections.
 
-| ATtiny pin#  | SNAP pin | component                           |
-| ------------ | -------- | ----------------------------------- |
-| 1 (Reset)    | TAUX #6  | 10k resistor to Vcc                 |
-| 2 (D3)       | &nbsp;   | &nbsp;                              |
-| 3 (D4)       | &nbsp;   | &nbsp;                              |
-| 4 (GND)      | GND #3   | red LED (-), decoupling cap 100 nF  |
-| 5 (D0, MOSI) | TTDI #7  |                                     |
-| 6 (D1, MISO) | PGD #4   |                                     |
-| 7 (D2, SCK)  | PGC #5   | 1 k resistor to LED (+)             |
-| 8 (Vcc)      | TVDD #2  | 10k resistor, decoupling cap 100 nF |
+| ATtiny pin    | SNAP pin | component                                              |
+| ------------- | -------- | ------------------------------------------------------ |
+| #1 (Reset)    | TAUX #6  | 10 kΩ resistor to Vcc                                  |
+| #2 (D3)       | &nbsp;   | &nbsp;                                                 |
+| #3 (D4)       | &nbsp;   | &nbsp;                                                 |
+| #4 (GND)      | GND #3   | GND on breadboard, LED (-), decoupling cap 100 nF      |
+| #5 (D0, MOSI) | TTDI #7  |                                                        |
+| #6 (D1, MISO) | PGD #4   |                                                        |
+| #7 (D2, SCK)  | PGC #5   | 1 kΩ resistor to LED (+)                               |
+| #8 (Vcc)      | TVDD #2  | Vcc on breadboard, 10k resistor, decoupling cap 100 nF |
+|               |          | connect LED (+) and 1 kΩ resistor                      |
 
 ### Step 3: Load sketch and select board
 
@@ -64,18 +65,22 @@ Activate `Optimize for Debugging` in the `Sketch` menu. This only needs to be do
 
 Now it is time to start debugging by clicking the `Debug` button (bug in front of a triangle) in the top bar. If the target MCU is not already in debugWIRE mode, the debugger will request 'power cycling'.
 
-<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-0a.png" width="90%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-attiny-power-cycle.png " width="90%"></p>
 
-Power cycling means to remove the Vcc jumper cable and after a few seconds to reinsert it. After a while, the `DEBUG` pane should open.
+Power cycling means to remove the Vcc jumper cable and, after a few seconds, to reinsert it. After a while, the `DEBUG` pane should open.
 
-### After debugging has finished
+### Step 8: Debug the sketch
 
-When you are done with debugging, you probably want to disable the debugWIRE mode again, because in debugWIRE mode, you cannot use the RESET line or ISP programming. This can be accomplished by using the command `monitor debugwire disable` before you leave the debugger. In addition, you should disable the `Optimize for Debugging` setting because it will, in general, generate more code.
+You can now start and stop execution, inspect variables, set breakpoints, and the like (see section on [debugging](debugging.md)). Clicking on the red square in the top bar of the DEBUG pane will terminate the current debugging episode.
 
-So, after everything has been debugged, what do you do with your newly built debug probe? You don't have to throw it away. You can also use it as an ISP programmer (STK500 v1). In the Arduino IDE, such a programmer is called `Arduino as ISP`.
+### Step 9: Start over or terminate the debugging session
+
+After leaving the debugger, you can edit the sketch and start again at step 4. Note that you always have to recompile and restart the debugger before any changes you made to the sketch are effective.
+
+Instead of starting a new edit/compile/debug cycle, you may want to end debugging. In this case, you should switch the MCU back from debugWIRE mode to normal mode, in which SPI programming is possible. In order to achieve that, type `monitor debugwire disable` into the prompt line of the `Debug Console` before ending the last debug episode. It may also be a good idea to disable the `Optimize for Debugging` flag in the `Sketch` menu.
 
 
 ### What can go wrong?
 
-There is always the chance that something goes south, either debugging does not start at all, or something funny happens while debugging. If so, it is a good idea to have a look at the output in the `gdb-server` console. Messages with the prefix [WARNING] often tell what went wrong. If the status LED is blinking very fast, it means that the debugger has hit an unrecoverable error. Type `monitor info` into the last line of the `Debug Console` in order to find out about the [error number](troubleshooting.md#internal-and-fatal-dw-link-errors). It may also be a good idea to consult the [Troubleshooting](troubleshooting.md) and the [Limitations](limitations.md) sections.
+There is always the chance that something goes south, either debugging does not start at all, or something funny happens while debugging. If so, it is a good idea to have a look at the output in the `gdb-server` console. Messages with the prefix [CRITICAL] often tell what went wrong. It may also be a good idea to consult the [Troubleshooting](troubleshooting.md) and the [Limitations](limitations.md) sections.
 
