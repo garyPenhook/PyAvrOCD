@@ -1,37 +1,35 @@
-## Quickstart guide: dw-link & ATtiny85
+## Quickstart guide: SNAP & ATtiny85
 
-This quickstart guide demonstrates how to use the Arduino IDE 2 for debugging on an ATtiny85 without requiring you to invest in a commercial debug probe.  Instead, we will build our own debug probe.
+This quickstart guide demonstrates how to use the Arduino IDE 2 for debugging on an ATtiny85 using the MPLAB SNAP debug probe.
 
 
 ### Required hardware
 
-* Arduino Uno (will become the *debug probe*)
+* SNAP
 * USB cable
 * ATtiny85 (or any other classic ATtiny or ATmegaX8) as the *target*
-* In order to connect the debug probe to the target, you need:
+* In order to set up the target, you need:
     * a breadboard together with
-    * 11 Jumper wires (male-to-male)
-    * 2 LEDs
-    * 3 Resistors (10 kΩ, 220Ω, 220Ω)
-    * 2 Capacitors (100 nF, 10 µF)
+    * 11 jumper wires (male-to-male)
+    * 1 LED
+    * 2 resistors (10 kΩ, 1kΩ)
+    * 1 capacitor (100 nF)
 
-### Step 1: Install new board manager files
+### Step 1: Install the debug-enabled TinyCore
 
-Open the `Preferences` dialog of the Arduino IDE and paste the following `Board Manager URLs` into the list:
+Add a new *boards manager URL* in the `Preferences` dialog:
 
 	https://mcudude.github.io/TinyCore/package_MCUdude_TinyCore_index.json
-Close the `Preference` dialog with `OK`. Now, you can install the core, `TinyCore`.
+{!details-boards-manager-url.md!}
 
-* Select `Tools` -> `Board` -> `Board Managers` ... . This will open the Boards Manager dialog.
-* In the search field, type `TinyCore` and install the most recent version.
+Next you have to install the new core. Activate the `Boards Manager`, select `TinyCore`, and click on `Install`.
 
-### Step 2: Install *dw-link* firmware on an Uno
+{!details-install-core.md!}
 
-First, connect the UNO to your computer using the USB cable. Make sure that you have the permission to access the serial interface (under Linux).
+!!! info "Linux systems"
+    After the installation, users of Linux systems will need to add `udev` rules. Download [https://pyavrocd.io/99-edbg-debuggers.rules](https://pyavrocd.io/99-edbg-debuggers.rules), edit if you want, and copy to `/etc/udev/rules.d/`.
 
-The simplest way to install the firmware is to download an uploader from the [Release assets](https://github.com/felias-fogg/dw-link/releases/latest) of the [dw-link GitHub repo](https://github.com/felias-fogg/dw-link). The uploader should fit your architecture, e.g., `dw-uploader-windows-intel64` for Windows. Under *Linux* and *macOS*, open a terminal window, go to the download folder, and set the executable permission using `chmod +x`. Afterward, execute the program. Under *Windows*, it is enough to start the program after downloading by double-clicking on it.
-
-### Step 3: Hardware setup
+### Step 2: Connect target with debug probe
 
 You need to set up the hardware on a breadboard and use six wires to connect the ATtiny to your Uno, turned into a debug probe. Note that the notch or dot on the ATtiny is oriented towards the left.
 
