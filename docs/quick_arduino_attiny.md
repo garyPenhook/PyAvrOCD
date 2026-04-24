@@ -10,7 +10,7 @@ This quickstart guide demonstrates how to use the Arduino IDE 2 for debugging on
 * ATtiny85 (or any other classic ATtiny or ATmegaX8) as the *target*
 * In order to set up the target, you need:
     * a breadboard together with
-    * 11 jumper wires (male-to-male)
+    * jumper wires (male-to-male)
     * 1 LED
     * 2 resistors (10 kΩ, 1kΩ)
     * 1 capacitor (100 nF)
@@ -29,62 +29,44 @@ Next you have to install the new core. Activate the `Boards Manager`, select `Ti
 !!! info "Linux systems"
     After the installation, users of Linux systems will need to add `udev` rules. Download [https://pyavrocd.io/99-edbg-debuggers.rules](https://pyavrocd.io/99-edbg-debuggers.rules), edit if you want, and copy to `/etc/udev/rules.d/`.
 
-### Step 2: Connect target with debug probe
+### Step 2: Connect the target with the debug probe
 
-You need to set up the hardware on a breadboard and use six wires to connect the ATtiny to your Uno, turned into a debug probe. Note that the notch or dot on the ATtiny is oriented towards the left.
-
-
-![ATtiny85-debug](pics/attiny85-debug-new.png)
-
-In reality, this could be like in the following photo.
+You need to set up the hardware on a breadboard and use a few jumper wires to connect the ATtiny to the debug probe. Note that the notch or dot on the ATtiny is oriented towards the left.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/attiny-breadboard.jpg" width="30%">
+<img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/snap+attiny85.png" width="80%">
 </p>
+
 
 
 Here is a table of all connections to check that you have made all the connections.
 
-| ATtiny pin#  | Arduino Uno pin | component                                                    |
-| ------------ | --------------- | ------------------------------------------------------------ |
-| 1 (Reset)    | D8              | 10k resistor to Vcc                                          |
-| 2 (D3)       |                 |                                                              |
-| 3 (D4)       |                 | 220 Ω resistor to target (red) LED (+)                       |
-| 4 (GND)      | GND             | red and yellow LED (-), decoupling cap 100 nF, RESET blocking cap of 10µF (-) |
-| 5 (D0, MOSI) | D11             |                                                              |
-| 6 (D1, MISO) | D12             |                                                              |
-| 7 (D2, SCK)  | D13             |                                                              |
-| 8 (Vcc)      | 5V              | 10k resistor, decoupling cap 100 nF                          |
-| &nbsp;       | RESET           | RESET blocking cap of 10 µF (+)                              |
-| &nbsp;       | D7              | 220 Ω to system (yellow) LED (+)                             |
+| ATtiny pin#  | SNAP pin | component                           |
+| ------------ | -------- | ----------------------------------- |
+| 1 (Reset)    | TAUX #6  | 10k resistor to Vcc                 |
+| 2 (D3)       | &nbsp;   | &nbsp;                              |
+| 3 (D4)       | &nbsp;   | &nbsp;                              |
+| 4 (GND)      | GND #3   | red LED (-), decoupling cap 100 nF  |
+| 5 (D0, MOSI) | TTDI #7  |                                     |
+| 6 (D1, MISO) | PGD #4   |                                     |
+| 7 (D2, SCK)  | PGC #5   | 1 k resistor to LED (+)             |
+| 8 (Vcc)      | TVDD #2  | 10k resistor, decoupling cap 100 nF |
 
-The yellow LED is the *system LED*, and the red one is the *ATtiny-LED*. The system LED gives you information about the internal state of the debugger:
+### Step 3: Load sketch and select board
 
-1. debugWIRE mode disabled (LED is off),
-2. waiting for power-cycling the target (LED flashes every second for 0.1 sec)
-3. debugWIRE mode enabled (LED is on),
-4. ISP programming (LED is blinking slowly),
-5. error state, i.e., not possible to connect to target or internal error (LED blinks furiously every 0.1 sec).
+Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> TinyCore -> ATtiny85`. If this is a chip is fresh from the factory, you need to adjust for the clock frequency. Choose `1 MHz internal osc.` under `Tools -> Clock`.
 
+### Step 4: Compile the sketch
 
+Activate `Optimize for Debugging` in the `Sketch` menu. This only needs to be done once. Then click on the `Verify` button (checkmark symbol) in the top bar. This will compile the sketch.
 
+### Step 5: Start debugging
 
-### Step 4: Start Debugging
+Now it is time to start debugging by clicking the `Debug` button (bug in front of a triangle) in the top bar. If the target MCU is not already in debugWIRE mode, the debugger will request 'power cycling'.
 
-- Load the sketch you want to debug into the IDE by choosing `Open...` in the `File` menu.
-- Select `ATtiny25/45/85` as the board under `Tools` -> `Board` -> `TinyCore`.
-- In the `Tools` menu,  choose `1 MHz (internal)` as the `Clock Source`  (assuming that the ATtiny is as it comes from the factory and no fuse has been changed).
-- In the `Sketch` menu, select `Optimize for Debugging`.
-- Compile the code by clicking the `Verify` button in the upper left corner.
-- Open the debug panes by clicking the debug symbol (bug with triangle) in the left sidebar.
-- Click the debug symbol in the top row to start debugging. This will start the debugger and the debug server. The activities are logged in the `Debug Console` and the `gdb-server` console in the bottom right part of the window.
-- You will probably be asked to "power-cycle the target." This means that you need to remove power from the target and then reconnect it, activating the debugWIRE mode.
-- After the debugger and GDB server have been started, the debugger will start executing the program on the target. Execution will stop at the first line of the `main` function.
-- Now, you are in business and can set breakpoints (clicking left of the line number), continue executing, stop the program asynchronously, inspect and change values, and examine different stack frames. To terminate your debugging session, click the red box in the debug row before terminating the debugging session.
+<p align="center"><img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide-uno-0a.png" width="90%"></p>
 
-![debug window](pics/ide2-3.png)
-
-Be aware that after finishing the debug session, the MCU is still in debugWIRE mode! You can change that by typing `monitor debugwire disable` in the last line of the `Debug Console`.
+Power cycling means to remove the Vcc jumper cable and after a few seconds to reinsert it. After a while, the `DEBUG` pane should open.
 
 ### After debugging has finished
 
