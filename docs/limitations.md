@@ -167,7 +167,7 @@ Finally, we have the **ATmega128(A)**, which offers only hardware breakpoints. T
 
 DebugWIRE can be dangerous to the health of your MCU.
 
-While debugWIRE is an excellent concept, as it requires no GPIO sacrifice for debugging, it can be harmful to the MCU. Once the MCU has been brought into debugWIRE mode (using, for example, the `monitor debugwire enable` command), the RESET line can no longer be used to reset the chip, and it is impossible to use SPI programming to change fuses, particularly the debugWIRE enable (DWEN) fuse. If something goes wrong while entering debugWIRE mode, this could mean that you "bricked" your chip, since communication with the MCU is no longer possible. So, what can go wrong, and how can you resurrect the chip?
+Once the MCU has been brought into debugWIRE mode (using, for example, the `monitor debugwire enable` command), the RESET line can no longer be used to reset the chip, and it is impossible to use SPI programming to change fuses, particularly the debugWIRE enable (DWEN) fuse. If something goes wrong while entering debugWIRE mode, this could mean that you "bricked" your chip, since communication with the MCU is no longer possible. So, what can go wrong, and how can you resurrect the chip?
 
 ### Scenarios
 
@@ -176,7 +176,7 @@ While debugWIRE is an excellent concept, as it requires no GPIO sacrifice for de
 2. Another cause for trouble could be that the MCU is operated in an unstable electrical environment. This could mean that the supply voltage is fluctuating, an unstable external clock is used, blocking capacitors between (A)Vcc and (A)GND are missing, or, another classic, AVcc and/or AGND are not connected to the power rail. In these cases, unpredictable things can happen, and the MCU might not be responsive after having been switched into debugWIRE mode. In this case, repairing the fault, e.g., soldering a blocking capacitor between Vcc and GND, may or may not resolve the issue.
 3. The MCU could be a non-genuine product. Since such products do not satisfy all the specifications of genuine MCUs, these MCUs might be able to enter debugWIRE, but then one is stuck. Or debugWIRE mode is not supported at all.
 4. It could be that you can enter debugWIRE mode and debug your chip, but getting back to normal mode is impossible. This may be caused by setting some fuses when switching to debugWIRE mode that prevent the return to normal mode. If you unprogrammed `SPIEN` (Serial program downloading) and/or programmed `RSTDSBL`, the fuse to disable the reset line, then it is possible to leave debugWIRE mode, but you cannot use SPI programming afterward. When you let PyAvrOCD handle the fuses, this cannot happen.
-5. There are apparently unknown reasons that can make a chip unresponsive when switching to debugWIRE mode. I have no idea why this happens. It could be that some of the finite state machinery took the wrong way and only needs a good kicking, which could range from a power-on reset to high-voltage programming (see below).
+5. There are apparently unknown reasons that can make a chip unresponsive when switching to debugWIRE mode. I have no idea why this happens.
 
 ### Exit debugWIRE mode
 
