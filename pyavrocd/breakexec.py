@@ -523,16 +523,20 @@ class BreakAndExec():
         self.dbg.program_counter_write((addr + 2) >> 1)
         return True
 
-    def range_step(self, start : int, end : int) -> int | None:
+    def range_step(self, start : int, end : int, call_ignore : bool) -> int | None:
         """
         Range stepping: Break only if we leave the interval start-end. If we can cover all
         exit points, we watch them. If it is an inside point (e.g., RET), we single-step on it.
         In order to do so, we allocate temporarily some hardware breakpoints. These get released
         when we do an ordinary 'continue' or 'step'.
         Otherwise, we break at each branching point and single-step this branching instruction.
-        Note that we need to return after the first step to allow GDB to set a breakpoint at the
-        location where we started -- actually GDB will make a single step by itself,
-        so we do not need this!
+        Note that the manual states that we need to return after the first step. I suspected that
+        this was to be done to deal with breakpoints at the starting point. However, GDB will make
+        a single step by itself, so we do not need to stop after the first step.
+
+        The call_ignore mode is set by the handler when a previous GDB command sequence led to
+        the conviction that the range stepping is part of a 'step over' command. It will lead to
+        ignoring call instructions as branching and exiting instructions.
 
         There is one corner case: If only hardware breakpoints are allowed, and all of them
         are in use, we simply single-step.
@@ -551,7 +555,7 @@ class BreakAndExec():
         if addr < start or addr >= end: # starting outside of range, should not happen!
             self.logger.error("PC 0x%X is not in range 0x%X-0x%X for range stepping", addr, start, end)
             return SIGABRT
-        new_range : bool = self._build_range(start, end)
+        new_range : bool = self._build_range(start, end, call_ignore)
         if not self._update_breakpoints(addr, release_temp=new_range):
             return SIGSYS
         if (addr in self._range_exit or # starting at possible exit point inside range
@@ -590,7 +594,7 @@ class BreakAndExec():
                 return None
         return self.single_step(None, fresh=False)
 
-    def _build_range(self, start : int, end : int) -> bool:
+    def _build_range(self, start : int, end : int, call_ignore : bool) -> bool:
         """
         Collect all instructions in the range and analyze them. Find all points, where
         an instruction possibly leaves the range. This includes the first instruction
@@ -616,6 +620,10 @@ class BreakAndExec():
             dest : list[int] = []
             opcode : int = self._range_word[i]
             secondword : int = self._range_word[i+1]
+            if call_ignore and self._callx_instr(opcode):
+                self.logger.debug("Call instruction ignored at: 0x%X", start + i*2)
+                i += 1 + self._two_word_instr(opcode)
+                continue
             if self._branch_instr(opcode):
                 self._range_branch += [ start + (i * 2) ]
             if self._two_word_instr(opcode):

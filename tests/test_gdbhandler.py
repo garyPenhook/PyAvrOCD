@@ -612,7 +612,7 @@ class TestGdbHandler(TestCase):
         self.set_up()
         self.gh.bp.range_step.return_value = SIGILL
         self.gh.dispatch('vCont', b';r0020,0040:1')
-        self.gh.bp.range_step.assert_called_with(32,64)
+        self.gh.bp.range_step.assert_called_with(32,64,False)
         self.gh._comsocket.sendall.assert_called_with(rsp("S04"))
 
     def test_vcont_handler_illformed1(self):

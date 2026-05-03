@@ -675,8 +675,11 @@ class XAvrDebugger(AvrDebugger):
         self.logger.info("Terminating debugging session ...")
         try:
             # Switch to debugging mode
-            self.switch_to_debmode()
-            self.logger.info("Switched to debugging mode")
+            try:
+                self.switch_to_debmode()
+                self.logger.info("Switched to debugging mode")
+            except Exception:
+                self.logger.info("Already in debugging mode")
             # Halt the core
             self.stop()
             self.logger.info("AVR core stopped")
@@ -686,6 +689,9 @@ class XAvrDebugger(AvrDebugger):
             # Remove all hardware  breakpoints
             self.device.avr.breakpoint_clear()
             self.logger.info("All hardware breakpoints removed")
+            # Continue executing
+            self.run()
+            self.logger.info("CPU resumes execution")
         except Exception as e:
             if not graceful:
                 self.logger.error("Error during stopping core and removing BPs: %s", str(e))
@@ -751,6 +757,9 @@ class XAvrDebugger(AvrDebugger):
             self.logger.info("OCDEN unprogrammed")
         except Exception as e:
             self.logger.error("Error during unprogramming OCDEN: %s", str(e))
+        self.device.avr.protocol.leave_progmode()
+        self.logger.info("Programming mode terminated")
+
 
     def _dwen_unprogramming(self, leave : bool) -> None:
         """

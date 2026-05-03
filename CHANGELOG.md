@@ -1,6 +1,16 @@
 # Changelog
 
-### 1.20.0 (20-Apr-2025)
+### 1.2.1
+
+- Added:
+     - Speedup of range stepping by recognizing step-over commands. The recognition is a bit tricky based on a behavior pattern of the RSP commands. This means that we do not single-step any longer into functions. This speeds up all one-line loops with function calls!
+          - Probably the e2e tests have to be adapted.
+- Fixed:
+     - JTAG targets: Breakpoints were not removed at exit because the change to debug mode led to a silent error
+     - JTAG targets: MCUs were held in RESET when OCDEN is unprogrammed because programming mode was never left. It will now, meaning that detaching from OCD throws an error (which is caught).
+     - All targets: MCUs were held in stop mode when exiting because the CPU was stopped before breakpoint cleaning. Now the CPU is resumed after breakpoints have been cleared.
+
+### 1.2.0 (20-Apr-2025)
 
 - **Fixed:**
      - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.

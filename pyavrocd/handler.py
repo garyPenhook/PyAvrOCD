@@ -49,6 +49,9 @@ class GdbHandler():
                                                        self.dbg.get_architecture())
         self.mem : Memory = Memory(avrdebugger, self.mon)
         self.bp : BreakAndExec = BreakAndExec(self.mon, avrdebugger, self.mem.flash_read_word)
+        self._rs_start : int = 0
+        self._rs_stop : int = 0
+        self._rs_stage : int = 0 # stage 1: vCont;r, 2: Z1, 3: vCont;c, 4: z1; 5: vCont;r
         self._dw_start : bool = bool(args.debugwire and args.debugwire[0])
         self._nomm : bool = args.nomm
         self._comsocket : socket.socket = comsocket
@@ -108,6 +111,9 @@ class GdbHandler():
         if self._interrupt and cmd in ['vCont', '']: # synchronize Ctrl-C with the flow of commands
             self._interrupt = False
             cmd = '.'
+        if cmd not in [ 'vCont', 'm', 'Z', 'z', '']: # Only these commands can enable call_ignore mode
+            self.logger.debug("Reset self._rs_stage = 0")
+            self._rs_stage = 0
         try:
             handler = self.packettypes[cmd]
         except (KeyError, IndexError):
@@ -578,20 +584,53 @@ class GdbHandler():
         if packet == b'':
             self.send_packet("") # unknown
         elif packet == b'?': # asks for capabilities
+            self._rs_stage = 0
+            self.logger.debug("rs_stage=%d", self._rs_stage)
             self.logger.debug("Tell GDB about vCont capabilities: c, C, s, S, r")
             self.send_packet("vCont;c;C;s;S;r")
             return
         elif packet[0] == ord(';'):
             if packet[1:] == b'':
+                self._rs_stage = 0
+                self.logger.debug("rs_stage=%d", self._rs_stage)
                 self.send_packet("") # unknown
             elif packet[1] in [ord('c'), ord('C')]:
+                if self._rs_stage == 2:
+                    self._rs_stage = 3
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+                else:
+                    self._rs_stage = 0
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
                 self._continue_handler(b"")
             elif packet[1] in [ord('s'), ord('S')]:
+                self._rs_stage = 0
+                self.logger.debug("rs_stage=%d", self._rs_stage)
                 self._step_handler(b"")
             elif packet[1] == ord('r'):
                 step_range = packet[2:].split(b':')[0].split(b',')
-                self._send_execution_result_signal(
-                    self.bp.range_step(int(step_range[0],16), int(step_range[1],16)))
+                start : int = int(step_range[0],16)
+                stop : int = int(step_range[1],16)
+                if self._rs_stage == 0:
+                    self._rs_start = start
+                    self._rs_stop = stop
+                    self._rs_stage = 1
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+                elif self._rs_stage == 1:
+                    if self._rs_start != start or self._rs_stop != stop:
+                        self._rs_stage = 0
+                        self.logger.debug("rs_stage=%d", self._rs_stage)
+                elif self._rs_stage >= 4:
+                    if self._rs_start != start or self._rs_stop != stop:
+                        self._rs_stage = 0
+                        self.logger.debug("rs_stage=%d", self._rs_stage)
+                    else:
+                        self._rs_stage = 5
+                        self.logger.debug("rs_stage=%d", self._rs_stage)
+                else:
+                    self._rs_stage = 0
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+                self.logger.debug("self._rs_stage=%d", self._rs_stage)
+                self._send_execution_result_signal(self.bp.range_step(start, stop, self._rs_stage == 5))
             else:
                 self.send_packet("") # unknown
         else:
@@ -786,6 +825,16 @@ class GdbHandler():
         addr : bytes = packet.split(b",")[1]
         self.logger.debug("RSP packet: remove BP of type %s at %s", breakpoint_type, addr)
         if breakpoint_type in {b"0", b"1"}:
+            if self._rs_stage == 3:
+                if self._rs_start <= int(addr, 16) < self._rs_stop:
+                    self._rs_stage = 4
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+                else:
+                    self._rs_stage = 0
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+            else:
+                self._rs_stage = 0
+                self.logger.debug("rs_stage=%d", self._rs_stage)
             self.bp.remove_breakpoint(int(addr, 16))
             self.send_packet("OK")
         else:
@@ -800,6 +849,16 @@ class GdbHandler():
         addr : bytes = packet.split(b",")[1]
         self.logger.debug("RSP packet: set BP of type %s at %s", breakpoint_type, addr)
         if breakpoint_type in {b"0", b"1"}:
+            if self._rs_stage == 1:
+                if self._rs_start <= int(addr, 16) < self._rs_stop:
+                    self._rs_stage = 2
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+                else:
+                    self._rs_stage = 0
+                    self.logger.debug("rs_stage=%d", self._rs_stage)
+            else:
+                self._rs_stage = 0
+                self.logger.debug("rs_stage=%d", self._rs_stage)
             self.bp.insert_breakpoint(int(addr, 16))
             self.send_packet("OK")
         else:

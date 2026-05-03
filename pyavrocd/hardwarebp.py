@@ -85,6 +85,7 @@ class HardwareBP():
             if self._hwbplist[ix] is None:
                 self._hwbplist[ix] = addr
                 if ix > 0:
+                    self.dbg.hardware_breakpoint_clear(ix)
                     self.dbg.hardware_breakpoint_set(ix, addr)
                 self.logger.debug("Successfully allocated HWBP %d", ix)
                 return ix

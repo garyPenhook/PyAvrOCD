@@ -560,7 +560,7 @@ class TestBreakAndExec(TestCase):
         self.bp.mon.is_old_exec.return_value = True
         self.bp.mon.is_range.return_value = False
         self.bp.mon.is_onlyswbps.return_value = False
-        self.assertEqual(self.bp.range_step(10,20), SIGTRAP)
+        self.assertEqual(self.bp.range_step(10,20,False), SIGTRAP)
         self.bp.dbg.program_counter_read.assert_called_once()
         self.bp.dbg.step.assert_called_once()
         self.bp.dbg.run.assert_not_called()
@@ -574,7 +574,7 @@ class TestBreakAndExec(TestCase):
         self.bp.mon.is_onlyswbps.return_value = False
         self.bp.dbg.program_counter_read.return_value = 10
         self.bp._read_flash_word.return_value = 0x0000
-        self.assertEqual(self.bp.range_step(9,50), SIGTRAP)
+        self.assertEqual(self.bp.range_step(9,50,False), SIGTRAP)
         self.bp.dbg.program_counter_read.assert_called_once()
         self.bp._read_flash_word.assert_called_with(20)
         self.bp.dbg.step.assert_called_with()
@@ -583,7 +583,7 @@ class TestBreakAndExec(TestCase):
     @patch('pyavrocd.breakexec.logging.getLogger', MagicMock())
     def test_range_step_equal_bounds(self):
         self.set_up()
-        self.bp.range_step(100, 100)
+        self.bp.range_step(100, 100, False)
         self.bp.logger.debug.assert_called_with("Empty range: Simply single step")
 
     def test_range_step_possible_onlyhwbp0(self):
@@ -595,7 +595,7 @@ class TestBreakAndExec(TestCase):
         self.bp.insert_breakpoint(100)
         self.bp._read_flash_word.return_value =  0x0000
         self.bp.dbg.program_counter_read.return_value = 5
-        self.assertEqual(self.bp.range_step(10,14), SIGTRAP)
+        self.assertEqual(self.bp.range_step(10,14,False), SIGTRAP)
         self.bp.dbg.step.assert_called()
         self.bp.dbg.run.assert_not_called()
         self.bp.dbg.run_to.assert_not_called()
@@ -610,7 +610,7 @@ class TestBreakAndExec(TestCase):
         self.bp.insert_breakpoint(200)
         self.bp._read_flash_word.return_value =  0x0000
         self.bp.dbg.program_counter_read.return_value = 5
-        self.assertEqual(self.bp.range_step(10,14), SIGSYS)
+        self.assertEqual(self.bp.range_step(10,14,False), SIGSYS)
         self.bp.dbg.step.assert_not_called()
         self.bp.dbg.run.assert_not_called()
         self.bp.dbg.run_to.assert_not_called()
@@ -625,7 +625,7 @@ class TestBreakAndExec(TestCase):
         self.bp.dbg.program_counter_read.return_value = 5
         code = [ BREAKCODE, 0xef2f, 0xee81, 0xe094, BREAKCODE, BREAKCODE ]
         self.bp._read_flash_word.side_effect = code
-        self.assertEqual(self.bp.range_step(10,16), SIGILL)
+        self.assertEqual(self.bp.range_step(10,16,False), SIGILL)
         self.bp.dbg.step.assert_not_called()
         self.bp.dbg.run.assert_not_called()
         self.bp.dbg.run_to.assert_not_called()
@@ -640,7 +640,7 @@ class TestBreakAndExec(TestCase):
         self.bp.dbg.program_counter_read.return_value = 5
         code = [ SLEEPCODE, 0xef2f, 0xee81, 0xe094, SLEEPCODE, SLEEPCODE ]
         self.bp._read_flash_word.side_effect = code
-        self.assertEqual(self.bp.range_step(10,16), None)
+        self.assertEqual(self.bp.range_step(10,16,False), None)
         self.bp.dbg.program_counter_write.assert_not_called()
         self.bp.dbg.step.assert_not_called()
         self.bp.dbg.run.assert_not_called()
@@ -654,9 +654,9 @@ class TestBreakAndExec(TestCase):
         self.bp._read_flash_word.side_effect = code
         start = 0x033a
         end = 0x0344
-        self.bp._build_range(start, end)
+        self.bp._build_range(start, end, False)
         self.bp.dbg.program_counter_read.return_value = start >> 1
-        self.assertEqual(self.bp.range_step(start, end), None)
+        self.assertEqual(self.bp.range_step(start, end, False), None)
         self.bp.dbg.run_to.assert_called_with(0x033e)
 
     def test_build_range_one_exit(self):
@@ -666,7 +666,7 @@ class TestBreakAndExec(TestCase):
         self.bp._read_flash_word.side_effect = code
         start = 0x0364
         end = 0x0376
-        self.bp._build_range(start, end)
+        self.bp._build_range(start, end, False)
         self.assertEqual(start, self.bp._range_start)
         self.assertEqual(end, self.bp._range_end)
         self.assertEqual(code, self.bp._range_word)
@@ -680,7 +680,7 @@ class TestBreakAndExec(TestCase):
         self.bp._read_flash_word.side_effect = code
         start = 0x033a
         end = 0x0344
-        self.bp._build_range(start, end)
+        self.bp._build_range(start, end, False)
         self.assertEqual(start, self.bp._range_start)
         self.assertEqual(end, self.bp._range_end)
         self.assertEqual(code, self.bp._range_word)
