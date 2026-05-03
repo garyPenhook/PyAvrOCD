@@ -15,12 +15,12 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 
 - **ATmega328PB** **Xplained Mini**: [XMiniCore](supporting-cores.md#xminicore); onboard debugger, no physical modifications or fuse settings necessary,  power-cycling is automatic.
 
-- **ATmega324PB Xplained Pro:** [MightyCore](supporting-cores.md#mightycore); onboard debugger, serial I/O is routed via `Serial1` instead of `Serial`. The LED is connected to digital pin 23. No physical modifications or fuse settings necessary.
+- **ATmega324PB Xplained Pro:** [MightyCore](supporting-cores.md#mightycore); onboard debugger, serial I/O is routed via `Serial1` instead of `Serial`; the LED is connected to digital pin 23. No physical modifications or fuse settings necessary.
 - <u>AT90USBKEY2 (AT90USB1287)</u>
 - <u>ATmega256RFR2 Xplained Pro</u>
 - **AVR Butterfly (ATmega169)**: [MegaCore](supporting-cores.md#megacore)
 - <u>MEGA-1284P Xplained</u>: [MightyCore](supporting-cores.md#mightycore)
-- **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex); onboard debugger; choose the `48 pin standard` pinout; serial I/O is routed via `Serial3`. The LED is connected to PF5 (digital pin 39). The programmer you have to choose is `Curiosity Nano`. 
+- **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex); onboard debugger; choose the `48 pin standard` pinout; serial I/O is routed via `Serial3`; the LED is connected to PF5 (digital pin 39); the programmer you have to choose is `Curiosity Nano`.
 
 ## Arduino boards
 
@@ -56,8 +56,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - Arduino Industrial 101
 - Arduino Linino One
 - Arduino UNO WiFi (Rev 1):  [MiniCore](supporting-cores.md#minicore); cut `RESET EN` solder bridge
-- **Arduino Uno WiFi (Rev 2)**: [MegaCoreX](supporting-cores.md#megacorex); board has an onboard debugger; the recommended pinout is `Uno Wifi`; serial I/O is via `Serial`; `LED_BUILTIN` is digital pin 25 (PD6); there is no bootloader support (because you can load via the debugger)
-- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex); [UPDI pad on the backside](board-preparation.md#preparing-a-updi-target); the only pinout is `Nano Every`; serial I/O is routed via `Serial`; `LED_BUILTIN` is digital pin 13 (PE2); there is no bootloader support (because you can load via the serial interface)
+- **Arduino Uno WiFi (Rev 2)**: [MegaCoreX](supporting-cores.md#megacorex); board has an onboard debugger; the recommended pinout is `Uno Wifi`; serial I/O is via `Serial`; `LED_BUILTIN` is digital pin 25 (PD6); there is no bootloader support because you can load via the onboard debugger/programmer `microUPDI/Uno WiFi`
+- **Arduino Nano Every:** [MegaCoreX](supporting-cores.md#megacorex); [UPDI pad on the backside](board-preparation.md#preparing-a-updi-target); the only pinout is `Nano Every`; serial I/O is routed via `Serial`; `LED_BUILTIN` is digital pin 13 (PE2); there is no bootloader support because you can load via the onboard programmer `JTAG2UPDI`
 
 ## Sparkfun boards
 
@@ -153,4 +153,4 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>Digispark (ATtiny85)</u>: [TinyCore](supporting-cores.md#tinycore)
 - <u>Digispark Pro (ATtiny167)</u>: [TinyCore](supporting-cores.md#tinycore)
 - <u>Pololu A-Star 328PB Micro</u>: [MiniCore](supporting-cores.md#minicore)
-- **Thinary Nano Every (ATmega4808)**: [MegaCoreX](supporting-cores.md#megacorex); the only supported pinout is `Nano 4808`; serial I/O via `Serial`; `LED_BUILTIN` is digital pin 9 (PA7); no bootload support bcause there is a JTAG2UPDI programmer on board
+- **Thinary Nano Every (ATmega4808)**: [MegaCoreX](supporting-cores.md#megacorex); the only supported pinout is `Nano 4808`; serial I/O via `Serial`; `LED_BUILTIN` is digital pin 9 (PA7); no bootloader support because there is a `JTAG2UPDI` programmer on board

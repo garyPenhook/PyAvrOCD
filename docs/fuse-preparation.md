@@ -89,11 +89,7 @@ After you have finished debugging, you should unprogram `OCDEN` because otherwis
 
 ## Preparing a UPDI target
 
-If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. If it is a pin with UPDI/GPIO/RESET shared functionality, and the UPDI functionality has been disabled,  things become a bit complicated.
-
-In this case, a high-voltage pulse is necessary to activate the UPDI functionality of the pin, which will need a RESET impulse beforehand, which in turn needs manual or automatic power-cycling. Worse yet, after each RESET, power toggle, and programming mode termination, this procedure needs to be repeated. Adding to this, only one of the compatible debug probes by Microchip is able to perform high-voltage programming.
-
-For this reason, PyAvrOCD does not support high-voltage programming. The advice is to use a dedicated [high-voltage UPDI programmer](https://www.adafruit.com/product/5893?srsltid=AfmBOoo5mSe4piu5mrG4wDqql3ubXbUT2IH2BZVAKtZqX9YQiEWx0HX6) for changing the respective fuse so that UPDI functionality is restored for the shared pin. Even better: Do not use the UPDI pin for RESET or GPIO purposes from the beginning.
+If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. However, if it is a pin with UPDI/GPIO/RESET shared functionality, and the UPDI functionality has been disabled,  you need high-voltage programming. PyAvrOCD does not support this because the compatible debug probes do not support high-voltage programming. The advice is to buy a dedicated [high-voltage UPDI programmer](https://www.adafruit.com/product/5893?srsltid=AfmBOoo5mSe4piu5mrG4wDqql3ubXbUT2IH2BZVAKtZqX9YQiEWx0HX6) or [build one on a breadboard](https://avdweb.nl/arduino/attiny3217/hv-programming), and then restore the UPDI functionality.
 
 ### Fuse settings when PyAvrOCD manages the fuse
 
