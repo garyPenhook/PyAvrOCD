@@ -16,12 +16,12 @@ HEADERS=$(SOURCES:.c=.h)
 
 ## Compilation options, type man avr-gcc if you're curious.
 CPPFLAGS = -DF_CPU=$(F_CPU) -I.
-CFLAGS = -Og -ggdb3 -std=gnu99 -Wall
+CFLAGS = -E -Og -ggdb3 -std=gnu99 -Wall
 ## Use short (8-bit) data types
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 ## Splits up object files per function
 CFLAGS += -ffunction-sections -fdata-sections
-LDFLAGS = -Wl,-Map,$(TARGET).map
+LDFLAGS = -mrelax -Wl,-Map,$(TARGET).map -mnorelax
 ## Optional, but often ends up with smaller code
 LDFLAGS += -Wl,--gc-sections
 ## Relax shrinks code even more, but makes disassembly messy
