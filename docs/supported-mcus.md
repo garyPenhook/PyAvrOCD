@@ -126,4 +126,4 @@ No support yet.
 
 ## XMegas
 
-There is no support yet for XMegas yet. Since they are not supported by any active Arduino core and do not have any support in PlatformIO, the chances are not very high that I will dive into that.
+There is no support yet for XMegas. Since they are not supported by any active Arduino core and do not have any support in PlatformIO, the chances are not very high that I will dive into that.
