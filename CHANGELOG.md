@@ -1,14 +1,19 @@
 # Changelog
 
-### 1.2.1
+### 1.2.1 (05-May-2025)
 
 - Added:
-     - Speedup of range stepping by recognizing step-over commands. The recognition is a bit tricky based on a behavior pattern of the RSP commands. This means that we do not single-step any longer into functions. This speeds up all one-line loops with function calls!
-          - Probably the e2e tests have to be adapted.
+     - Speedup of range stepping by recognizing step-over commands. The recognition is a bit tricky based on a behavior pattern of the RSP commands. This means that we do not single-step any longer into functions. This speeds up all one-line loops with function calls immensely!
 - Fixed:
      - JTAG targets: Breakpoints were not removed at exit because the change to debug mode led to a silent error
      - JTAG targets: MCUs were held in RESET when OCDEN is unprogrammed because programming mode was never left. It will now, meaning that detaching from OCD throws an error (which is caught).
      - All targets: MCUs were held in stop mode when exiting because the CPU was stopped before breakpoint cleaning. Now the CPU is resumed after breakpoints have been cleared.
+     - The temporary hardware breakpoint management got confused when 0 temporary breakpoints (for range stepping) were requested leading to very slow range stepping afterwards. This has been fixed.
+     - Hardware breakpoints will not survive a RESET, which had been ignored. So, all hardware breakpoints are now deallocated when GDB requests a breakpoint removal. This makes sure that they are always set again before starting program execution.
+     - For ATmega808, the wait interval after writing to USER_ROW had to be extended to 70 ms.
+- **Changed**:
+     - The default MCU clock frequency is now 8 MHz. This gives us a default UPDI communication speed of 450 kHz, which is safe for ordinary cases. It had turned out that 400 kHz on 20 MHz MCUs is **too slow**, leading to single-step and breakpoint skidding.
+
 
 ### 1.2.0 (20-Apr-2025)
 
@@ -16,7 +21,7 @@
      - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.
      - Now, `sram_masked_read` and `sram_masked_write` will read from registers/write to registers when the address is < `iooffset`. This means that for targets with general registers in the SRAM area below `iooffset` (i.e., 0x20), there is a consistent source and destination for memory transfers created by the debugger.
      - EEPROM read/write works now after deleting the erroneous subtraction of the EEPROM segment start address in `eeprom_read/write` in the memory module.
-     - USER_ROW write works now correctly after eliminating the page-alignment in the `write` method of  `XNvmAccessProviderCmsisDapUpdi`, *and* a short wait was introduced `using_write` in `XAvrDebugger`.
+     - USER_ROW write works now correctly after eliminating the page-alignment in the `write` method of  `XNvmAccessProviderCmsisDapUpdi`, *and* a short wait of 20 ms was introduced in `usig_write` in `XAvrDebugger`.
      - The monitor option `erasebeforeload` behaved strangely. All possible `None` values in `set_default_state` in `Monitor` are now normalized to `bool` in order to avoid the problem of testing them later for True and False.
      - Computation of bad_pc_mask had to change in `_check_stuck_at_one_pc` (`XAvrDebugger`) in order to account for flash memory sizes that are different from powers of two.
      - The PC mask computation had to change in avr-gdb as well. Now it is version 17.1.4.

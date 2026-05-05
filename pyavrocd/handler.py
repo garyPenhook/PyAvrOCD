@@ -14,8 +14,6 @@ import time
 import socket
 
 # communication
-import select
-
 from pyedbglib.protocols.avrispprotocol import AvrIspProtocolError
 from pyedbglib.protocols.avr8protocol import Avr8Protocol
 from pyedbglib.protocols.edbgprotocol import EdbgProtocol
@@ -427,6 +425,7 @@ class GdbHandler():
                 self.dbg.stop_debugging(leave=True, graceful=False)
                 self.mon.set_debug_mode_active(False)
             elif response[0] == 'reset':
+                self.bp.reset_hardware_breakpoints()
                 if self.mon.is_debugger_active():
                     self.dbg.reset()
             elif response[0] in ['0', '1']:
@@ -889,14 +888,9 @@ class GdbHandler():
         pc = self.dbg.poll_event()
         if pc:
             self.logger.debug("MCU stopped execution")
+            while self.dbg.poll_event():
+                pass # remove any pending message
             self.send_signal(SIGTRAP)
-
-    def poll_gdb_input(self) -> bool:
-        """
-        Checks whether input from GDB is waiting. If so while singelstepping, we might stop.
-        """
-        ready = select.select([self._comsocket], [], [], 0) # just look, never wait
-        return bool(ready[0])
 
     def send_packet(self, packet_data : str) -> None:
         """

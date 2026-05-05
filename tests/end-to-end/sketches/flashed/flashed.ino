@@ -40,9 +40,9 @@
     #elif FLASHEND < 4096UL
                         SEQ1K, SEQ,
     #elif FLASHEND < 8192UL
-                        SEQ5K, SEQ,
+                     SEQ4K, SEQ, SEQ,
     #else
-                        SEQ12K, SEQ, SEQ,
+                        SEQ12K, SEQ,
     #endif
                             69 };
 #else

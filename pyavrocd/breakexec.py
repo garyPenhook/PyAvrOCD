@@ -113,7 +113,10 @@ class BreakAndExec():
 
     def remove_breakpoint(self, address : int) -> None:
         """
-        Will mark a breakpoint as non-active, but it will stay in flash memory or marked as a hwbp.
+        Will mark a breakpoint as non-active, but it will stay in flash memory.
+        HWBPs will be deallocated in order to avoid the problem of having
+        such BPs marked as being set after a RESET has occurred.
+
         This method is called immediately after execution is stopped.
         """
         if address % 2 != 0:
@@ -126,6 +129,10 @@ class BreakAndExec():
             self.logger.debug("BP at 0x%X was removed before", address)
             return # was already removed before
         self._bp[address]['active'] = False
+        if  self._bp[address]['allocated'] == HWBP:
+            self.logger.debug("HWBP at 0x%X unallocated", address)
+            self._bp[address]['allocated'] = None
+            self.hwbp.clear(address)
         self._bpactive -= 1
         self.logger.debug("BP at 0x%X is now inactive", address)
         self.logger.debug("Only %d BPs are now active", self._bpactive)
@@ -138,13 +145,14 @@ class BreakAndExec():
             return self._bp[address]['opcode']
         return self._read_flash_word(address)
 
-    def _update_breakpoints(self, protected_bp : int | None, release_temp : bool = True) -> bool:
+    def update_breakpoints(self, protected_bp : int | None, release_temp : bool = True) -> bool:
         """
-        This is called directly before execution is started. It will remove
-        inactive breakpoints different from protected_bp, it will assign a
-        hardware breakpoint to the most recently added unallocated breakpoint
+        This is called directly before execution is started after GDB has made
+        all its breakpoint requests. It will remove inactive breakpoints different
+        from protected_bp, it will assign a hardware breakpoint to the most recently
+        added unallocated breakpoint
         (kicking out the oldest hardware breakpoint),  and it will request to set
-        active breakpoints into flash, if they not there already.
+        active breakpoints into flash, if they are not there already.
 
         The argument protected_bp is set by single-stepping and range-stepping when
         we start at a place where there is a software breakpoint set. In this case,
@@ -161,12 +169,12 @@ class BreakAndExec():
             return True
         self.logger.debug("Updating breakpoints before execution")
         # release temporarily allocated hardware breakpoints (if requested)
-        if self.hwbp.temp_allocated() and release_temp:
+        if self.hwbp.temp_allocated() is not None and release_temp:
             self.hwbp.clear_temp()
         # remove inactive BPs and de-allocate BPs that are now forbidden
         self._remove_inactive_and_deallocate_forbidden_bps(protected_bp)
         # check if there are enough software and hardware breakpoints to allocate
-        if len(self._bp) > self.maxbpnum(): # too many BPs requested
+        if len(self._bp) + self.hwbp.temp_allocated_num() > self.maxbpnum(): # too many BPs requested
             self.logger.debug("Not enough (HW)BPs")
             return False
         # if list of BPs is empty, just return
@@ -175,15 +183,16 @@ class BreakAndExec():
         # determine most recent HWBP, probably a temporary one
         most_recent : int = max(self._bp, key=lambda key: self._bp[key]['timestamp'])
         # all remaining BPs are active or protected
-        # assign a HWBP to the most recently introduced BP (if we are not range-stepping)
+        # assign a HWBP to the most recently introduced BP, if we are not using all for range-stepping,
         # and take into account the possibility that hardware breakpoints are not allowed
-        if self._bp[most_recent]['allocated'] is None and not self.hwbp.temp_allocated() \
-            and not self.mon.is_onlyswbps():
+        if self._bp[most_recent]['allocated'] is None \
+          and self.hwbp.temp_allocated_num() != self.dbg.get_hwbpnum() \
+          and not self.mon.is_onlyswbps():
             # try to set a HWBP
             if self.hwbp.set(most_recent) is not None:
                 self._bp[most_recent]['allocated'] = HWBP
             else:
-                # find oldest HWBP
+                # find oldest HWBP - since we now deallocate HWBPs, this should not be necessary
                 kickout : int = min([b for b in self._bp if self._bp[b]['allocated'] == HWBP],
                                   key=lambda key: self._bp[key]['timestamp'])
                 # kick it out
@@ -201,7 +210,9 @@ class BreakAndExec():
                 if not self.mon.is_onlyswbps() and self.hwbp.set(a) is not None:
                     self._bp[a]['allocated'] = HWBP
                 else:
-                    # we catered for the HWBPs already above
+                    # We checked for the case that there are not enough HWBPs
+                    # for HWBP-only mode already above. So, we are allowed
+                    # to allocate SWBPs.
                     if not self.dbg.software_breakpoint_set(a):
                         self.logger.debug("Could not allocate SWBP for 0x%X", a)
                         return False
@@ -245,6 +256,16 @@ class BreakAndExec():
                 self._bp[a] = {}
         self._bp = { k : v for k, v in self._bp.items() if v != {} }
 
+    def reset_hardware_breakpoints(self) -> None:
+        """
+        All HWBPs are gone after a reset. So, we remove them.
+        """
+        self.logger.debug("Cleanup hardware breakpoints before reset")
+        for a in self._bp:
+            if self._bp[a]['allocated'] == HWBP:
+                self._bp[a]['allocated'] = None
+                self.hwbp.clear(a)
+
     def cleanup_breakpoints(self) -> None:
         """
         Remove all breakpoints from flash and clear hardware breakpoints
@@ -264,11 +285,12 @@ class BreakAndExec():
         remove a SWBP before starting to execute at this point.
         """
         self._range_start = None
+        self.hwbp.clear_temp()
         if addr is not None:
             self.dbg.program_counter_write(addr>>1)
         else:
             addr = self.dbg.program_counter_read() << 1
-        if not self._update_breakpoints(None): # if we resume, a BP is not protected at that point!
+        if not self.update_breakpoints(None): # if we resume, a BP is not protected at that point!
             return SIGSYS
         opcode = self._read_filtered_flash_word(addr)
         if opcode == BREAKCODE: # this should not happen at all
@@ -300,6 +322,7 @@ class BreakAndExec():
         """
         if fresh:
             self._range_start = None
+            self.hwbp.clear_temp()
         if addr is not None:
             self.dbg.program_counter_write(addr>>1)
         else:
@@ -313,7 +336,7 @@ class BreakAndExec():
         if opcode == BREAKCODE: # this should not happen!
             self.logger.error("Stopping execution in 'single-step' because of BREAK instruction")
             return SIGILL
-        if not self._update_breakpoints(addr, release_temp=fresh):
+        if not self.update_breakpoints(addr, release_temp=fresh):
             self.logger.error("Not enough free HW BPs: SIGSYS")
             return SIGSYS
         if opcode == SLEEPCODE: # sleep walking
@@ -381,7 +404,7 @@ class BreakAndExec():
                 return SIGSYS
             self.logger.debug("BP at 0x%X will now be set as a SWBP", reassign)
             self._bp[reassign]['allocated'] = SWBP
-        self.dbg.run_to(addr+2)
+        self.hwbp.execute(cursor=addr+2)
         return None
 
 
@@ -556,14 +579,15 @@ class BreakAndExec():
             self.logger.error("PC 0x%X is not in range 0x%X-0x%X for range stepping", addr, start, end)
             return SIGABRT
         new_range : bool = self._build_range(start, end, call_ignore)
-        if not self._update_breakpoints(addr, release_temp=new_range):
+        if not self.update_breakpoints(addr, release_temp=new_range):
             return SIGSYS
         if (addr in self._range_exit or # starting at possible exit point inside range
             self._read_filtered_flash_word(addr) in { BREAKCODE, SLEEPCODE } or # special opcode
-            self.hwbp.temp_allocated() == 0 or # if no HWBP assigned for range-stepping
             addr in self._bp):  # a SWBP at this point
+            self.logger.debug("Single step because exit/BP/special op code")
             return self.single_step(None, fresh=False) # reduce to one step!
         if self.hwbp.temp_allocated() is None: # we need to set up the range scaffold
+            self.logger.debug("Setting up new scaffold in range-stepping preparation")
             available : int = self.dbg.get_hwbpnum()
             if self.mon.is_onlyhwbps():
                 available = self.hwbp.available()
@@ -571,13 +595,19 @@ class BreakAndExec():
                     self.hwbp.set_temp([])
                     self.logger.warning("Additional HWBP needed for range stepping. Using single-step.")
                     return self.single_step(None)
-            reserve : set[int]
+            self.logger.debug("Available HWBPs: %s", available)
             if len(self._range_exit) <= available: # allocate enough HWBPs
-                reserve = self._range_exit
+                reassign_list = self.hwbp.set_temp(list(self._range_exit))
+                self.logger.debug("Have to reassign BPs: %d", len(reassign_list))
             else:
-                reserve = { -2 }
-            reassign : int
-            for reassign in self.hwbp.set_temp(list(reserve)):
+                reassign = self.hwbp.borrow_hwbp0()
+                if reassign is None:
+                    reassign_list = []
+                    self.logger.debug("Borrowed HWBP0 successfully")
+                else:
+                    reassign_list = [ reassign ]
+                    self.logger.debug("Have to reassign one BP to free HWBP0: 0x%X", reassign)
+            for reassign in reassign_list:
                 if not self.dbg.software_breakpoint_set(reassign):
                     self.logger.error("Could not reassgin HWBPs to SWBPs in range-step")
                     return SIGSYS
@@ -585,13 +615,16 @@ class BreakAndExec():
         if self.hwbp.temp_allocated() == len(self._range_exit): # all exits covered
             self.hwbp.execute()
             return None
-        if addr in self._range_branch: # if branch point, single-step
+        if addr in self._range_branch:          # if branch point, single-step
+            self.logger.debug("Single step because branch step")
             return self.single_step(None, fresh=False)
-        b : int
-        for b in self._range_branch:   # otherwise search for next branch point and stop there
-            if addr < b:
-                self.dbg.run_to(b)
-                return None
+        if self.hwbp.hwbp0_available():      # HWBP 0 has been reserved for us
+            for b in self._range_branch:        # search for next branch point and stop there
+                if addr < b:
+                    self.logger.debug("Run to next branch point")
+                    self.hwbp.execute(cursor=b)
+                    return None
+        self.logger.debug("Only single step possible")
         return self.single_step(None, fresh=False)
 
     def _build_range(self, start : int, end : int, call_ignore : bool) -> bool:

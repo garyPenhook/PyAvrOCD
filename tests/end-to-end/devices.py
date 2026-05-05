@@ -231,4 +231,16 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                    "MegaCoreX:megaavr:4808:bootloader=no_bootloader,clock=",
                                    "Thinary Nano Every"),
 
+                "atmega3208": (updi_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:3208:bootloader=no_bootloader,clock=",
+                                   "QFP32 socket"),
+
+                "atmega1608": (updi_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:1608:bootloader=no_bootloader,clock=",
+                                   "QFP32 socket"),
+
+                "atmega808": (updi_clock, ('large', 'updi'),
+                                   "MegaCoreX:megaavr:808:bootloader=no_bootloader,clock=",
+                                   "QFP32 socket"),
+
                     }

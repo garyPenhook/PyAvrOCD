@@ -22,15 +22,20 @@ class HardwareBP():
         self.logger : logging.Logger = logging.getLogger('pyavrocd.hardwarebp')
 
 
-    def execute(self) -> None:
+    def execute(self, cursor : int|None = None) -> None:
         """
         Start execution with HWBP 0 (if not None)
         """
-        if self._hwbplist[0] is not None:
-            self.logger.debug("Run to cursor 0x%X", self._hwbplist[0])
+        if cursor is not None: # if HWBP has been reserved for temporary work
+            self.logger.debug("Run from 0x%X to cursor 0x%X", self.dbg.program_counter_read()<<1,
+                                  cursor)
+            self.dbg.run_to(cursor)
+        elif self._hwbplist[0] is not None:
+            self.logger.debug("Run from 0x%X to HWBP0 0x%X", self.dbg.program_counter_read()<<1,
+                                  self._hwbplist[0])
             self.dbg.run_to(self._hwbplist[0])
         else:
-            self.logger.debug("Run")
+            self.logger.debug("Run from 0x%X",  self.dbg.program_counter_read()<<1)
             self.dbg.run()
 
     def clear_all(self) -> None:
@@ -126,6 +131,7 @@ class HardwareBP():
         """
         Clears the temporary allocated hardware breakpoints.
         """
+        self.logger.debug("Trying to free temp allocation")
         if self._tempalloc is None:
             return
         toclear = len(self._tempalloc)
@@ -143,6 +149,15 @@ class HardwareBP():
             return None
         return len(self._tempalloc)
 
+    def temp_allocated_num(self) -> int:
+        """
+        Always returns a number
+        """
+        temp = self.temp_allocated()
+        if temp is None:
+            return 0
+        return temp
+
     def borrow_hwbp0(self) -> int | None:
         """
         Borrow the temporary breakpoint for just one single step (over a sleep instruction).
@@ -150,12 +165,22 @@ class HardwareBP():
         reallocate HWBP0 to another HW breakpoint or if it is free from the beginning. Otherwise,
         return address and let the caller decide what to do with it.
         """
+        self.logger.debug("Freeing HWBP0 so that in can be borrowed")
         if self._hwbplist[0] is None or (self._tempalloc is not None and 0 in self._tempalloc):
+            self.logger.debug("Already free")
             return None
         if self.available() > 0:
             self.set(self._hwbplist[0])
             self._free(0)
+            self.logger.debug("HWBP0 moved to other HWBP")
             return None
         reassign = self._hwbplist[0]
         self._free(0)
+        self.logger.debug("BP 0x%X needs to be reassigned to SWBP", reassign)
         return reassign
+
+    def hwbp0_available(self) -> bool:
+        """
+        Tells us whether HWBP0 is available
+        """
+        return self._hwbplist[0] is None

@@ -64,7 +64,7 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             metavar="CS",
                             dest='kbps',
                             type=int,
-                            help="Communication speed for (U)PDI (kbps) (default: 56)")
+                            help="Communication speed for (U)PDI (kbps) (default: 450)")
 
     parser.add_argument("-d", "--device",
                             dest='dev',
@@ -81,8 +81,8 @@ def options(cmd: list[str]) -> argparse.Namespace:
 
     parser.add_argument("-F", "--F_CPU",
                             type=str,
-                            default="1000000",
-                            help="CPU clock frequency in Hz (default 1000000)")
+                            default="8000000",
+                            help="CPU clock frequency in Hz (default 8000000)")
 
     interface_choices : list[str] = ['debugwire', 'jtag', 'pdi', 'updi']
     parser.add_argument("-i", "--interface",

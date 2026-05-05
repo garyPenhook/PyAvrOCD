@@ -831,24 +831,14 @@ class TestGdbHandler(TestCase):
     def test_poll_events_positive(self):
         self.set_up()
         self.gh.mon.is_debugger_active.return_value = True
-        self.gh.dbg.poll_event.return_value = 0x101
+        self.gh.dbg.poll_event.side_effect = [ 0x101, None ]
         self.gh.mon.is_debugger_active.return_value = True
         self.gh.dbg.program_counter_read.return_value = 0x00000101
         self.gh.dbg.stack_pointer_read.return_value = bytearray([0x34, 0x12])
         self.gh.dbg.status_register_read.return_value = [0x88]
         self.gh.poll_events()
-        self.gh.dbg.poll_event.assert_called_once()
+        self.gh.dbg.poll_event.assert_called()
         self.gh._comsocket.sendall.assert_called_with(rsp("T0520:88;21:3412;22:02020000;thread:1;"))
-
-    @patch('pyavrocd.server.select.select', Mock(return_value=[None, None, None]))
-    def test_poll_gdb_input_false(self):
-        self.set_up()
-        self.assertFalse(self.gh.poll_gdb_input())
-
-    @patch('pyavrocd.server.select.select', Mock(return_value=[[1], None, None]))
-    def test_poll_gdb_input_true(self):
-        self.set_up()
-        self.assertTrue(self.gh.poll_gdb_input())
 
     def test_send_packet(self):
         self.set_up()

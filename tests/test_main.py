@@ -39,7 +39,7 @@ class TestMain(TestCase):
         self.assertEqual(args.nomm, False)
         self.assertEqual(args.skipsig, False)
         self.assertEqual(args.f, None)
-        self.assertEqual(args.F_CPU, '1000000')
+        self.assertEqual(args.F_CPU, '8000000')
         self.assertEqual(args.atexit, None)
         self.assertEqual(args.breakpoints, 'all')
         self.assertEqual(args.caching, 'enable')

@@ -43,6 +43,7 @@ class TestXAvrDebugger(TestCase):
         self.xa.housekeeper = Mock()
         self.xa._wait_for_break = Mock()
         self.xa._wait_for_break.return_value = False # after reset: we are stopped
+        self.xa.flush_events = Mock()
         # special case: ATtiny2313
         self.xa23 = XAvrDebugger(mock_transport, "attiny2313", "debugwire", args)
         self.xa23.logger = MagicMock()
@@ -55,6 +56,7 @@ class TestXAvrDebugger(TestCase):
         self.xa23.housekeeper = Mock()
         self.xa23._wait_for_break = Mock()
         self.xa23._wait_for_break.return_value = False # after reset: we are stopped
+        self.xa23.flush_events = Mock()
         # a JTAG target
         self.xaj = XAvrDebugger(mock_transport, "atmega644", "jtag", args)
         self.xaj.logger = MagicMock()
@@ -66,6 +68,7 @@ class TestXAvrDebugger(TestCase):
         self.xaj.housekeeper = Mock()
         self.xaj._wait_for_break = Mock()
         self.xaj._wait_for_break.return_value = False
+        self.xaj.flush_events = Mock()
         # a UPDI target
         args.manage = []
         self.xau = XAvrDebugger(mock_transport, "atmega4809", "updi", args)
@@ -78,6 +81,7 @@ class TestXAvrDebugger(TestCase):
         self.xau.housekeeper = Mock()
         self.xau._wait_for_break = Mock()
         self.xau._wait_for_break.return_value = False
+        self.xau.flush_events = Mock()
 
 
     def test_get_iface(self):

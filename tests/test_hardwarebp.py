@@ -134,9 +134,11 @@ class TestHardwareBP(TestCase):
                 call('Trying to allocate HWBP for addr 0x%X', 20),
                 call('Successfully allocated HWBP %d', 1),
                 call('Allocated %d temp HWBPs', 2),
+                call('Trying to free temp allocation'),
                 call('HWBP %d at addr 0x%X freed', 2, 10),
                 call('HWBP %d at addr 0x%X freed', 1, 20),
-                call('HWBP temp allocation cleared: %d HWBPs cleared', 2)])
+                call('HWBP temp allocation cleared: %d HWBPs cleared', 2),
+                call('Trying to free temp allocation')])
 
     def test_hwbp_borrow_empty(self):
         self.set_up()

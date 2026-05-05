@@ -957,6 +957,7 @@ class XAvrDebugger(AvrDebugger):
         Update register file, then execute
         """
         self._update_regfile_in_target()
+        self.flush_events() # remove any pending poll events from queue
         super().run()
 
     def run_to(self, address : int) -> None:
@@ -965,6 +966,7 @@ class XAvrDebugger(AvrDebugger):
         Apply bad bit (if present) to cursor address when starting execution.
         """
         self._update_regfile_in_target()
+        self.flush_events() # remove any pending poll events from queue
         super().run_to(address | self.bad_pc_bit_mask)
 
     def step(self) -> None:
@@ -972,7 +974,11 @@ class XAvrDebugger(AvrDebugger):
         Update register file, then make a single step
         """
         self._update_regfile_in_target()
+        self.flush_events() # remove any pending poll events from queue
+        self.logger.debug("PC before step: 0x%X", self.program_counter_read() << 1)
         super().step()
+        self.logger.debug("PC after step: 0x%X", self.program_counter_read() << 1)
+
 
     def reactivate(self) -> None:
         """
@@ -1062,7 +1068,7 @@ class XAvrDebugger(AvrDebugger):
                                          self.memory_info.memory_info_by_name('user_row'),
                                          address,
                                          data, prog_mode)
-        time.sleep(0.03) # 0.02 is strictly necessary, let's be conservative ...
+        time.sleep(0.07) # 0.02 is strictly necessary, let's be conservative ...
         return result
 
 

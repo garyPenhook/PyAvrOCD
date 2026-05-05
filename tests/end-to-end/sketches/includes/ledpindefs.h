@@ -242,6 +242,10 @@
  #define LED1_PORT PORTC.OUT
  #define LED1_DDR  PORTC.DIR
  #define LED1      PIN2_bm
+#elif defined(__AVR_ATmega808__) || defined(__AVR_ATmega1608__) || defined(__AVR_ATmega3208__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7_bm
 #else
  #error "MCU is not supported"
 #endif

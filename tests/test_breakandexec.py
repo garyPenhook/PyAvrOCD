@@ -138,7 +138,7 @@ class TestBreakAndExec(TestCase):
     def test_update_breakpoints_allocated(self):
         self.set_up()
         self.bp.hwbp.temp_allocated.return_value = True
-        self.bp._update_breakpoints(None, release_temp=True)
+        self.bp.update_breakpoints(None, release_temp=True)
         self.bp.hwbp.clear_temp.assert_called_once() #pylint: disable=no-member
 
     def test_update_breakpoints_remove_sethwbp(self):
@@ -156,7 +156,7 @@ class TestBreakAndExec(TestCase):
                                   'opcode': 0x2222, 'secondword' : 0x3332, 'timestamp' : 1 },
                        400:  { 'active': True, 'allocated': None, # gets an hwbp
                                   'opcode': 0x2223, 'secondword' : 0x3333, 'timestamp' : 3 }}
-        self.bp._update_breakpoints(-1)
+        self.bp.update_breakpoints(-1)
         self.assertEqual(self.bp._bp, {100: { 'active': True, 'allocated': SWBP,
                                     'opcode': BREAKCODE, 'secondword' : 0x1111, 'timestamp' : 2 },
                                        400:  { 'active': True, 'allocated' : HWBP,
@@ -180,7 +180,7 @@ class TestBreakAndExec(TestCase):
                                   'opcode': 0x2222, 'secondword' : 0x3332, 'timestamp' : 1 },
                        400:  { 'active': True, 'allocated': None, # gets an hwbp
                                   'opcode': 0x2223, 'secondword' : 0x3333, 'timestamp' : 3 }}
-        self.bp._update_breakpoints(300)
+        self.bp.update_breakpoints(300)
         self.assertEqual(self.bp._bp, {100: { 'active': True, 'allocated' : SWBP,
                                         'opcode': BREAKCODE, 'secondword' : 0x1111, 'timestamp' : 2 },
                                         400:  { 'active': True, 'allocated': HWBP,
@@ -207,7 +207,7 @@ class TestBreakAndExec(TestCase):
                                   'opcode': 0x2223, 'secondword' : 0x3333, 'timestamp' : 4 },
                        500:  { 'active': True, 'allocated' : None, # gets hwbp
                                   'opcode': 0x2224, 'secondword' : 0x3334, 'timestamp' : 5 }}
-        self.bp._update_breakpoints(-1)
+        self.bp.update_breakpoints(-1)
         self.assertEqual(self.bp._bp, {100: { 'active': True, 'allocated' : SWBP,
                                     'opcode': BREAKCODE, 'secondword' : 0x1111, 'timestamp' : 1 },
                                        400:  { 'active': True, 'allocated' : SWBP,
@@ -320,7 +320,7 @@ class TestBreakAndExec(TestCase):
         self.bp.mon.is_onlyswbps.return_value = True
         self.bp.hwbp._hwbplist = [ None ]
         self.bp.resume_execution(None)
-        self.bp.dbg.program_counter_read.assert_called_once()
+        self.bp.dbg.program_counter_read.assert_called()
         self.bp.dbg.run.assert_called_once()
 
     def test_resume_execution_at_break_one_word_with_hwbp(self):
@@ -347,10 +347,10 @@ class TestBreakAndExec(TestCase):
         self.bp.dbg.run_to.assert_called_with(100)
         self.assertFalse(2224 in self.bp._bp)
 
-    @patch('pyavrocd.breakexec.BreakAndExec._update_breakpoints',Mock())
+    @patch('pyavrocd.breakexec.BreakAndExec.update_breakpoints',Mock())
     def test_resume_execution_with_update_fails(self):
         self.set_up()
-        self.bp._update_breakpoints.return_value = False
+        self.bp.update_breakpoints.return_value = False
         self.assertEqual(self.bp.resume_execution(None), SIGSYS)
 
     def test_single_step_old_exec(self):
@@ -495,11 +495,11 @@ class TestBreakAndExec(TestCase):
         self.bp._read_flash_word.return_value = 0x920F # PUSH r0
         self.assertEqual(self.bp.single_step(None, fresh= True), SIGBUS)
 
-    @patch('pyavrocd.breakexec.BreakAndExec._update_breakpoints',Mock())
+    @patch('pyavrocd.breakexec.BreakAndExec.update_breakpoints',Mock())
     def test_single_step_no_hwbp(self):
         self.set_up()
         self.bp._read_flash_word.return_value = 0x0F0F
-        self.bp._update_breakpoints.return_value = False
+        self.bp.update_breakpoints.return_value = False
         self.assertEqual(self.bp.single_step(None), SIGSYS)
 
 

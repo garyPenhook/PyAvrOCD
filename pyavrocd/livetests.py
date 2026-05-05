@@ -340,7 +340,7 @@ class LiveTests():
         self.logger.debug("sp: %s", self.dbg.stack_pointer_read())
         self.handler.dispatch('p', b'21')
         self.logger.debug("Result: %s", self.send_string)
-        expect : str = "{:02x}{:02x}".format((self.sram_start&0xFF), ((self.sram_start>>8)&0xFF))
+        expect : str = "{:02X}{:02X}".format((self.sram_start&0xFF), ((self.sram_start>>8)&0xFF))
         self.logger.debug("Expected: %s", expect)
         self.check_result(self.send_string == expect)
 
