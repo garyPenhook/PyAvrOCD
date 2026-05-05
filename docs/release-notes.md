@@ -1,5 +1,15 @@
 # Release Notes
 
+## Release v1.2.1
+
+- Added: Range stepping has been accelerated by lifting the step-over functionality to range-stepping when one over-step is recognised.
+- Fixed: MCUs do now run when debugging has finished
+- Fixed: All hardware breakpoints are now deallocated after a breakpoint hit so that no false assumptions are made, which may be caused by a previous RESET, which eraased all hardwre breakpoints.
+- Fixed: Internal temporary breakpoint assignment for range stepping got confused when 0 hardware breakpoints were reserved.
+- The wait interval after writing to the USER ROW had to be extended to 70 ms (because of a ATmega808).
+- Changed: The default MCU clock frequency (F_CPU) is now 8,000,000 Hz. This means that the default UPDI baudrate is 450k. This is necessary because for 20 MHz MCUs, 400 kbps is too slow! With 400 kbps, single-step and breakpoint skidding was observed.
+- Achievement: All tests are passed on all modern 0-series ATmegas.
+
 ## Release v1.2.0
 
 - Added: UPDI targets can now be debugged

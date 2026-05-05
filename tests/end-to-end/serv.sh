@@ -15,7 +15,6 @@ do
     while [ ! -f pyavrocd.options ]; do sleep 0.3; done
     sleep 0.2
     poetry run pyavrocd -m all -v $verb
-    #pyavrocd -m all -v $verb
     if [ $? -eq 1 ]
     then
 	echo "Goodbye"
