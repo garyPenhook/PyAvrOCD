@@ -6,7 +6,7 @@ The debugging system, consisting of the debug probe, the GDB server, and GDB its
 
 The Microchip/Atmel debug probes/programmers do not electrically disconnect from the target when inactive.
 
-When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines will not be electrically disconnected, even when the probe is inactive or only active on the debugWIRE line. In particular, the SNAP probe has a pretty low-impedance high-state MISO line and a low-impedance low-state SCK line. However, also the other probes can interfere with high impedance outputs. It is something to look out for if these lines do not behave as they should.
+When you connect a debug probe to a **debugWIRE** target, you should be aware that the SPI/ISP lines will not be electrically disconnected, even when the probe is inactive or only active on the debugWIRE line. In particular, the SNAP probe has a pretty low-impedance high-state MISO line and a low-impedance low-state SCK line. However, the other probes can also interfere with high impedance outputs. It is something to look out for if these lines do not behave as they should.
 
 For other debugging interfaces, such as **JTAG** or **UPDI**, the problem is not relevant since the debug control and data lines need to be exclusively accessed by the debug probe in any case.
 
@@ -76,6 +76,14 @@ When using the optimization option `-mrelax`, the line number information gets d
 
 The optimization option `-mrelax` is supposed to merely replace absolute jumps and calls with relative ones, saving two bytes and one cycle of computation time. Unfortunately, in its current implementation, it distorts the line number information for debugging significantly, making debugging impossible.
 
+## Resets
+
+Resets that occur while executing will erase the hardware breakpoints.
+
+Resets, e.g., due to a watch dog timer reset or a software reset, are handled gracefully by PyAvrOCD. However, all hardware breakpoints are deleted. For this reason, you should use the monitor command `monitor breakpoints software` if you plan to debug a program that resets while it executes. 
+
+JTAG and debugWIRE targets simply start executing after a reset. UPDI targets need to be stopped and started again to continue executing after a reset while executing under debugging supervision. 
+
 ## Breakpoints in interrupt routines
 
 Breakpoints in interrupt routines can throw off the timing of time-critical code.
@@ -135,7 +143,7 @@ Some of the AVR MCUs support USB communication in hardware, e.g., ATmega32U4. Si
 
 Some I/O registers cannot be accessed from the debugging UI.
 
-Specific I/O registers cannot be read without side effects, such as clearing flags or reading buffered data (e.g., the registers `UDR` and `SPDR`). These registers are write-only for the debugger and will always show a 0x00 when reading in the debugging user interface. If you use the Arduino IDE 2 or PlatformIO, then the `PERIPHERALS` debugger pane will show you a comment to this effect.
+Specific I/O registers cannot be read without side effects, such as clearing flags or reading buffered data (e.g., the registers `UDR` and `SPDR`). These registers are write-only for the debugger and will always show a 0x00 when reading in the debugging user interface. If you use the Arduino IDE 2, then the `PERIPHERALS` debugger pane will show you a comment to this effect.
 
 Other I/O registers cannot be written to without side effects, e.g., registers where a flag is cleared by writing a '1' to a particular bit. These are read-only to the debugger, and any write attempt will fail silently (but PyAvrOCD will issue a warning). Again, if you use the Arduino IDE or PlatformIO, the `PERIPHERALS` pane will inform you about the fact that the register is read-only to the debugger.
 
@@ -224,7 +232,7 @@ Can it be a solution to use only hardware breakpoints? It will definitely reduce
 You can enforce the use of *only* hardware breakpoints by employing the following `monitor` command.
 
 ```text
-monitor breakpoint hardware
+monitor breakpoints hardware
 ```
 
 After using this command, you always get an error when more than the number of available hardware breakpoints is in use when you request to start or continue execution. One must be aware, though, that there might be slight problems when single-stepping and when continuing from a breakpoint.

@@ -4,8 +4,7 @@ The GDB server PyAvrOCD provides an interface to the hardware debug probe. In ad
 
 ## Arduino IDE 2
 
-[Arduino IDE 2](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/)
-is probably the most straightforward option. After having installed
+[Arduino IDE 2](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/) is probably the most straightforward option. After having installed
 it, you can extend the IDE's capabilities by adding third-party
 platforms in the `Additional Board Manager URLs` field of the
 `Preferences` dialog. The set of available debug-enabled cores and how

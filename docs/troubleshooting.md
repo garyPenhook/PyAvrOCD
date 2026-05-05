@@ -31,6 +31,8 @@ When using *debugWIRE*, the communication speed is severely limited from the beg
 
 This happens when the line marked to be stopped at does not contain any machine code. The problem gets worse when the switch `Optimize for Debugging` in the Arduino IDE 2 is not activated or, if you are working in a CLI environment, you did not use the `-Og` compiler option.
 
+A different cause for such behavior can be that the UPDI communication speed is too low. I experienced breakpoint and single-step skidding when the UPDI communication was less than half of the recommended maximal speed, e.g., less than 450 kHz when the MCU ran at 16 MHz. 
+
 ### When single-stepping, execution jumps around
 
 Probably the same reason as above.

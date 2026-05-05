@@ -19,9 +19,9 @@ After [installing the package](install.md), the following steps are necessary fo
 7. [Debugging a program on the target](debugging.md)
 8. [Restoring the target board to its original state](restore-original-state.md)
 
-Once you have a symbolic debugger connected to the GDB server, you can control the server's behavior using [`monitor` commands](monitor-commands.md).
+Do not be discouraged by this long list. In your day-to-day business only steps 5-7 are relevant. And they will become routine after a while.
 
-While the package appears to function as intended, there is always the chance of a bug, the documentation may need improvements, or a feature may be missing. Or you simply have a question or an idea. We are always happy to receive [contributions](contributing.md) along those lines.
+You have [feedback](contributing.md)? Send it immediately!
 
 [^1]: How to pronounce PyAvrOCD? Since AVR and OCD are both initialisms, the canonical pronunciations would be Pie-Ay-Vee-Ar-Oh-See-Dee. However, you are free to pronounce it as 'Piaf rocked'.
 [^2]: The term *GDB server* is loosely used for programs that provide an interface similar to what the program `gdbserver` does in the context of the GNU Project Debugger GDB. `gdbserver` runs on the target machine, controlling the program to be debugged and communicating with the GDB on the host machine using the *remote serial protocol* (RSP). In contrast to that, a GDB server in the context of embedded debugging usually does not run on the target machine, but either on the hardware debug adapter or on the host. However, it also uses RSP for communicating with GDB.

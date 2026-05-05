@@ -117,7 +117,7 @@ The ATmega8515 does not have a debug interface.
 
 This is the megaAVR 0-series. The ATmega4809 made it on some Arduino boards.
 
-- <u>ATmega808</u>, ATmega1608, <u>ATmega3208</u>, **ATmega4808**
+- **ATmega808**, **ATmega1608**, **ATmega3208**, **ATmega4808**
 - <u>ATmega809</u>, ATmega1609, ATmega3209, **ATmega4809**
 
 ## AVR-Dx devices
