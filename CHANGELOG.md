@@ -1,15 +1,19 @@
 # Changelog
 
-### 1.2.2 (07-May-2026)
+### 1.2.3 (07-May-2026)
 
 - **Fixed:**
-     - The option `--comm-speed` does not have a default value anymore and will not be communicated to the hardware debugger if the user has not set an explicit value. Apparently, the hardware debugger can figure out the best value. The user supplied value is only an upper limit and should be used with care. Apparently, anything strictly above 1/40 of the MCU clock is safe. Values that are too low can lead to breakpoint and single-step skidding.
+     - The option `--comm-speed` does now have a default value of 750 kbps. The user supplied value is only an upper limit and should be used with care. Apparently, anything strictly above 1/40 of the MCU clock is safe. Values that are too low can lead to breakpoint and single-step skidding!
 - **Changed:**
      - Default value for F_CPU is again 1 MHz.
      - Documentation for `--F_CPU` and -`-comm-speed` has been adapted.
 
 - **Removed:**
      - Setting AVR8_OPT_RUN_TIMERS has been removed from `setup_debug_session` for UPDI targets, because timers are always frozen when stopped.
+
+### 1.2.2
+
+- Has been yanked because the correction of the default value of the UPDI communication speed was wrong.
 
 ### 1.2.1 (05-May-2026)
 

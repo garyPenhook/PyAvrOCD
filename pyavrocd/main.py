@@ -64,8 +64,9 @@ def options(cmd: list[str]) -> argparse.Namespace:
     parser.add_argument("-C", "--comm-speed",
                             metavar="CS",
                             dest='kbps',
-                            #help="Communication speed limit for (U)PDI (kbps)",
-                            help=argparse.SUPPRESS,
+                            default=750,
+                            help="Communication speed for (U)PDI (kbps) (def.: 750)",
+                            #help=argparse.SUPPRESS,
                             type=int)
 
 
