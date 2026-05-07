@@ -1,5 +1,10 @@
 # Release Notes
 
+## Release v1.2.2
+
+- Removed `--comm-speed` from the visible options and added a warning against using values that are too low. There is no default value any longer and no value is communicated to the hardware debugger, except when the user specifies a value explicitly.
+- he default MCU clock frequency (F_CPU) is again 1,000,000 Hz
+
 ## Release v1.2.1
 
 - Added: Range stepping has been accelerated by lifting the step-over functionality to range-stepping when one step-over is recognised. This speeds up range-stepping significantly.
