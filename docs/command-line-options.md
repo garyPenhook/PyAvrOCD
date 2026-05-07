@@ -1,6 +1,6 @@
 # Invoking PyAvrOCD
 
-In a terminal window, you invoke PyAvrOCD as follows:
+In a terminal window, you invoke PyAvrOCD as follows, whereby the only mandatory option is the `-d` or `--device` option, specifying the MCU:
 
 ```
 > pyavrocd [options]
@@ -18,7 +18,7 @@ If you are using an IDE, then the IDE will invoke the GDB server. Nevertheless, 
 | `--webhelp`<br/>`-H`                                         | Opens web page with help text.                               |
 | `--attach`<br/>`-a`                                          | Connect to the target without a `RESET`, if possible. This works only if the debugging mode has been activated in a previous session and not terminated when leaving the debugger. This means you need to have terminated the previous session with `monitor atexit stay` (default with debugWIRE). |
 | `-c`                                                         | Command to set the gdb port (OpenOCD style), which is employed in the Arduino IDE 2 debugging interface by using. e.g., `-c "gdb_port 50000"`. This is an alternative to using the `--port` option. |
-| `--comm-speed`<br>`-C`                                       | Communication speed for (U)PDI in kbps. The recommended maximal communication speed is  `F_CPU`/17777 kbps. Default is min(900,`F_CPU`/17777). Since the F_CPU default is 8,000,000, the default is 450 kbps if no value for `F_CPU` is provided. Note that a UPDI speed that is too low (less than 45% of the recommended max speed) can lead to problems. |
+| `--comm-speed`<br>`-C`                                       | Communication speed upper limit for (U)PDI in kbps. Note that values that are too low may lead to erroneous behavior of the debugger. Safe values are apparently strictly higher than 1/40 of the CPU clock. Use with care. |
 | `--device` <br>`-d`                                          | The argument to this option specifies the MCU type of the target chip in lower case.  This option is mandatory. If a '?' mark is given, all supported MCUs are listed. |
 | `--debug-clock`<br>`-D`                                      | JTAG clock frequency for debugging in kHz. This value should be less than a quarter of the MCU clock frequency. The default is min(2000, `F_CPU`/5000) in kHz. |
 | `-f`                                                         | OpenOCD command line option with one argument that is used by the Arduino IDE 2 debugging interface. It is ignored by PyAvrOCD. |

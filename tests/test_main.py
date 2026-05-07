@@ -39,7 +39,7 @@ class TestMain(TestCase):
         self.assertEqual(args.nomm, False)
         self.assertEqual(args.skipsig, False)
         self.assertEqual(args.f, None)
-        self.assertEqual(args.F_CPU, '8000000')
+        self.assertEqual(args.F_CPU, '1000000')
         self.assertEqual(args.atexit, None)
         self.assertEqual(args.breakpoints, 'all')
         self.assertEqual(args.caching, 'enable')
@@ -199,7 +199,7 @@ class TestMain(TestCase):
         args.kbps = None
         args.clkdeb = None
         self.assertEqual(process_arguments(args, MagicMock()), (None, 'atmega328p', 'debugwire'))
-        self.assertEqual(args.kbps, 225)
+        self.assertEqual(args.kbps, None)
 
     @patch('builtins.print')
     def test_process_arguments_neg_freq(self, mocked_print):

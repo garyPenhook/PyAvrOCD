@@ -2,7 +2,7 @@
 
 Almost all boards equipped with one of the supported chips can be used in one way or another. Tested boards are marked in boldface, and those known not to work are struck out. The ones that are underlined are sitting on my desk and are waiting to be tested. If no core is mentioned, then there is no support through an Arduino core yet, but PyAvrOCD nevertheless supports debugging the chip.
 
-In addition, for supported boards, possible board modifications, and other information are mentioned.
+For supported boards, possible board modifications and other information is mentioned.
 
 
 ## Microchip boards

@@ -41,10 +41,10 @@ def options(cmd: list[str]) -> argparse.Namespace:
     """
     parser : argparse.ArgumentParser
     parser = argparse.ArgumentParser(prog="pyavrocd",
-            usage="%(prog)s [options]\nThis is a GDB server for classic AVR8 MCUs",
+            usage="%(prog)s [options]", #\nThis is a GDB server for AVR8 MCUs",
             fromfile_prefix_chars='@',
             formatter_class=argparse.RawTextHelpFormatter, #ArgumentDefaultsHelpFormatter,
-            #description='GDB server for debugWIRE and JTAG AVR MCUs'
+            description='GDB server for 8-bit AVR MCUs'
                                          )
     parser.add_argument("-H", "--webhelp",
                             action='store_true',
@@ -57,14 +57,17 @@ def options(cmd: list[str]) -> argparse.Namespace:
     parser.add_argument("-c",
                             action='append',
                             dest='cmd',
-                            type=str,
-                            help=argparse.SUPPRESS) # "Command to set gdb port (OpenOCD style)")
+                            #help="Command to set gdb port (OpenOCD style)",
+                            help=argparse.SUPPRESS,
+                            type=str)
 
     parser.add_argument("-C", "--comm-speed",
                             metavar="CS",
                             dest='kbps',
-                            type=int,
-                            help="Communication speed for (U)PDI (kbps) (default: 450)")
+                            #help="Communication speed limit for (U)PDI (kbps)",
+                            help=argparse.SUPPRESS,
+                            type=int)
+
 
     parser.add_argument("-d", "--device",
                             dest='dev',
@@ -81,8 +84,8 @@ def options(cmd: list[str]) -> argparse.Namespace:
 
     parser.add_argument("-F", "--F_CPU",
                             type=str,
-                            default="8000000",
-                            help="CPU clock frequency in Hz (default 8000000)")
+                            default="1000000",
+                            help="CPU clock frequency in Hz (default 1000000)")
 
     interface_choices : list[str] = ['debugwire', 'jtag', 'pdi', 'updi']
     parser.add_argument("-i", "--interface",
@@ -306,10 +309,7 @@ def process_arguments(args : argparse.Namespace, logger : logging.Logger) -> tup
     if args.clkdeb is None:
         args.clkdeb = min(2000, args.F_CPU//5000)
 
-    if args.kbps is None:
-        args.kbps = min(900, args.F_CPU//17777)
-
-    if args.clkprg < 0 or args.clkdeb < 0 or args.kbps < 0:
+    if args.clkprg < 0 or args.clkdeb < 0 or (args.kbps and args.kbps < 0):
         print("Negative frequency or communication speed values are discouraged")
         return 1, "", ""
 

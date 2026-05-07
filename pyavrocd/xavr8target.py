@@ -184,8 +184,7 @@ class XTinyXAvrTarget(TinyXAvrTarget):
 
 
     #pylint: disable=arguments-differ
-    def setup_debug_session(self, timers_run : bool = True,
-                            kbps : int = 100,
+    def setup_debug_session(self, kbps : int | None = None,
                             **kwargs : Any) -> None:
         """
         Sets up a debug session for a tinyX AVR device
@@ -195,16 +194,17 @@ class XTinyXAvrTarget(TinyXAvrTarget):
         """
         _dummy = kwargs
         self.logger_loc.info("Setting up debug session for UPDI target")
-        self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_XM_PDI_CLK, kbps)
-        self.logger_loc.info("UPDI communication speed: %d kbps", kbps)
+        if kbps is not None:
+            self.protocol.set_le16(Avr8Protocol.AVR8_CTXT_PHYSICAL, Avr8Protocol.AVR8_PHY_XM_PDI_CLK, kbps)
+            self.logger_loc.info("UPDI communication speed limit: %d kbps", kbps)
         self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
                                    Avr8Protocol.AVR8_OPT_HV_UPDI_ENABLE,
                                    0)
         self.logger_loc.debug("UPDI HV programming disabled")
-        self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
-                                   Avr8Protocol.AVR8_OPT_RUN_TIMERS,
-                                   timers_run)
-        self.logger_loc.debug("Configured timers as running: %d", timers_run)
+        #self.protocol.set_byte(Avr8Protocol.AVR8_CTXT_OPTIONS,
+        #                           Avr8Protocol.AVR8_OPT_RUN_TIMERS,
+        #                           timers_run)
+        #self.logger_loc.debug("Configured timers as running: %d", timers_run)
         self.protocol.set_variant(Avr8Protocol.AVR8_VARIANT_TINYX)
         self.logger_loc.debug("Set variant: UPDI target")
         self.protocol.set_function(Avr8Protocol.AVR8_FUNC_DEBUGGING)

@@ -1,21 +1,32 @@
 # Changelog
 
-### 1.2.1 (05-May-2025)
+### 1.2.2 (07-May-2026)
 
-- Added:
+- **Fixed:**
+     - The option `--comm-speed` does not have a default value anymore and will not be communicated to the hardware debugger if the user has not set an explicit value. Apparently, the hardware debugger can figure out the best value. The user supplied value is only an upper limit and should be used with care. Apparently, anything strictly above 1/40 of the MCU clock is safe. Values that are too low can lead to breakpoint and single-step skidding.
+- **Changed:**
+     - Default value for F_CPU is again 1 MHz.
+     - Documentation for `--F_CPU` and -`-comm-speed` has been adapted.
+
+- **Removed:**
+     - Setting AVR8_OPT_RUN_TIMERS has been removed from `setup_debug_session` for UPDI targets, because timers are always frozen when stopped.
+
+### 1.2.1 (05-May-2026)
+
+- **Added:**
      - Speedup of range stepping by recognizing step-over commands. The recognition is a bit tricky based on a behavior pattern of the RSP commands. This means that we do not single-step any longer into functions. This speeds up all one-line loops with function calls immensely!
-- Fixed:
+- **Fixed:**
      - JTAG targets: Breakpoints were not removed at exit because the change to debug mode led to a silent error
      - JTAG targets: MCUs were held in RESET when OCDEN is unprogrammed because programming mode was never left. It will now, meaning that detaching from OCD throws an error (which is caught).
      - All targets: MCUs were held in stop mode when exiting because the CPU was stopped before breakpoint cleaning. Now the CPU is resumed after breakpoints have been cleared.
      - The temporary hardware breakpoint management got confused when 0 temporary breakpoints (for range stepping) were requested leading to very slow range stepping afterwards. This has been fixed.
      - Hardware breakpoints will not survive a RESET, which had been ignored. So, all hardware breakpoints are now deallocated when GDB requests a breakpoint removal. This makes sure that they are always set again before starting program execution.
-     - For ATmega808, the wait interval after writing to USER_ROW had to be extended to 70 ms.
+     - Because of an ATmega808 sample, the wait interval after writing to USER_ROW had to be extended to 70 ms.
 - **Changed**:
      - The default MCU clock frequency is now 8 MHz. This gives us a default UPDI communication speed of 450 kHz, which is safe for ordinary cases. It had turned out that 400 kHz on 20 MHz MCUs is **too slow**, leading to single-step and breakpoint skidding.
 
 
-### 1.2.0 (20-Apr-2025)
+### 1.2.0 (20-Apr-2026)
 
 - **Fixed:**
      - In `set_one_register_handler` in `handler.py`, there were two errors when setting a single register. First, there was no conversion to strings, and second, the register numbers can be a single hex digits.
@@ -45,17 +56,17 @@
      - Default for `erasebeforeload`: disabled for dw and updi, enabled for jtag
      - Default for `readbeforewrite`: enabled for dw and updi, disabled for jtag
 
-### 1.1.2 (10-Feb-2025)
+### 1.1.2 (10-Feb-2026)
 
 - **Fixed:**
      - Recognition of ATtiny48/88 did not work as advertised, but now it does again.
 
-### 1.1.1 (09-Feb-2025)
+### 1.1.1 (09-Feb-2026)
 
 - **Fixed:**
      - The included avr-gdb executables for macOS still contained  non-system dynamically linked libraries. This has been remedied by uninstalling some homwbrew packages on the GitHub runners before building GDB.
 
-### 1.1.0 (07-Feb-2025)
+### 1.1.0 (07-Feb-2026)
 
 - **Fixed:**
      - Adaptation of `--debugwire` handling in dwlink.py
@@ -78,7 +89,7 @@
 
 
 
-### 1.0.0 (24-Jan-2022)
+### 1.0.0 (24-Jan-2026)
 
 - Final e2e test on ATmega162 successful
 - In general, the system appears very stable, so it is time to declare that the system has reached production level

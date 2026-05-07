@@ -54,7 +54,7 @@ class XAvrDebugger(AvrDebugger):
         self.manage : list[ str ] = [ ]
         self.clkprg : int = args.clkprg # JTAG programming clock frequency
         self.clkdeb : int = args.clkdeb # JTAG debug clock frequency
-        self.kbps : int = args.kbps # UPDI/PDI communication speed
+        self.kbps : int = args.kbps # UPDI/PDI communication speed limit
         self.timers_run : bool = args.timers[0]=='r'
         self.args : argparse.Namespace = args
         self._hwbpnum : int = 0
