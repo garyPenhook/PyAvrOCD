@@ -20,7 +20,6 @@ ISR(TIMER0_COMPA_vect)
 #else
 ISR(TIMER0_COMP_vect)
 #endif
-
 {
   irq_routine();
 }

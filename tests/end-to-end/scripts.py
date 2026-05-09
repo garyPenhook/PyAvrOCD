@@ -771,7 +771,7 @@ all_scripts = {
     ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
          'noautopc'),
     "flashed",
-    "-fno-lto",
+    "",
     "",
     (("set logging file log/flash.log", ""),) + prolog + \
     (("load", "Start address 0x"),
@@ -838,7 +838,7 @@ all_scripts = {
     ('medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
          'noautopc'),
     "oop",
-    "-fno-lto",
+    "-fno-lto -DLTODISABLED",
     "",
     (("set logging file log/oop.log", ""),) + prolog + \
     (("load", "Start address 0x"),

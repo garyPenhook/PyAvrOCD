@@ -38,7 +38,7 @@
     #elif FLASHEND < 2048UL
                         SEQ, SEQ, SEQ,
     #elif FLASHEND < 4096UL
-                        SEQ1K, SEQ,
+                        SEQ1K,
     #elif FLASHEND < 8192UL
                      SEQ4K, SEQ, SEQ,
     #else
