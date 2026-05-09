@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release v1.3.0
+
+- Support for modern ATtinys has been added. Now, you can use SpenceKonde's megaTinyCore (presently using my fork of this core).
+
 ## Release v1.2.3
 
 - The default value for`--comm-speed` (UPDI communication speed) is now 750 kbps (as it is for Microchip Studio). Use lower values with care!
