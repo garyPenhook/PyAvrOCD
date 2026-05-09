@@ -2,7 +2,7 @@
 
 ## Release v1.2.3
 
-- The default value for`--comm-speed` (UPDI communication speed) is now 750 kbps (as it is for Microchip Studio). Using lower values with care.
+- The default value for`--comm-speed` (UPDI communication speed) is now 750 kbps (as it is for Microchip Studio). Use lower values with care!
 - The default MCU clock frequency (F_CPU) is again 1,000,000 Hz
 
 ## Release v1.2.2

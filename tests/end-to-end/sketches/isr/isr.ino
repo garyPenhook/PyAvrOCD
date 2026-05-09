@@ -35,7 +35,7 @@ void loop()
 
 void shortwait()
 {
-  _delay_ms(1);
+  _delay_ms(0.0001);
 }
 
 void irqserver()

@@ -74,7 +74,7 @@
 #elif defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__)
 #define IRQPIN 3
 #else
-#define IRQPIN 7
+#define IRQPIN 2 // should not be RX/TX
 //#error "MCU not supported"
 #endif
 

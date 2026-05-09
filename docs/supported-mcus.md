@@ -37,7 +37,35 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ## Modern ATtinys
 
-There is no support for the tinyAVR 0-, 1-, and 2-series devices yet. But this will change shortly.
+It may be too early to call victory on the modern ATtiny front. I have to test more of these chips. And I have to publish a fork of megaTinyCore. However, things look very promising, although I still discover glitches here and there.
+
+
+
+### ATtiny 0-series
+
+- ATtiny202, ATtiny402
+- ATtiny204, ATtiny404, ATtiny804, ATtiny1604
+- ATtiny406, ATtiny806, ATtiny1606
+- ATtiny807, **ATtiny1607**
+
+
+
+### ATtiny 1-series
+
+- ATtiny212, ATtiny412
+- ATtiny214, ATtiny414, ATtiny814, ATtiny1614
+- ATtiny416, ATtiny816, ATtiny1616, ATtiny3216
+- ATtiny417, ATtiny817, ATtiny1617, ATtiny3217
+
+
+
+### ATtiny 2-series
+
+- ATtiny424, ATtiny824, ATtiny1624
+- ATtiny426, ATtiny826, ATtiny1626, **ATtiny3226**
+- ATtiny427, ATtiny827, ATtiny1627, **ATtiny3237**
+
+
 
 ## Classic ATmegas
 

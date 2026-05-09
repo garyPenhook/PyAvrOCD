@@ -229,6 +229,7 @@ class XAvrDebugger(AvrDebugger):
         self._activate_interface()
         self.device.avr.enter_progmode()
         self.switch_to_debmode()
+        time.sleep(0.5) # needed for an attiny 1607
         self.logger.info("Switched to debug mode")
         if self.args.load == 'n': # if noinitialload is active, change to readbeforewrite
             self.args.load = 'r'

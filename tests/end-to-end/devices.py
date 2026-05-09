@@ -5,6 +5,10 @@ micro_clock = {'1.2' : ('1M2', '1200000UL'), '9.6' : ('9M6', '9600000UL'),
 mini_clock = {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
       '8' : ('8MHz_internal', '8000000UL'),
       '16' : ('16MHz_external', '16000000UL')}
+tiny_updi_clock = {'1' : ('1internal', '1000000UL'), '4' : ('4internal', '4000000UL'),
+      '8' : ('8internal', '8000000UL'),
+      '16' : ('16internal', '16000000UL'),
+      '20' : ('20internal', '20000000UL')}
 updi_clock = {'1' : ('internal_1MHz', '1000000UL'), '4' : ('internal_4MHz', '4000000UL'),
       '8' : ('internal_8MHz', '8000000UL'),
       '16' : ('internal_16MHz', '16000000UL'),
@@ -226,6 +230,7 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 "atmega4809": (updi_clock, ('large', 'updi'),
                                    "MegaCoreX:megaavr:4809:bootloader=no_bootloader,clock=",
                                    "Curiosity Nano or Uno WiFi Rev2 or Nano Every"),
+
                 "atmega3209": (updi_clock, ('large', 'updi'),
                                    "MegaCoreX:megaavr:3209:bootloader=no_bootloader,clock=",
                                    "QFP48 socket"),
@@ -251,5 +256,17 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                 "atmega808": (updi_clock, ('large', 'updi'),
                                    "MegaCoreX:megaavr:808:bootloader=no_bootloader,clock=",
                                    "QFP32 socket"),
+
+                # UPDI targets: tinyMegaCore
+                "attiny3227": (tiny_updi_clock, ('large', 'updi', 'noadc'),
+                                   "megaTinyCore:megaavr:atxy7:chip=3227,clock=",
+                                   "Curiosity Nano"),
+                "attiny3226": (tiny_updi_clock, ('large', 'updi', 'noadc'),
+                                   "megaTinyCore:megaavr:atxy6:chip=3226,clock=",
+                                   "Breakout board"),
+                "attiny1607": (tiny_updi_clock, ('large', 'updi', 'noadc'),
+                                   "megaTinyCore:megaavr:atxy7:chip=1607,clock=",
+                                   "Curiosity Nano"),
+
 
                     }

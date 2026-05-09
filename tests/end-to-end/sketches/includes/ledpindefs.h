@@ -243,9 +243,16 @@
  #define LED1_DDR  PORTC.DIR
  #define LED1      PIN2_bm
 #elif defined(__AVR_ATmega808__) || defined(__AVR_ATmega1608__) || defined(__AVR_ATmega3208__) || \
-  defined(__AVR_ATmega809__) || defined(__AVR_ATmega1609__) || defined(__AVR_ATmega3209__)
+  defined(__AVR_ATmega809__) || defined(__AVR_ATmega1609__) || defined(__AVR_ATmega3209__) || \
+  defined(__AVR_ATtiny406__) ||   defined(__AVR_ATtiny806__) || defined(__AVR_ATtiny1606__) || \
+  defined(__AVR_ATtiny416__) ||   defined(__AVR_ATtiny816__) || defined(__AVR_ATtiny1616__) || defined(__AVR_ATtiny3216__) || \
+  defined(__AVR_ATtiny426__) ||   defined(__AVR_ATtiny826__) || defined(__AVR_ATtiny1626__) || defined(__AVR_ATtiny3226__)
  #define LED1_PORT PORTA.OUT
  #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7_bm
+#elif defined(__AVR_ATtiny3227__) || defined(__AVR_ATtiny1607__)
+ #define LED1_PORT PORTB.OUT
+ #define LED1_DDR  PORTB.DIR
  #define LED1      PIN7_bm
 #else
  #error "MCU is not supported"

@@ -1,5 +1,12 @@
 # Changelog
 
+### 1.3.0a1
+
+- **Added:**
+     - Support for the modern ATtiny series 0, 1, 2
+- **Fixed:**
+     - Added some wait interval of 0.5 seconds (minimum that worked was 0.3) after a switch to debug mode that followed a clearing lockbites (and memory).  Otherwise an `AVR8_FAILURE_PDI_TIMEOUT: PDI physical timed out` was thrown.
+
 ### 1.2.3 (07-May-2026)
 
 - **Fixed:**
