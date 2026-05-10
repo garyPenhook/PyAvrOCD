@@ -26,8 +26,8 @@ This project did not receive any financial support. And, currently, there is no 
 Without the effort of the Arduino community, I would not have started to work on the GDB server. So thanks go to:
 
 - The [**Arduino**](https://www.arduino.cc) project: for obvious reasons.
-- [@MCUdude](https://github.com/MCUdude): For creating the cool additional cores for ATmegas, and for incorporating PyAvrOCD into it.
-- [@SpenceKonde](https://github.com/SpenceKonde) (aka Dr. Azzy): For creating the great additional cores for ATtinys and the awesome DxCore.
+- [@MCUdude](https://github.com/MCUdude): For creating the great additional cores for AVR MCUs, and for incorporating PyAvrOCD into it.
+- [@SpenceKonde](https://github.com/SpenceKonde) (aka Dr. Azzy): For creating the great additional cores for AVR MCUs.
 - And many more ...
 
 I built PyAvrOCD on top of two earlier implementations of Python AVR GDB servers:
