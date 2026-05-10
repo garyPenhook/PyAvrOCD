@@ -13,7 +13,7 @@ Once this has been done, you can search in the <code>Boards Manager</code> for t
 
 ### [ATTinyCore (Debug enabled)](https://github.com/felias-fogg/ATTinyCore)
 
-This is a fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. With the advent of TinyCore (see below), it is deprecated. However, it might still be of interest to people who use the micronucleus boot loaders, which are not supported by TinyCore. You can install it after including the following URL:
+This is a fork of Spence Konde's ATTinyCore version 1.5.2, which covers all classic ATtinys with a debugWire interface. While it might still be of interest to people who use the micronucleus boot loaders, nowadays TinyCore is the preferred core for classic ATtinys. You can install ATTinyCore (Debug enabled) after including the following URL:
 
 ```
 https://felias-fogg.github.io/ATTinyCore/package_drazzy.com_ATTinyCore_index.json
@@ -37,7 +37,7 @@ https://mcudude.github.io/MicroCore/package_MCUdude_MicroCore_index.json
 
 ### [MiniCore](https://github.com/MCUdude/MiniCore)
 
-This is the core for the small ATmegas with a debugWIRE interface, aka, ATmegaX8.  You can make it installable by adding the following boards manager URL:
+This is the core for the small ATmegas with a debugWIRE interface, aka, ATmegaX8.  You can make it installable by adding the following *boards manager URL*:
 
 ```
 https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
@@ -53,7 +53,7 @@ https://felias-fogg.github.io/XMiniCore/package_felias-fogg_XMiniCore_index.json
 
 ### [MightyCore](https://github.com/MCUdude/MightyCore)
 
-An Arduino core for ATmega8535, ATmega16, ATmega32, ATmega164, ATmega324, ATmega644, and ATmega1284, whereby ATmega8353 does not have a debugging interface. You can make it installable by adding the following boards manager URL:
+An Arduino core for ATmega8535, ATmega16, ATmega32, ATmega164, ATmega324, ATmega644, and ATmega1284, whereby ATmega8353 does not have a debugging interface. You can make it installable by adding the following *boards manager URL*:
 
 ```
 https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
@@ -61,7 +61,7 @@ https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
 
 ### [MegaCore](https://github.com/MCUdude/MegaCore)
 
-A core for most 64 and 100-pin AVRs. For example, the Arduino Mega (2560) is supported by this core. All of the [listed MCUs](https://github.com/MCUdude/MegaCore#supported-microcontrollers) are debuggable, but the ATmega128 has the problem that only hardware breakpoints are allowed. You can make the core installable by adding:
+A core for most 64 and 100-pin AVRs. For example, the Arduino Mega (2560) is supported by this core. All of the [listed MCUs](https://github.com/MCUdude/MegaCore#supported-microcontrollers) are debuggable, but the ATmega128 has the problem that only hardware breakpoints are allowed. You can make the core installable by adding to the *boards manager URLs*:
 
 ```
 https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json
@@ -69,18 +69,26 @@ https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json
 
 ### [MajorCore](https://github.com/MCUdude/MajorCore)
 
-This core covers just ATmega8515 and ATmega162, of which only the latter possesses a debugging interface. The additional board manager URL is:
+This core covers just ATmega8515 and ATmega162, of which only the latter possesses a debugging interface. The additional *boards manager URL* is:
 
 ```
 https://mcudude.github.io/MajorCore/package_MCUdude_MajorCore_index.json
 ```
 
-### [MegaCoreX](https://github.com/MCUdude/MegaCoreX)
+### [MegaCoreX](https://github.com/felias-fogg/MegaCoreX)
 
-This is an **experimental** fork of the core for the megaAVR-0 chip family, such as the ATmega4809, which is used on the Nano Every Board and the Uno WiFi Rev 2. You can install the core (note: **this is a work in progress!**) using the following URL:
+This is a fork of the core managed by MCUdude for the megaAVR-0 chip family, such as the ATmega4809, which is used on the Nano Every Board and the Uno WiFi Rev 2. You can install the core using the following URL:
 
 ```
 https://felias-fogg.github.io/MegaCoreX/package_MCUdude_MegaCoreX_index.json
 ```
 
-The debug support for this core might not be bug-free (no pun intended). If you spot a bug, please report it.
+You can expect to find this core with the debug extension really soon in the upstream repo.
+
+### [megaTinyCore (Debug enabled)](https://github.com/felias-fogg/megaTinyCore)
+
+This is a fork of the core for modern ATiny Chips (series 0, 1, and 2) managed by SpenceKonde. You can install it by using the following URL:
+
+```
+https://felias-fogg.github.io/megaTinyCore/package_SpenceKonde_megaTinyCore_index.json
+```

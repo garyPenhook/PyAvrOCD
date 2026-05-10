@@ -18,13 +18,13 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **AVR Butterfly (ATmega169)**: [MegaCore](supporting-cores.md#megacore)
 - <u>MEGA-1284P Xplained</u>: [MightyCore](supporting-cores.md#mightycore)
 - **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex); onboard debugger; choose the `48 pin standard` pinout; serial I/O is routed via `Serial3`; the LED is connected to PF5 (digital pin 39); the programmer you have to choose is `Curiosity Nano`.
-- ATtiny416 Xplained Nano:  [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger
-- ATtiny817 Xplained Pro: [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger
-- <u>ATtiny817 Xplained Mini</u>: [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger
-- **ATtiny1607 Curiosity Nano**: [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
-- ATtiny1627 Curiosity Nano:  [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger
-- ATtiny3217 Curiosity Nano: [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger
-- **ATtiny3227 Curiosity Nano**: [megaTinyCore (fork)](https://github.com/felias-fogg/megaTinyCore); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
+- ATtiny416 Xplained Nano:  [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
+- ATtiny817 Xplained Pro: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
+- <u>ATtiny817 Xplained Mini</u>: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
+- **ATtiny1607 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
+- ATtiny1627 Curiosity Nano: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
+- ATtiny3217 Curiosity Nano: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
+- **ATtiny3227 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
 
 ## Arduino boards
 
@@ -99,8 +99,8 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - <u>ItsyBitsy 32u4 (5V)</u>
 - Bluefruit Micro
 - ATmega32u4 Breakout Board
-- **SEESAW Breakout ATtiny817**
-- **SEESAW Breakout ATtiny1616**
+- **SEESAW Breakout ATtiny817**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
+- **SEESAW Breakout ATtiny1616**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 ## Teensy boards
 
@@ -146,11 +146,7 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 
 - **ATtiny43 dev. board**: [TinyCore](supporting-cores.md#tinycore)
 
-<!--
-
-- <u>ATtiny3217 breakout board (assembled)</u>
-
--->
+- **ATtiny3217 breakout board (assembled)**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 ## Miscellaneous boards
 

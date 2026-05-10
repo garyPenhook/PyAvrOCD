@@ -1,6 +1,6 @@
 # Supported MCUs
 
-This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. It is extended continuously as the development of PyAvrOCD proceeds. MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested. All other MCUs listed are supposed to be compatible because their close cousins are. However, this assumption can be wrong, as I noticed when developing dw-link.
+This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. It is extended continuously as the development of PyAvrOCD proceeds. MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested. All other MCUs listed are supposed to be compatible because their close cousins are. However, this assumption can be wrong, as I have experienced repeatedly.
 
 The list is structured by the Arduino cores that support the chips, where some of the MCUs are supported by more than one core.
 
@@ -37,11 +37,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ## Modern ATtinys
 
-It may be too early to call victory on the modern ATtiny front. I have to test more of these chips. And I have to publish a fork of megaTinyCore. However, things look very promising, although I still discover glitches here and there.
-
-
-
-### ATtiny 0-series
+### ATtiny 0-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny202**, **ATtiny402**
 - ATtiny204, ATtiny404, ATtiny804, ATtiny1604
@@ -50,7 +46,7 @@ It may be too early to call victory on the modern ATtiny front. I have to test m
 
 
 
-### ATtiny 1-series
+### ATtiny 1-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny212**, **ATtiny412**
 - ATtiny214, ATtiny414, ATtiny814, ATtiny1614
@@ -59,7 +55,7 @@ It may be too early to call victory on the modern ATtiny front. I have to test m
 
 
 
-### ATtiny 2-series
+### ATtiny 2-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - ATtiny424, ATtiny824, ATtiny1624
 - **ATtiny426**, **ATtiny826**, **ATtiny1626**, **ATtiny3226**
