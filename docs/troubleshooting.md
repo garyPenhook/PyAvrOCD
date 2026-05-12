@@ -39,19 +39,37 @@ Probably the same reason as above.
 
 ### Single-stepping takes forever
 
-You requested a single step, and the debugger seems to take forever to complete this single step. There are two possible causes. First, when single-stepping a SLEEP instruction, the MCU will go into sleep mode. The debugger will return from it, either when an interrupt wakes up the MCU or when you interrupt execution using Ctrl-C. Second, [single-steping a source code line that contains an (implicit) loop](limitations.md#single-stepping-lines-containing-loops) can lead to a severe slowdown. In order to recover, interrupt execution, set a breakpoint somewhere after this line, and then request to continue execution.
+You requested a single step, and the debugger seems to take forever to complete this single step. There are a few possible causes. First, when single-stepping a SLEEP instruction, the MCU will go into sleep mode. Second, [single-steping a source code line that contains an (implicit) loop](limitations.md#single-stepping-lines-containing-loops) can lead to a severe slowdown.  Third, this could also be caused by the phenomenon mentioned above (low UPDI communication speed leading to single-step skidding). In all cases, simply stop with Ctrl-C (or the equivalent on the IDE level), set a breakpoint where you want to stop next, and continue execution.
 
 ### Variables cannot be accessed in the debugger
 
-Again, this might be because you forgot to activate the optimization option for debugging. Or, it can be that [link time optimization](limitations.md#link-time-optimization) has optimized away your variable.
+Again, this might be because you forgot to activate the optimization option for debugging. Or, it can be that the compiler has optimized away your variable. If you really are in need to inspect and maybe change the variable. you can declare it as `volatile`. Then it will always be visible when in scope. However, handling of it is rather inefficient.
 
 ### The values of a local variable cannot be changed, or a wrong value is displayed in the debugger
 
-This [happened to me recently](https://gist.github.com/felias-fogg/8f4e1fdb3be14a598467842b03a3aef9). The culprit is avr-gcc (version 7.3.0 as distributed with the Arduino IDE). The only way to fix that is to use a more recent compiler version. If you have one at hand, together with the binary utilities, you can put a file `platform.local.txt` into the [platform folder](https://support.arduino.cc/hc/en-us/articles/4415103213714-Find-sketches-libraries-board-cores-and-other-files-on-your-computer#boards) of your core and write the line `compiler.path=/path/to/bin-folder/` into it.
+This [happened to me recently](https://gist.github.com/felias-fogg/8f4e1fdb3be14a598467842b03a3aef9). The culprit is avr-gcc (version 7.3.0 as distributed with the Arduino IDE). The only way around it is mentioned above. Declare the variable as `volatile`.
 
 ### Backtraces are distorted
 
 This sometimes happens when AVR-GDB is not able to figure out the stack frame. I am working on it.
+
+## Problems after Debugging
+
+### After debugging, the MCU does not seem to execute the stored program, but acts funny
+
+Usually, after having finished debugging, the MCU is released, and the uploaded program will continue to execute. However, if the [debugging session has ended abruptly](#limitations.md#unsafe-exits-from-debugging), e.g., by disconnecting power, the debugger did not get a chance to replace the software breakpoints with the original instructions. In this case, simply reflash the MCU.
+
+### After debugging, it is impossible to flash a new program using a programmer
+
+ When you deal with a debugWIRE target, note that the debugWIRE mode is only left when the command `monitor debugwire disable` has been typed into the GDB command line before ending the debug session. When you are still in debugWIRE mode, you cannot use SPI programming! You first need to [exit debugwire mode](limitations.md#exit-debugwire-mode).
+
+Note also that debugging a debugWIRE target can have [adverse effects](limitations.md#debugwire-can-brick-mcus).
+
+### After debugging, it is impossible to upload a new program using a bootloader.
+
+Usually, the bootloader is erased before debugging starts. This means that you have to [reflash the bootloader and maybe change some fuses after debugging](restore-original-state.md).
+
+
 
 ## Signals and error messages
 

@@ -38,9 +38,67 @@ You need to set up the hardware on a breadboard and use a few jumper wires to co
 </p>
 
 
-
-Here is a table of all connections that you can use in order to check whether you have made all the connections.
-
+<details>
+<summary><b>Table of breadboard connections</b></summary>
+<p></p>
+<p>You can use this table to check whether you have made all the connections.</p>
+<table>
+<thead>
+<tr>
+<th>ATtiny pin</th>
+<th>SNAP pin</th>
+<th>component</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#1 (Reset)</td>
+<td>TAUX #6</td>
+<td>10 kΩ resistor to Vcc</td>
+</tr>
+<tr>
+<td>#2 (D3)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>#3 (D4)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>#4 (GND)</td>
+<td>GND #3</td>
+<td>GND on breadboard, LED (-), decoupling cap 100 nF</td>
+</tr>
+<tr>
+<td>#5 (D0, MOSI)</td>
+<td>TTDI #7</td>
+<td></td>
+</tr>
+<tr>
+<td>#6 (D1, MISO)</td>
+<td>PGD #4</td>
+<td></td>
+</tr>
+<tr>
+<td>#7 (D2, SCK)</td>
+<td>PGC #5</td>
+<td>1 kΩ resistor to LED (+)</td>
+</tr>
+<tr>
+<td>#8 (Vcc)</td>
+<td>TVDD #2</td>
+<td>Vcc on breadboard, 10k resistor, decoupling cap 100 nF</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>connect LED (+) and 1 kΩ resistor</td>
+</tr>
+</tbody>
+</table>
+<!--
 | ATtiny pin    | SNAP pin | component                                              |
 | ------------- | -------- | ------------------------------------------------------ |
 | #1 (Reset)    | TAUX #6  | 10 kΩ resistor to Vcc                                  |
@@ -52,6 +110,10 @@ Here is a table of all connections that you can use in order to check whether yo
 | #7 (D2, SCK)  | PGC #5   | 1 kΩ resistor to LED (+)                               |
 | #8 (Vcc)      | TVDD #2  | Vcc on breadboard, 10k resistor, decoupling cap 100 nF |
 |               |          | connect LED (+) and 1 kΩ resistor                      |
+-->
+
+</details>
+<p></p>
 
 ### Step 3: Load sketch and select board
 

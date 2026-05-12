@@ -80,9 +80,9 @@ The optimization option `-mrelax` is supposed to merely replace absolute jumps a
 
 Resets that occur while executing will erase the hardware breakpoints.
 
-Resets, e.g., due to a watch dog timer reset or a software reset, are handled gracefully by PyAvrOCD. However, all hardware breakpoints are deleted. For this reason, you should use the monitor command `monitor breakpoints software` if you plan to debug a program that resets while it executes. 
+Resets, e.g., due to a watch dog timer reset or a software reset, are handled gracefully by PyAvrOCD. However, all hardware breakpoints are deleted. For this reason, you should use the monitor command `monitor breakpoints software` if you plan to debug a program that resets while it executes.
 
-JTAG and debugWIRE targets simply start executing after a reset. UPDI targets need to be stopped and started again to continue executing after a reset while executing under debugging supervision. 
+JTAG and debugWIRE targets simply start executing after a reset. UPDI targets need to be stopped and started again to continue executing after a reset while executing under debugging supervision.
 
 ## Breakpoints in interrupt routines
 
@@ -125,7 +125,7 @@ On the other hand, often instructions need to be executed closely together. Sinc
 
 ### Single-stepping lines containing loops
 
-When GDB is instructed to single-step source code, it will step until a new source line is hit. This can result in slowing down execution significantly when lines contain, perhaps implicitly, loops, e.g., the `_delay_ms` macro. PyAvrOCD can deal with `_delay_ms`, but in other cases, slowdowns can happen. One can recover from slow execution by interrupting using Ctrl-C, setting a breakpoint outside of the loop, and then continuing execution.
+When GDB is instructed to single-step source code, it will step until a new source line is hit. This can result in slowing down execution significantly when lines contain, perhaps implicitly, loops, e.g., the `_delay_ms` macro. [PyAvrOCD can deal with `_delay_ms`](https://arduino-craft-corner.de/index.php/2025/03/19/interrupted-and-very-long-single-steps/#very-long-single-steps), but in other cases, slowdowns can happen. One can recover from slow execution by interrupting using Ctrl-C, setting a breakpoint outside of the loop, and then continuing execution.
 
 ## Serial communication
 
