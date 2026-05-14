@@ -8,7 +8,7 @@ In general, one can distinguish between problems that prohibit the start of the 
 
 For most of the error messages, it should be obvious what to do. However, there are a few messages that look cryptic, and/or a solution is not apparent.
 
-### `Apple could not verify “...” is free of malware that may harm your Mac or compromise your privacy.`  
+### `Apple could not verify “...” is free of malware that may harm your Mac or compromise your privacy.`
 
 This is an error message you may get under macOS. It happens when you download executables with a browser or from e-mail, which sets a particular extended attribute. You can remove this extended attribute from the file `FILE` as follows. Afterward, macOS will start these executables without a hitch.
 
@@ -37,15 +37,15 @@ DebugWIRE was not activated despite (automatic) power-cycling. Perhaps there is 
 
 ### Code executes slower or faster than expected
 
-Note that PyAvrOCD by itself does not set any timing-related fuses (`CKDIV8` on classic chips or `FREQSEL` on modern chips). This means before debugging, you need to run `Burn Bootloader` in the Arduino IDE 2 after selecting the right clock settings, or you have to set the timing-related fuses to their desired values by other means. 
+Note that PyAvrOCD by itself does not set any timing-related fuses (`CKDIV8` on classic chips or `FREQSEL` on modern chips). This means before debugging, you need to run `Burn Bootloader` in the Arduino IDE 2 after selecting the right clock settings, or you have to set the timing-related fuses to their desired values by other means.
 
 ### Loading code and/or debugging feels sluggish
 
-When using *debugWIRE*, the communication speed is severely limited from the beginning. With Atmel-ICE, the upload speed is roughly one kByte/sec; with the Xplained-Mini boards, it is 0.3 kBytes/sec.  Using the `readbeforewrite` option (which is the default), subsequent uploads may be faster. If the MCU clock frequency is lower than 16 MHz, the upload speed is even slower, and below a clock frequency of 1 MHz, it is no fun at all. Similarly, debugging operations are also somewhat slow. 
+When using *debugWIRE*, the communication speed is severely limited from the beginning. With Atmel-ICE, the upload speed is roughly one kByte/sec; with the Xplained-Mini boards, it is 0.3 kBytes/sec.  Using the `readbeforewrite` option (which is the default), subsequent uploads may be faster. If the MCU clock frequency is lower than 16 MHz, the upload speed is even slower, and below a clock frequency of 1 MHz, it is no fun at all. Similarly, debugging operations are also somewhat slow.
 
 With *JTAG*, the situation is much better. The default speed is 1 MHz for programming (`--prog-clock`) and 200 kHz for debugging (`--debug-clock`). However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU.
 
-*UPDI* communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later). 
+*UPDI* communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later).
 
 ### The debugger does not stop at a line with a set breakpoint, but only later
 
