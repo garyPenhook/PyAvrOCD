@@ -8,24 +8,44 @@ In general, one can distinguish between problems that prohibit the start of the 
 
 For most of the error messages, it should be obvious what to do. However, there are a few messages that look cryptic, and/or a solution is not apparent.
 
-* `Apple could not verify “...” is free of malware that may harm your Mac or compromise your privacy.`  This is an error message you may get under macOS. It happens when you download executables with a browser or from e-mail, which sets a particular extended attribute. You can remove this extended attribute from the file `FILE` as follows. Afterward, macOS will start these executables without a hitch.
+### `Apple could not verify “...” is free of malware that may harm your Mac or compromise your privacy.`  
+
+This is an error message you may get under macOS. It happens when you download executables with a browser or from e-mail, which sets a particular extended attribute. You can remove this extended attribute from the file `FILE` as follows. Afterward, macOS will start these executables without a hitch.
 
 
 ```bash
 > xattr -d com.apple.quarantine FILE
 ```
 
-* `No compatible tool discovered`: This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that another process currently uses it, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install.md).
+### `No compatible tool discovered`
 
-- `[Errno 48] Address already in use`: This error can happen after the GDB server was terminated before the debugger. If you are working in a CLI environment, you can start PyAvrOCD with a different port using the `--port` option and tell GDB about the port when connecting with the `target remote` command. However, waiting a few minutes will also resolve the problem.
-- `ISP programming failed. Wrong connection or wrong MCU?`: This error message is displayed when, on a debugWIRE target, the DWEN fuse cannot be set because ISP/SPI programming cannot be initiated. It could be a wiring problem, which, in my experience, is the most likely reason. It could also mean that the MCU is not accessible anymore by ISP programming, which can have [many possible causes](limitations.md#debugwire-can-brick-mcus).
-- `Debug session not started: debugWIRE not activated by power-cycling. Parasitic power supply?`: debugWIRE was not activated despite (automatic) power-cycling. Perhaps there is a [parasitic power supply](https://arduino-craft-corner.de/index.php/2022/03/15/parasitic-power-supply/) problem? This happens in particular on Xplained-Mini boards since the board power is not switched when an automatic power cycle is performed. A cure can be to power the application circuit connected to the board through the `IOREF` pin instead of using the `5V`  or `3.3V` pin. If this is not possible, consult the [README file](https://github.com/felias-fogg/XMiniCore#powering-external-circuitry) of XMiniCore.
+This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that another process currently uses it, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install.md).
+
+### `[Errno 48] Address already in use`
+
+This error can happen after the GDB server was terminated before the debugger. If you are working in a CLI environment, you can start PyAvrOCD with a different port using the `--port` option and tell GDB about the port when connecting with the `target remote` command. However, waiting a few minutes will also resolve the problem.
+
+### `ISP programming failed. Wrong connection or wrong MCU?`
+
+This error message is displayed when, on a debugWIRE target, the DWEN fuse cannot be set because ISP/SPI programming cannot be initiated. It could be a wiring problem, which, in my experience, is the most likely reason. It could also mean that the MCU is not accessible anymore by ISP programming, which can have [many possible causes](limitations.md#debugwire-can-brick-mcus).
+
+### `Debug session not started: debugWIRE not activated by power-cycling. Parasitic power supply?`
+
+DebugWIRE was not activated despite (automatic) power-cycling. Perhaps there is a [parasitic power supply](https://arduino-craft-corner.de/index.php/2022/03/15/parasitic-power-supply/) problem? This happens in particular on Xplained-Mini boards since the board power is not switched when an automatic power cycle is performed. A cure can be to power the application circuit connected to the board through the `IOREF` pin instead of using the `5V`  or `3.3V` pin. If this is not possible, consult the [README file](https://github.com/felias-fogg/XMiniCore#powering-external-circuitry) of XMiniCore.
 
 ## Problems while debugging
 
+### Code executes slower or faster than expected
+
+Note that PyAvrOCD by itself does not set any timing-related fuses (`CKDIV8` on classic chips or `FREQSEL` on modern chips). This means before debugging, you need to run `Burn Bootloader` in the Arduino IDE 2 after selecting the right clock settings, or you have to set the timing-related fuses to their desired values by other means. 
+
 ### Loading code and/or debugging feels sluggish
 
-When using *debugWIRE*, the communication speed is severely limited from the beginning. With Atmel-ICE, the upload speed is roughly one kByte/sec; with the Xplained-Mini boards, it is 0.3 kBytes/sec.  Using the `readbeforewrite` option (which is the default), subsequent uploads may be faster. If the MCU clock frequency is lower than 16 MHz, the upload speed is even slower, and below a clock frequency of 1 MHz, it is no fun at all. Similarly, debugging operations are also somewhat slow. With *JTAG*, the situation is much better. The default speed is 1 MHz for programming and 200 kHz for debugging. However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU.
+When using *debugWIRE*, the communication speed is severely limited from the beginning. With Atmel-ICE, the upload speed is roughly one kByte/sec; with the Xplained-Mini boards, it is 0.3 kBytes/sec.  Using the `readbeforewrite` option (which is the default), subsequent uploads may be faster. If the MCU clock frequency is lower than 16 MHz, the upload speed is even slower, and below a clock frequency of 1 MHz, it is no fun at all. Similarly, debugging operations are also somewhat slow. 
+
+With *JTAG*, the situation is much better. The default speed is 1 MHz for programming (`--prog-clock`) and 200 kHz for debugging (`--debug-clock`). However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU.
+
+*UPDI* communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later). 
 
 ### The debugger does not stop at a line with a set breakpoint, but only later
 
@@ -57,15 +77,15 @@ This sometimes happens when AVR-GDB is not able to figure out the stack frame. I
 
 ### After debugging, the MCU does not seem to execute the stored program, but acts funny
 
-Usually, after having finished debugging, the MCU is released, and the uploaded program will continue to execute. However, if the [debugging session has ended abruptly](#limitations.md#unsafe-exits-from-debugging), e.g., by disconnecting power, the debugger did not get a chance to replace the software breakpoints with the original instructions. In this case, simply reflash the MCU.
+Usually, after having finished debugging, the MCU is released, and the uploaded program will continue to execute. However, if the [debugging session has ended abruptly](limitations.md#unsafe-exits-from-debugging), e.g., by disconnecting power, the debugger did not get a chance to replace the software breakpoints with the original instructions. In this case, the MCU may act strangely. The cure is to simply reflash the MCU.
 
 ### After debugging, it is impossible to flash a new program using a programmer
 
- When you deal with a debugWIRE target, note that the debugWIRE mode is only left when the command `monitor debugwire disable` has been typed into the GDB command line before ending the debug session. When you are still in debugWIRE mode, you cannot use SPI programming! You first need to [exit debugwire mode](limitations.md#exit-debugwire-mode).
+ When you deal with a debugWIRE target, note that the debugWIRE mode is only left when the command `monitor debugwire disable` has been typed into the GDB command line before ending the debug session. When you are still in debugWIRE mode, you cannot use SPI programming! You first need to [exit debugwire mode](limitations.md#exit-debugwire-mode). Note also that debugging a debugWIRE target can have [adverse effects](limitations.md#debugwire-can-brick-mcus).
 
-Note also that debugging a debugWIRE target can have [adverse effects](limitations.md#debugwire-can-brick-mcus).
+It is also possible that you locked yourself out by setting the wrong fuses (this applies to JTAG and UPDI targets as well).
 
-### After debugging, it is impossible to upload a new program using a bootloader.
+### After debugging, it is impossible to upload a new program using the bootloader.
 
 Usually, the bootloader is erased before debugging starts. This means that you have to [reflash the bootloader and maybe change some fuses after debugging](restore-original-state.md).
 
