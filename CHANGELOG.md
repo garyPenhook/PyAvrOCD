@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.3.1 (19-May-2026)
+
+- Added: New command-line option `--elf-file`. The specified ELF file is checked for having been compiled with `-mrelax`. If so, debugging is refused. 
+
 ### 1.3.0 (09-May-2026)
 
 - **Added:**
