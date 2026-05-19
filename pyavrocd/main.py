@@ -20,6 +20,9 @@ from logging import getLogger
 import usb
 import usb.core
 
+# elftools
+from elftools.elf.elffile import ELFFile
+
 # debugger modules
 import pymcuprog
 import pymcuprog.backend
@@ -74,6 +77,11 @@ def options(cmd: list[str]) -> argparse.Namespace:
                             dest='dev',
                             type=str,
                             help="Device to debug, list supported MCUs with '?'")
+
+    parser.add_argument("-e", "--elf-file",
+                            metavar="EF",
+                            dest='elffile',
+                            help="ELF file, will be checked for '-mrelax' optimization")
 
     parser.add_argument("-D", "--debug-clock",
                             metavar="DC",
@@ -370,6 +378,34 @@ def handle_simavr(args : argparse.Namespace, device : str) -> bool:
     sim.wait()
     return True
 
+def check_elf_file_for_relax_optimization(elf_file : str, logger : logging.Logger) -> bool:
+    """
+    Checks whether the program had been compiled with the -mrleax optimization option.
+    If so, it spits out a critical log message and return True.
+    Otherwise, it will return False.
+    """
+    if elf_file is None:
+        return False
+    try:
+        with open (elf_file, 'rb') as f:
+            ef = ELFFile(f)
+            dwarfinfo = ef.get_dwarf_info()
+            for cu in dwarfinfo.iter_cus():
+                for die in cu.iter_dies():
+                    for attr in die.attributes.values():
+                        if 'DW_AT_producer' in attr.name and b'GNU C' in attr.value:
+                            logger.debug("Command line of producer: %s", attr.value.decode('ascii'))
+                            if '-mrelax' in  attr.value.decode('ascii'):
+                                logger.critical("Cannot debug programs compiled with '-mrelax'")
+                                return True
+    except FileNotFoundError:
+        logger.error("ELF file '%s' not found", elf_file)
+        return False
+    except Exception as e:
+        logger.critical("Could not read ELF file '%s' because '%s'", elf_file, str(e))
+        return True
+    return False
+
 def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> None:
     """
     Starts program requested by user, e.g., a debugger GUI
@@ -476,6 +512,11 @@ def startup(command_line : list[str], logger : logging.Logger) -> int:
 
     # now report startup
     logger.info("This is PyAvrOCD version %s", importlib.metadata.version("pyavrocd"))
+
+    # check that ELF file has not been produced using the -mrelax option
+    if check_elf_file_for_relax_optimization(args.elffile, logger):
+        return 1
+
     # determine number of connected tools
     num_tools : int = 0
     if args.tool != "dwlink":

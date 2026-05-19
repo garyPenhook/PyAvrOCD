@@ -1009,6 +1009,18 @@ doc = ["mock", "sphinx"]
 test = ["mock", "pytest"]
 
 [[package]]
+name = "pyelftools"
+version = "0.32"
+description = "Library for analyzing ELF files and DWARF debugging information"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "pyelftools-0.32-py3-none-any.whl", hash = "sha256:013df952a006db5e138b1edf6d8a68ecc50630adbd0d83a2d41e7f846163d738"},
+    {file = "pyelftools-0.32.tar.gz", hash = "sha256:6de90ee7b8263e740c8715a925382d4099b354f29ac48ea40d840cf7aa14ace5"},
+]
+
+[[package]]
 name = "pygments"
 version = "2.20.0"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -1503,4 +1515,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.15,>=3.10"
-content-hash = "811ba5d10c083398e8b3668a2cb803a27cdffbe7dc09c70d323710313d5a7dd3"
+content-hash = "31d2bf58dce0ed105ecca1a6266b86be282deb20802c24b5443f47a9783362c1"
