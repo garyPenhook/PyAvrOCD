@@ -50,7 +50,7 @@ When trying to debug a program compiled with the 'usual' compiler optimization o
 
 Usually, the compiler optimizes for space, trying to fit as much program code as possible into the limited amount of flash memory. This, however, might imply that some code is reordered and inlined. This means that single-stepping can be confusing, that one cannot stop at some places, or that a `finish` command will lead to an error message.
 
-When using the `-Og` compiler optimization option, the compiler aims at preserving the structure of the program at the expense of perhaps using more flash memory. In the Arduino IDE 2, this is forced by enabling `Optimize for Debugging` in the `Sketch` menu.
+When using the `-Og` compiler optimization option, the compiler aims at preserving the structure of the program at the expense of perhaps using more flash memory. Further, one should never use the [`-mrelax` optimization flag](compilation-options.md#critical-optimization-options) and, if possible, not use [`-flto` (link time optimization)](compilation-options.md#critical-optimization-options). In the Arduino IDE 2, this is all forced by enabling `Optimize for Debugging` in the `Sketch` menu.
 
 ### Disappearing bugs
 

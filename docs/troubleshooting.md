@@ -43,15 +43,17 @@ Note that PyAvrOCD by itself does not set any timing-related fuses (`CKDIV8` on 
 
 When using *debugWIRE*, the communication speed is severely limited from the beginning. With Atmel-ICE, the upload speed is roughly one kByte/sec; with the Xplained-Mini boards, it is 0.3 kBytes/sec.  Using the `readbeforewrite` option (which is the default), subsequent uploads may be faster. If the MCU clock frequency is lower than 16 MHz, the upload speed is even slower, and below a clock frequency of 1 MHz, it is no fun at all. Similarly, debugging operations are also somewhat slow.
 
-With *JTAG*, the situation is much better. The default speed is 1 MHz for programming (`--prog-clock`) and 200 kHz for debugging (`--debug-clock`). However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU.
+With *JTAG* and *UPDI* targets, this problem should not happen. For JTAG, the default speed is 1 MHz for programming (`--prog-clock`) and 200 kHz for debugging (`--debug-clock`). However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU. UPDI communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later).
 
-*UPDI* communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later).
-
-### The debugger does not stop at a line with a set breakpoint, but only later
+### The debugger does not stop at a line with a set breakpoint, but only later (or not at all)
 
 This happens when the line marked to be stopped at does not contain any machine code. The problem gets worse when the switch `Optimize for Debugging` in the Arduino IDE 2 is not activated or, if you are working in a CLI environment, you did not use the `-Og` compiler option.
 
-A different cause for such behavior can be that the UPDI communication speed is too low. I experienced breakpoint and single-step skidding when the UPDI communication was too low, e.g., 400 kHz or less when the MCU ran at 16 MHz.
+A different cause for such behavior can be that the UPDI communication speed is too low. I experienced breakpoint and single-step skidding when the UPDI communication was too low, e.g., 400 kHz or less when the MCU ran at 16 MHz. This could lead to stopping at a different location or not stopping at all.
+
+### The debugger seems to be confused about the line where it stopped
+
+If the debugger stopped at a line, but from other evidence it is clear that the program flow is somewhere else, it could be that the [`-mrelax` optimization](compilation-options.md#critical-optimization-options) option had been used, which distorts the line numbering information. Compile and link without this option!
 
 ### When single-stepping, execution jumps around
 
