@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release 1.3.1
+
+- New command-line option `--elf-file`. The specified ELF file is checked for having been compiled with `-mrelax`. If so, debugging is refused.
+
 ## Release v1.3.0
 
 - Support for modern ATtinys has been added. Now, you can use SpenceKonde's megaTinyCore (presently using my fork of this core).
