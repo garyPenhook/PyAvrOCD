@@ -27,9 +27,9 @@ ISR(TIMER0_COMP_vect)
 
 void irq_routine(void) {
   if (cycle < 5)
-    privmillis += (16000000UL/F_CPU);
+    privmillis += (20000000UL/F_CPU);
   else
-    privmillis += (16000000UL/F_CPU)*5; // time is 5 times faster!
+    privmillis += (20000000UL/F_CPU)*5; // time is 5 times faster!
 }
 
 unsigned long mymillis(void) {

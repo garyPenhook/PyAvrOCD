@@ -30,7 +30,7 @@ def main():
                             type=str,
                             dest='clock',
                             help='MCU clock frequency in MHz',
-                            choices=['1', '8', '4', '16', '16i', '1.2', '9.6', 'none' ],
+                            choices=['1', '8', '4', '16', '16i', '20', '1.2', '9.6', 'none' ],
                             required=True)
     parser.add_argument('-d', '--device',
                             type=str,
@@ -104,11 +104,9 @@ def main():
             else:
                 if os.path.exists("sketches/" + script[1] + "/" + script[1] + ".ino"): # Arduino sketch
                     logger.info("Compile '%s.ino' for '%s' clock on %s", script[1], args.clock, mcu_name)
-                    cmd = "arduino-cli compile --clean -b " + fqbn + aclock + \
-                    ' -e --build-property="compiler.c.extra_flags=-Og -ggdb3  ' + script[2] + '"' +\
-                    ' --build-property="compiler.c.elf.extra_flags=-Og -ggdb3 ' + script[2] + '"'+\
-                    ' --build-property="compiler.cpp.extra_flags=-Og -ggdb3 ' + script[2] + \
-                    '" --output-dir ' + "sketches/" + script[1] + " sketches/" + script[1]
+                    cmd = "arduino-cli compile --clean -b " + fqbn + aclock + " --export-binaries " + \
+                    " --optimize-for-debug " + '--build-property "build.extra_flags=-g3 ' + script[2] + '"' +\
+                    " --output-dir " + "sketches/" + script[1] + " sketches/" + script[1]
                 else: # C/C++-program
                     logger.info("Compile C/C++ program '%s' for clock '%s' on %s", script[1], args.clock, mcu_name)
                     cmd = "make -C sketches/" + script[1] + " PORT=" + args.port + " MCU=" + \

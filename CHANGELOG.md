@@ -1,8 +1,17 @@
 # Changelog
 
+### 1.3.2 (19-May-2026)
+
+- **Fixed:**
+     - You can now debug sketches on UPDI targets when a bootloader has been installed (but this bootloader will be cleared).
+     - A 'blank' page with all 0xFF can now overwrite an existing page, making it possible to load a sketch written for a UPDI bootloader and delete the bootloader, as mentioned in the case above.
+
+
 ### 1.3.1 (19-May-2026)
 
-- Added: New command-line option `--elf-file`. The specified ELF file is checked for having been compiled with `-mrelax`. If so, debugging is refused. 
+- **Added:**
+     - New command-line option `--elf-file`. The specified ELF file is checked for having been compiled with `-mrelax`. If so, debugging is refused.
+
 
 ### 1.3.0 (09-May-2026)
 

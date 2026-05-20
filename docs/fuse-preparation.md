@@ -1,8 +1,6 @@
 # Setting the right fuses to enable debugging
 
-The good news for Arduino IDE 2 users: You do not have to worry about fuses. Almost all the fuse setting details are taken care of by the IDE.
-
-One thing you have to be aware of is that it may be necessary to enable the JTAG pins on targets with the JTAG interface.
+The good news for Arduino IDE 2 users: You do not have to worry about fuses. Almost all the fuse setting details are taken care of by the IDE. However, on targets with JTAG interface,  it may be necessary to enable the JTAG pins on targets with the JTAG interface.
 
 <details>
 <summary><b>How to enable the JTAG pins</b></summary>
@@ -93,9 +91,7 @@ If the UPDI pin is a dedicated UPDI pin, you do not have to prepare anything. Ho
 
 ### Fuse settings when PyAvrOCD manages the fuse
 
-Since UPDI targets do not have a special debugging fuse, you only need to care about `lockbits`. The bootloader setting can mostly be ignored. Either it has been erased when the lockbits are cleared, in which case the MCU will skip over this section, or it is still there, which implies that the bootloader will jump to the application program.
-
-In other words, for UPDI targets, PyAvrOCD will manage the `EESAVE` fuse and the `lockbits` for you.
+UPDI targets do not have a special debugging fuse, and the bootloader, if there is one, will be overwritten with NOPs. This means you only need to care about `lockbits`. So, for UPDI targets, PyAvrOCD will only manage the `EESAVE` fuse and the `lockbits` for you.
 
 ### Fuse settings when fuses are managed manually
 

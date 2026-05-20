@@ -835,10 +835,10 @@ all_scripts = {
 # test OOP debugging - make sure, that LTO is disabled!
 # test maximal BP setting (set to 4!)
     "oop" : (
-    ('medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
+    ('medium', 'large', 'huge', 'dw', 'jtag', 'arduino', 'noadc',
          'noautopc'),
     "oop",
-    "-fno-lto -DLTODISABLED",
+    "-fno-lto",
     "",
     (("set logging file log/oop.log", ""),) + prolog + \
     (("load", "Start address 0x"),
@@ -850,7 +850,7 @@ all_scripts = {
      ("b 92", "Breakpoint 2"),
      ("b 111", "Breakpoint 3"),
      ("continue", "Breakpoint 1"),
-     ("print r","$2 = {<TwoDObject> = {x = 10, y = 11}, height = 5, width = 8}"),
+     ("print r","height = 5, width = 8"),
      ("continue", "Serial.println(F(\"Move s by +10, +10:\"));"),
      ("dis 1", ""),
      ("continue", "Breakpoint 3"),

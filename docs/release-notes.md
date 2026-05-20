@@ -1,6 +1,10 @@
 # Release Notes
 
-## Release 1.3.1
+## Release v1.3.2
+
+- You can now debug on a UPDI target even when the bootloader option has been set (but the bootloader will be deleted so that it cannot interfere with the debugger).
+
+## Release v1.3.1
 
 - New command-line option `--elf-file`. The specified ELF file is checked for having been compiled with `-mrelax`. If so, debugging is refused.
 

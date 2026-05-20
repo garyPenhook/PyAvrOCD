@@ -19,11 +19,11 @@ attiny_clock = mini_clock
 attiny_pll_clock =  {'1' : ('1MHz_internal', '1000000UL'), '4' : ('4MHz_internal', '4000000UL'),
       '8' : ('8MHz_internal', '8000000UL'),
       '16' : ('16MHz_external', '16000000UL'), '16i' : ('16MHz_internal_PLL', '16000000UL') }
-c_clock = {'1' : '1000000UL', '8' : '8000000UL', '16' : '16000000UL'}
+c_clock = {'1' : '1000000UL', '8' : '8000000UL', '16' : '16000000UL', '20' : '20000000UL'}
 no_clock = {'none' : ('', '16000000UL')}
 
 # Tag list: for each tag in the list for one device, this tag has to be present in the script tag list
-# Example: For attiny13 only scripts are selected that have  'small', 'arduino', 'dw'. and 'noadc' in their description
+# Example: For attiny13 only scripts are selected that have  'small', 'arduino', 'dw', and 'noadc' in their description
 test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', 'noautopc'),
                                    "MicroCore:avr:13:clock=", "Dev Board"),
                 "attiny2313" : (attiny_clock, ('small',  'dw', 'noadc', 'noautopc'),
@@ -227,33 +227,33 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                    "Leonardo"),
 
                 # UPDI targets: MegaCoreX
-                "atmega4809": (updi_clock, ('large', 'updi'),
+                "atmega4809": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:4809:bootloader=no_bootloader,clock=",
                                    "Curiosity Nano or Uno WiFi Rev2 or Nano Every"),
 
-                "atmega3209": (updi_clock, ('large', 'updi'),
+                "atmega3209": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:3209:bootloader=no_bootloader,clock=",
                                    "QFP48 socket"),
-                "atmega1609": (updi_clock, ('large', 'updi'),
+                "atmega1609": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:1609:bootloader=no_bootloader,clock=",
                                    "QFP48 socket"),
-                "atmega809": (updi_clock, ('large', 'updi'),
+                "atmega809": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:809:bootloader=no_bootloader,clock=",
                                    "QFP48 socket"),
 
-                "atmega4808": (updi_clock, ('large', 'updi'),
+                "atmega4808": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:4808:bootloader=no_bootloader,clock=",
                                    "Thinary Nano Every"),
 
-                "atmega3208": (updi_clock, ('large', 'updi'),
+                "atmega3208": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:3208:bootloader=no_bootloader,clock=",
                                    "QFP32 socket"),
 
-                "atmega1608": (updi_clock, ('large', 'updi'),
+                "atmega1608": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:1608:bootloader=no_bootloader,clock=",
                                    "QFP32 socket"),
 
-                "atmega808": (updi_clock, ('large', 'updi'),
+                "atmega808": (updi_clock, ('large', 'updi', 'noadc'),
                                    "MegaCoreX:megaavr:808:bootloader=no_bootloader,clock=",
                                    "QFP32 socket"),
 

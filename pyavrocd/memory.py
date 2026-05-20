@@ -328,15 +328,14 @@ class Memory():
                 self.logger.debug("Flashing now from 0x%X to 0x%X", pgaddr, pgaddr+len(pagetoflash))
                 pagetoflash.extend(bytearray([0xFF]*(self._multi_page_size-len(pagetoflash))))
                 self.logger.debug("Use memtype 0x%X for flashing", self.dbg.flashmemtype)
-                # program flash page only when 'pagetoflash' is not blank
-                # or memory has not been erased beforehand
-                if not self.dbg.device.avr.is_blank(pagetoflash) or not self.mon.is_erase_before_load():
+                # program flash page only when it is not that the case that
+                # 'pagetoflash' is blank and memory has been erased beforehand
+                if not (self.dbg.device.avr.is_blank(pagetoflash) and self.mon.is_erase_before_load()):
                     self.dbg.device.avr.write_memory_section(self.dbg.flashmemtype,
                                                                 pgaddr,
                                                                 pagetoflash,
                                                                 self._flash_page_size,
-                                                                allow_blank_skip=
-                                                                self._multi_buffer == 1)
+                                                                allow_blank_skip=False)
                 # verify flash programming when verification is requested AND
                 # (the pagetoflash is not blank or memory has not been erased before loading)
                 if self.mon.is_verify() and (not self.dbg.device.avr.is_blank(pagetoflash) or \

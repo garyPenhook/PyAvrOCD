@@ -402,8 +402,8 @@ def check_elf_file_for_relax_optimization(elf_file : str, logger : logging.Logge
         logger.error("ELF file '%s' not found", elf_file)
         return False
     except Exception as e:
-        logger.critical("Could not read ELF file '%s' because '%s'", elf_file, str(e))
-        return True
+        logger.error("Could not read ELF file '%s' because '%s'", elf_file, str(e))
+        return False
     return False
 
 def startup_helper_prog(args : argparse.Namespace, logger : logging.Logger) -> None:
