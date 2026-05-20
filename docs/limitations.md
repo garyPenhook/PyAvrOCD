@@ -14,7 +14,9 @@ For other debugging interfaces, such as **JTAG** or **UPDI**, the problem is not
 
 Bootloaders will usually be erased when running the debugger.
 
-The entire chip needs to be erased if some lock bits are set. Further, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
+The entire chip needs to be erased if some lock bits are set. Further, for **JTAG** and **debugWIRE** targets, the `BOOTRST` fuse has to be disabled so that execution always starts at location 0x0000. If one wants to have a bootloader present, because it may provide services, such as writing to flash memory, one needs to load it before starting a debugging session without setting any lock bits. If one, in addition, wants to debug the bootloader, one can disallow that PyAvrOCD manages the `BOOTRST` fuse by using the command line option `--manage nobootrst`.
+
+On **UPDI** targets, the bootloader memory area is located before the application code. Since starting execution through the bootloader may probably interfere with starting the application, the bootloader will be wiped out when the application is loaded. If you want to avoid that, upload the code using a programmer before starting the debugger and use `--load noinitialload` when starting the GDB server.
 
 ## Low CPU clock frequency
 
@@ -62,19 +64,19 @@ Another effect of using the `-Og` compiler optimization could be that all of a s
 
 ## Link-time optimization
 
-Link-time optimization (`-flto`) can optimize away important structural debug information about C++ objects and global variables.
+Link-time optimization (`-flto`) will 'optimize away' important structural debug information about C++ objects and global variables.
 
 Link-time optimization is a technique introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
 
 The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.
 
-All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed. In most of the debug-enabled Arduino cores, link-time optimization is disabled when the user has chosen to activate the `Optimize for Debugging` option.
+All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed. In some debug-enabled Arduino cores, link-time optimization can be disabled. Hopefully, these problems will go away when more recent version of the GCC compiler are going to be used.
 
 ## Link-time jump relaxation
 
 When using the optimization option `-mrelax`, the line number information gets distorted.
 
-The optimization option `-mrelax` is supposed to merely replace absolute jumps and calls with relative ones, saving two bytes and one cycle of computation time. Unfortunately, in its current implementation, it distorts the line number information for debugging significantly, making debugging impossible.
+The optimization option `-mrelax` is supposed to merely replace absolute jumps and calls with relative ones, saving two bytes and one cycle of computation time. Unfortunately, in its current implementation, it distorts the line number information for debugging significantly, making debugging impossible. For this reason, the Arduino IDE 2 checks whether the sketch has been compiled with this option and will refrain from debugging if this has been the case.
 
 ## Resets
 
