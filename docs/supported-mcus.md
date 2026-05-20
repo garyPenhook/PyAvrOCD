@@ -40,7 +40,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 ### ATtiny 0-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny202**, **ATtiny402**
-- ATtiny204, ATtiny404, ATtiny804, ATtiny1604
+- ATtiny204, **ATtiny404,** ATtiny804, **ATtiny1604**
 - **ATtiny406**, **ATtiny806**, **ATtiny1606**
 - ATtiny807, **ATtiny1607**
 
@@ -49,7 +49,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 ### ATtiny 1-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny212**, **ATtiny412**
-- ATtiny214, ATtiny414, ATtiny814, ATtiny1614
+- ATtiny214, ATtiny414, **ATtiny814,** ATtiny1614
 - **ATtiny416**, **ATtiny816**, **ATtiny1616**, **ATtiny3216**
 - ATtiny417, **ATtiny817**, ATtiny1617, **ATtiny3217**
 
@@ -57,7 +57,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ### ATtiny 2-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
-- ATtiny424, ATtiny824, ATtiny1624
+- ATtiny424, ATtiny824, ATtiny1624, **ATtiny3224**
 - **ATtiny426**, **ATtiny826**, **ATtiny1626**, **ATtiny3226**
 - ATtiny427, ATtiny827, ATtiny1627, **ATtiny3237**
 

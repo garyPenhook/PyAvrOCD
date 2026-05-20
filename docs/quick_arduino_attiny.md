@@ -1,4 +1,4 @@
-## Quickstart guide: SNAP & ATtiny85
+## Quickstart: SNAP & ATtiny85
 
 This quickstart guide demonstrates how to use the Arduino IDE 2 for debugging on an ATtiny85 using the MPLAB SNAP debug probe.
 

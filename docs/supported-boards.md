@@ -20,11 +20,11 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **ATmega4809 Curiosity Nano**: [MegaCoreX](supporting-cores.md#megacorex); onboard debugger; choose the `48 pin standard` pinout; serial I/O is routed via `Serial3`; the LED is connected to PF5 (digital pin 39); the programmer you have to choose is `Curiosity Nano`.
 - ATtiny416 Xplained Nano:  [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
 - ATtiny817 Xplained Pro: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
-- <u>ATtiny817 Xplained Mini</u>: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
-- **ATtiny1607 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
-- ATtiny1627 Curiosity Nano: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
-- ATtiny3217 Curiosity Nano: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger
-- **ATtiny3227 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7; Button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
+- **ATtiny817 Xplained Mini**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PC0 (`LED_BUILTIN`); button is on PC5; programmer should be `Xplained Mini`; serial I/O through the debug interface works.
+- **ATtiny1607 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7 (`LED_BUILTIN`); button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface works.
+- ATtiny1627 Curiosity Nano: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7 (`LED_BUILTIN`); button is on PC4; rogrammer should be `Curiosity Nano`;
+- **ATtiny3217 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7 (`LED_BUILTIN`); button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface works.
+- **ATtiny3227 Curiosity Nano**: [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled); onboard debugger; LED is connected to PB7 (`LED_BUILTIN`); button is on PC4; programmer should be `Curiosity Nano`; serial I/O through the debug interface works.
 
 ## Arduino boards
 

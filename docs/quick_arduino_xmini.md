@@ -1,4 +1,4 @@
-## Quickstart guide: ATmega328P Xplained Mini
+## Quickstart: ATmega328P Xplained Mini
 
 The [Atmega328P Xplained Mini](https://www.microchip.com/en-us/development-tool/atmega328p-xmini) development board, which has an Arduino Uno footprint, is ideal for making a first experience with embedded debugging because it already contains an onboard debugger. It is simply plug-and-play.
 

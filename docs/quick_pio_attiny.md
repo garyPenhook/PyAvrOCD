@@ -1,5 +1,5 @@
 
-## Quickstart guide: dw-link & ATtiny85
+## Quickstart: dw-link & ATtiny85
 
 This quickstart guide demonstrates how to set up a PlatformIO project for debugging on an ATtiny85 without requiring you to invest in a commercial debug probe. Instead, we will build our own debug probe.
 

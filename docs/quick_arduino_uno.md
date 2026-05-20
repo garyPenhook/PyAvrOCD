@@ -1,4 +1,4 @@
-## Quickstart guide: dw-link & Arduino UNO R3
+## Quickstart: dw-link & Arduino UNO
 
 This quickstart guide shows how to try out embedded debugging as offered by the Arduino IDE 2 without requiring you to invest in a debug probe. It will turn an Arduino Uno into a debug probe.
 

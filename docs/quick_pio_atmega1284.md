@@ -1,4 +1,4 @@
-## Quickstart guide: Atmel-ICE & ATmega1284
+## Quickstart: Atmel-ICE & ATmega1284
 
 This quickstart guide shows you how to set up a PlatformIO project for debugging a JTAG target using an EDBG-based debug probe.
 
