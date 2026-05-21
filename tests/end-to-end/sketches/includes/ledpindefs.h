@@ -270,6 +270,69 @@
  #define LED1_PORT PORTB.OUT
  #define LED1_DDR  PORTB.DIR
  #define LED1      PIN7
+#elif defined(__AVR_AVR64DD32__) || defined(__AVR_AVR16EB32__) || defined(__AVR_AVR32SD32__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7
+ #define LED2_PORT PORTF.OUT
+ #define LED2_DDR  PORTF.DIR
+ #define LED2      PIN5
+#elif defined(__AVR_AVR128DB48__) || defined(__AVR_AVR64EA48__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7
+ #define LED2_PORT PORTB.OUT
+ #define LED2_DDR  PORTB.DIR
+ #define LED2      PIN3
+#elif defined(__AVR_AVR128DA48__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7
+ #define LED2_PORT PORTC.OUT
+ #define LED2_DDR  PORTC.DIR
+ #define LED2      PIN6
+#elif defined(__AVR_AVR64DU32__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7
+ #define LED2_PORT PORTF.OUT
+ #define LED2_DDR  PORTF.DIR
+ #define LED2      PIN2
+#elif defined(__AVR_AVR64DA64__) || defined(__AVR_AVR128DA64__) || \
+  defined(__AVR_AVR64DB64__) || defined(__AVR_AVR128DD64__) ||     \
+  defined(__AVR_AVR32DA48__) || defined(__AVR_AVR64DA48__) || \
+  defined(__AVR_AVR32DB48__) || defined(__AVR_AVR64DB48__) || \
+  defined(__AVR_AVR32DA32__) || defined(__AVR_AVR64DA32__) || defined(__AVR_AVR128DA32__) || \
+  defined(__AVR_AVR32DB32__) || defined(__AVR_AVR64DB32__) || defined(__AVR_AVR128DB32__) || \
+  defined(__AVR_AVR16DD32__) || defined(__AVR_AVR32DD32__) || \
+  defined(__AVR_AVR16DU32__) || defined(__AVR_AVR32DU32__) || \
+  defined(__AVR_AVR16EA32__) || defined(__AVR_AVR32EA32__) || defined(__AVR_AVR64EA32__) || \
+  defined(__AVR_AVR32EB32__) || \
+  defined(__AVR_AVR16LA32__) || defined(__AVR_AVR32LA32__) || \
+  defined(__AVR_AVR16SD32__) || \
+  defined(__AVR_AVR32DA28__) || defined(__AVR_AVR64DA28__) || defined(__AVR_AVR128DA28__) || \
+  defined(__AVR_AVR32DB28__) || defined(__AVR_AVR64DB28__) || defined(__AVR_AVR128DB28__) || \
+  defined(__AVR_AVR16DD28__) || defined(__AVR_AVR32DD28__) || defined(__AVR_AVR64DD28__) || \
+  defined(__AVR_AVR16DU28__) || defined(__AVR_AVR32DU28__) || defined(__AVR_AVR64DU28__) || \
+  defined(__AVR_AVR16EA28__) || defined(__AVR_AVR32EA28__) || defined(__AVR_AVR64EA28__) || \
+  defined(__AVR_AVR16EB28__) || defined(__AVR_AVR32EB28__) ||  \
+  defined(__AVR_AVR16LA28__) || defined(__AVR_AVR32LA28__) || \
+  defined(__AVR_AVR32SD28__) || \
+  defined(__AVR_AVR16DD20__) || defined(__AVR_AVR32DD20__) || defined(__AVR_AVR64DD20__) || \
+  defined(__AVR_AVR16DU20__) || defined(__AVR_AVR32DU20__) ||  \
+  defined(__AVR_AVR16EB20__) || defined(__AVR_AVR32EB20__) ||  \
+  defined(__AVR_AVR16LA20__) || defined(__AVR_AVR32LA20__) || \
+  defined(__AVR_AVR32SD20__)
+ #define LED1_PORT PORTA.OUT
+ #define LED1_DDR  PORTA.DIR
+ #define LED1      PIN7
+#elif defined(__AVR_AVR16DD14__) || defined(__AVR_AVR32DD14__) || defined(__AVR_AVR64DD14__) || \
+  defined(__AVR_AVR16DU14__) || defined(__AVR_AVR32DU14__) ||  \
+  defined(__AVR_AVR16EB14__) || defined(__AVR_AVR32EB14__) ||  \
+  defined(__AVR_AVR16LA14__) || defined(__AVR_AVR32LA14__)
+ #define LED1_PORT PORTD.OUT
+ #define LED1_DDR  PORTD.DIR
+ #define LED1      PIN6
 #else
  #error "MCU is not supported"
 #endif

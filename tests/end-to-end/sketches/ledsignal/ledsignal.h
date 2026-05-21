@@ -7,8 +7,14 @@
 // Always blink SCK
 #ifdef SCK
   #define LED0 SCK
-#else
-  #define LED0 2
+#elif defined(__AVR_AVR64DD32__) || defined(__AVR_AVR16EB32__) || defined(__AVR_AVR32SD32__)
+  #define LED0 25
+#elif  defined(__AVR_AVR128DB48__) || defined(__AVR_AVR64EA48__)
+  #define LED0 11
+#elif defined(__AVR_AVR128DA48__)
+  #define LED0 20
+#elif defined(__AVR_AVR64DU32__)
+  #define LED0 22
 #endif
 // Additionally use the "standard" LED
 #if defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || \

@@ -384,6 +384,7 @@ def check_elf_file_for_relax_optimization(elf_file : str, logger : logging.Logge
     If so, it spits out a critical log message and returns True.
     Otherwise, it will return False.
     """
+    logger.debug("Checking ELF %s file for -mrelax", elf_file)
     if elf_file is None:
         return False
     try:
@@ -393,7 +394,7 @@ def check_elf_file_for_relax_optimization(elf_file : str, logger : logging.Logge
             for cu in dwarfinfo.iter_CUs():
                 for die in cu.iter_DIEs():
                     for attr in die.attributes.values():
-                        if 'DW_AT_producer' in attr.name and b'GNU C' in attr.value:
+                        if 'DW_AT_producer' in attr.name:
                             logger.debug("Command line of producer: %s", attr.value.decode('ascii'))
                             if '-mrelax' in  attr.value.decode('ascii'):
                                 logger.critical("Cannot debug programs compiled with '-mrelax'")

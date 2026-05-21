@@ -129,8 +129,9 @@ def main():
             logger.info("Success: %s", sn)
         sleep(2.5)
     logger.info("All tests:           %s", len(all_scripts))
-    logger.info("Test runs:           %s", tests_done)
+    logger.info("Tried:               %s", len(script_list))
     logger.info("Compilations failed: %s", len(failed_comp))
+    logger.info("Successful runs:     %s", tests_done-len(failed_scripts))
     logger.info("Scripts failed:      %s", len(failed_scripts))
     if failed_comp:
         logger.info("Failed compilations: %s", failed_comp)

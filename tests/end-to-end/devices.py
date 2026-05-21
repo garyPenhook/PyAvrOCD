@@ -328,5 +328,28 @@ test_devices = {"attiny13" : (micro_clock, ('small', 'arduino', 'dw', 'noadc', '
                                    "megaTinyCore:megaavr:atxy7:chip=3227,clock=",
                                    "Curiosity Nano"),
 
+                # UPDI-targets: Dx Ex Lx Sx devices
+
+                "avr128da48":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avrda:chip=avr128da48,clock=",
+                                   "Curiosity Nano"),
+                "avr128db48":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avrdb:chip=avr128db48,clock=",
+                                   "Curiosity Nano"),
+                "avr64dd32":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avrdd:chip=avr64dd32,clock=",
+                                   "Curiosity Nano"),
+                "avr64du32":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avrdu:chip=avr64du32,clock=",
+                                   "Curiosity Nano"),
+                "avr64ea48":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avrea:chip=avr64ea48,clock=",
+                                   "Curiosity Nano"),
+                "avr16eb32":  (tiny_updi_clock, ('huge', 'updi', 'noadc'),
+                                   "DxCore:megaavr:avreb:chip=avr16eb32,clock=",
+                                   "Curiosity Nano"),
+                "avr32sd32":  (tiny_updi_clock, ('huge', 'updi', 'noadc', 'nonarduino'),
+                                   "DxCore:megaavr:avrsd:chip=avr32sd32,clock=",
+                                   "Curiosity Nano"),
 
                     }

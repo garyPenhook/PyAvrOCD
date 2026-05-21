@@ -290,7 +290,7 @@ all_scripts = {
      ("set {char}0x850000=0x56",""),         # USER ROW
      ("set {char}0x850001=0x34",""),
      ("x/hx 0x850000", "0x850000:\t0x3456"),
-     ("x/hx 0x801300", "0x801300:\t0x3456"), # USER ROW addressed through data space
+     # ("x/hx 0x801300", "0x801300:\t0x3456"), # USER ROW addressed in data space; is different for diff. families
      ) + epilog),
 
 
@@ -775,9 +775,8 @@ all_scripts = {
     "",
     (("set logging file log/flash.log", ""),) + prolog + \
     (("load", "Start address 0x"),
-     ("break flashOK", "Breakpoint 1 at"),
-     ("break flashError", "Breakpoint 2 at"),
-     ("continue", "Breakpoint 1, flashOK ()")) + epilog),
+     ("break blink_exit", "Breakpoint 1 at"),
+     ("continue", "(OK=true)")) + epilog),
 
 # test recursive functions
 # test up/down
@@ -938,9 +937,9 @@ all_scripts = {
 
 # load something into EEPROM
     "eeprom" : (
-    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'nonarduino', 'noadc',
+    ('small', 'medium', 'large', 'huge', 'dw', 'jtag', 'pdi', 'updi', 'arduino', 'noadc',
          'noautopc'),
-    "ceeprom",
+    "eeprom",
     "",
     "",
     (("set logging file log/eeprom.log", ""),) + prolog + \
@@ -950,8 +949,8 @@ all_scripts = {
      ("p ee_data", "data that's loaded straight into EEPROM"),
      ("p ver", "data that's loaded straight into EEPROM"),
      ("delete 1", ""),
-     ("break final", "Breakpoint 2"),
-     ("cont", "Breakpoint 2, final (OK=true)"),
+     ("break blink_exit", "Breakpoint 2"),
+     ("cont", "(OK=true)"),
      ("set var ee_data[0] = 'X'", ""),
      ("p ee_data", "Xata that's loaded straight into EEPROM")) + epilog),
 

@@ -144,43 +144,55 @@ This is the megaAVR 0-series. The ATmega4809 made it on some Arduino boards.
 - **ATmega808**, **ATmega1608**, **ATmega3208**, **ATmega4808**
 - **ATmega809**, **ATmega1609**, **ATmega3209**, **ATmega4809**
 
-## AVR-Dx devices
 
-### AVR DA MCUs
 
-- <u>AVR32DA28</u>, AVR32DA32, AVR32DA48
-- <u>AVR64DA28</u>, AVR64DA32, AVR64DA48, AVR32DA64
-- <u>AVR128DA28</u>, AVR128DA32, <u>AVR128DA48</u>, AVR128DA64
+## AVR Dx-, Ex-, Lx-, Sx- devices
 
-### AVR DB MCUs
+Work in progress: The current preview v1.4.0a1 supports the MCU mentioned below. As usual, the bold ones have been tested and work.
+
+### AVR DA series
+
+- <u>AVR32DA28(S)</u>, AVR32DA32(S), AVR32DA48(S)
+- <u>AVR64DA28(S)</u>, AVR64DA32(S), AVR64DA48(S), AVR32DA64(S)
+- <u>AVR128DA28(S)</u>, AVR128DA32(S), **AVR128DA48(S)**, AVR128DA64(S)
+
+### AVR DB series
 
 - <u>AVR32DB28</u>, AVR32DB32, AVR32DB48
 - <u>AVR64DB28</u>, AVR64DB32, AVR64DB48, AVR32DB64
-- <u>AVR128DB28</u>, <u>AVR128DB32</u>, <u>AVR128DB48</u>, <u>AVR128DB64</u>
+- <u>AVR128DB28</u>, <u>AVR128DB32</u>, **AVR128DB48**, <u>AVR128DB64</u>
 
-### AVR DD MCUs
+### AVR DD series
 
 - AVR16DD14, AVR16DD20, <u>AVR16DD28</u>, AVR16DD32
 - AVR32DD14, AVR32DD20, <u>AVR32DD28</u>, AVR32DD32
-- <u>AVR64DD14</u>, <u>AVR64DD20</u>, <u>AVR64DD28</u>, <u>AVR64DD32</u>
+- <u>AVR64DD14</u>, <u>AVR64DD20</u>, <u>AVR64DD28</u>, **AVR64DD32**
 
-### AVR DU MCUs
+### AVR DU series
 
 - AVR16DU14, AVR16DU20, <u>AVR16DU28</u>, AVR16DU32
 - AVR32DU14, AVR32DU20, <u>AVR32DU28</u>, AVR32DU32
-- <u>AVR64DU28</u>, <u>AVR64DU32</u>
+- <u>AVR64DU28</u>, **AVR64DU32**
 
-### AVR EA MCUs
+### AVR EA series
 
 - <u>AVR16EA28</u>, AVR16EA32, AVR16EA48
 
 - <u>AVR32EA28</u>, AVR32EA32, AVR32EA48
-- <u>AVR64EA28</u>, AVR64EA32, <u>AVR64EA48</u>
+- <u>AVR64EA28</u>, AVR64EA32, **AVR64EA48**
 
-### AVR EB MCUs
+### AVR EB series
 
-- AVR16EB14, AVR16EB20, <u>AVR16EB28</u>, <u>AVR16EB32</u>
+- AVR16EB14, AVR16EB20, <u>AVR16EB28</u>, **AVR16EB32**
 - AVR32EB14, AVR32EB20, <u>AVR32EB28</u>, AVR32EB32
+
+### AVR LA series
+
+No support yet
+
+### AVR SD series
+
+No support yet.
 
 ## XMegas
 

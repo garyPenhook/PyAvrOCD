@@ -3,13 +3,7 @@
 // If unsuccessful, the LED blinks fast.
 // In addition, a message is printed (for MCUs with more than 2kB)
 
-#define LED0 SCK
-#ifdef LED_BUILTIN
-#define LED1 LED_BUILTIN
-#else
-#define LED1 LED0
-#endif
-
+#include "ledsignal.h"
 #include <progmem_far.h>
 #include <avr/pgmspace.h>
 
@@ -83,24 +77,6 @@ byte pgm_read_byte_near_or_far(unsigned long addr)
 #endif
 }
 
-void flashOK()
-{
-  digitalWrite(LED0, HIGH);
-  digitalWrite(LED1, HIGH);
-#if FLASHEND > 2048
-  Serial.println(F("\nTest succeeded"));
-#endif
-  exit(0);
-}
-
-void flashError()
-{
-  digitalWrite(LED0,LOW);
-  digitalWrite(LED1,LOW);
-#if FLASHEND > 2048
-        Serial.println(F("Test failed"));
-#endif
-}
 
 bool checktab(unsigned long tab, int count)
 {
@@ -121,12 +97,9 @@ bool checktab(unsigned long tab, int count)
 
 void setup ()
 {
-#if FLASHEND > 2048
-    Serial.begin(19200);
-    Serial.println(F("Flash fill test"));
-#endif
-    pinMode(LED0, OUTPUT);
-    pinMode(LED1, OUTPUT);
+  //Serial.begin(19200);
+  // Serial.println("Hello Flashed");
+  LedInit();
     unsigned long addr[TABNUM] = {
         pgm_get_far_address(tab0),
         #if TABNUM >= 2
@@ -166,11 +139,7 @@ void setup ()
             OK = false;
         }
     }
-    if (OK) {
-      flashOK();
-    } else {
-      flashError();
-    }
+    blink_exit(OK);
 }
 
 void loop ()
