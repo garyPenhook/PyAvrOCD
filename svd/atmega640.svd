@@ -3440,18 +3440,6 @@
               <bitRange>[5:5]</bitRange>
               <access>read-write</access>
             </field>
-            <field>
-              <name>PG6</name>
-              <description>Pin G6</description>
-              <bitRange>[6:6]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
-              <name>PG7</name>
-              <description>Pin G7</description>
-              <bitRange>[7:7]</bitRange>
-              <access>read-write</access>
-            </field>
           </fields>
         </register>
         <register>
@@ -3497,18 +3485,6 @@
               <bitRange>[5:5]</bitRange>
               <access>read-write</access>
             </field>
-            <field>
-              <name>PG6</name>
-              <description>Pin G6</description>
-              <bitRange>[6:6]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
-              <name>PG7</name>
-              <description>Pin G7</description>
-              <bitRange>[7:7]</bitRange>
-              <access>read-write</access>
-            </field>
           </fields>
         </register>
         <register>
@@ -3552,18 +3528,6 @@
               <name>PG5</name>
               <description>Pin G5</description>
               <bitRange>[5:5]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
-              <name>PG6</name>
-              <description>Pin G6</description>
-              <bitRange>[6:6]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
-              <name>PG7</name>
-              <description>Pin G7</description>
-              <bitRange>[7:7]</bitRange>
               <access>read-write</access>
             </field>
           </fields>

@@ -995,7 +995,7 @@
           <fields>
             <field>
               <name>OSCCAL</name>
-              <description>Oscillator Calibration </description>
+              <description>Oscillator Calibration</description>
               <bitRange>[7:0]</bitRange>
               <access>read-write</access>
               <writeConstraint>

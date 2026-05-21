@@ -2672,6 +2672,12 @@
               <bitRange>[6:6]</bitRange>
               <access>read-write</access>
             </field>
+            <field>
+              <name>PF7</name>
+              <description>Pin F7</description>
+              <bitRange>[7:7]</bitRange>
+              <access>read-write</access>
+            </field>
           </fields>
         </register>
         <register>
@@ -2711,6 +2717,12 @@
               <bitRange>[6:6]</bitRange>
               <access>read-write</access>
             </field>
+            <field>
+              <name>PF7</name>
+              <description>Pin F7</description>
+              <bitRange>[7:7]</bitRange>
+              <access>read-write</access>
+            </field>
           </fields>
         </register>
         <register>
@@ -2748,6 +2760,12 @@
               <name>PF6</name>
               <description>Pin F6</description>
               <bitRange>[6:6]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>PF7</name>
+              <description>Pin F7</description>
+              <bitRange>[7:7]</bitRange>
               <access>read-write</access>
             </field>
           </fields>

@@ -2983,7 +2983,7 @@
             <field>
               <name>SEQSEL</name>
               <description>Sequential Selection</description>
-              <bitRange>[2:0]</bitRange>
+              <bitRange>[3:0]</bitRange>
               <access>read-write</access>
               <writeConstraint>
                 <useEnumeratedValues>true</useEnumeratedValues>
@@ -3028,7 +3028,7 @@
             <field>
               <name>SEQSEL</name>
               <description>Sequential Selection</description>
-              <bitRange>[2:0]</bitRange>
+              <bitRange>[3:0]</bitRange>
               <access>read-write</access>
               <writeConstraint>
                 <useEnumeratedValues>true</useEnumeratedValues>
@@ -3839,7 +3839,7 @@
           <description>Status</description>
           <addressOffset>0x1</addressOffset>
           <size>0x8</size>
-          <access>read-write</access>
+          <access>read-only</access>
           <fields>
             <field>
               <name>LVL0EX</name>
@@ -3930,22 +3930,6 @@
                   <name>BOOT</name>
                   <description>CRC on boot section of flash</description>
                   <value>2</value>
-                </enumeratedValue>
-              </enumeratedValues>
-            </field>
-            <field>
-              <name>MODE</name>
-              <description>CRC Flash Access Mode</description>
-              <bitRange>[5:4]</bitRange>
-              <access>read-write</access>
-              <writeConstraint>
-                <useEnumeratedValues>true</useEnumeratedValues>
-              </writeConstraint>
-              <enumeratedValues>
-                <enumeratedValue>
-                  <name>PRIORITY</name>
-                  <description>Priority to flash</description>
-                  <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
             </field>
@@ -9191,8 +9175,13 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>Out: PA4 In: PA0, PA1, PA2</description>
+                  <description>INn: PA0, PA1, PA2. OUT: PA4.</description>
                   <value>0</value>
+                </enumeratedValue>
+                <enumeratedValue>
+                  <name>ALT1</name>
+                  <description>INn: PA0, PA1, PA2. OUT: -.</description>
+                  <value>1</value>
                 </enumeratedValue>
               </enumeratedValues>
             </field>
@@ -9207,7 +9196,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>Out: PA7 In: PC3, PC4, PC5</description>
+                  <description>INn: -, -, -. OUT: PA7.</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9223,8 +9212,13 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>Out: PB3 In: PB0, PB1, PB2</description>
+                  <description>INn: PB0, PB1, PB2. OUT: PB3.</description>
                   <value>0</value>
+                </enumeratedValue>
+                <enumeratedValue>
+                  <name>ALT1</name>
+                  <description>INn: PB0, PB1, PB2. OUT: -.</description>
+                  <value>1</value>
                 </enumeratedValue>
               </enumeratedValues>
             </field>
@@ -9238,8 +9232,13 @@
               </writeConstraint>
               <enumeratedValues>
                 <enumeratedValue>
+                  <name>DEFAULT</name>
+                  <description>Not connected to any pins</description>
+                  <value>0</value>
+                </enumeratedValue>
+                <enumeratedValue>
                   <name>ALT1</name>
-                  <description>Out: PA5 In: PC0, PC1, PC2</description>
+                  <description>INn: -, -, -. OUT: PA5.</description>
                   <value>1</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9264,12 +9263,12 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>EVOUT on PA2</description>
+                  <description>EVOUTA: PA2</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>ALT1</name>
-                  <description>EVOUT on PA7</description>
+                  <description>EVOUTA: PA7</description>
                   <value>1</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9285,7 +9284,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>EVOUT on PB2</description>
+                  <description>EVOUTB: PB2</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9310,7 +9309,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>PA0, PA1, PA2, PA3</description>
+                  <description>MOSI: PA1, MISO: PA2, SCK: PA3, SS: PA4</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
@@ -9340,12 +9339,12 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO0 on PB0</description>
+                  <description>WO0: PB0</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>ALT1</name>
-                  <description>WO0 on PB3</description>
+                  <description>WO0: PB3</description>
                   <value>1</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9361,7 +9360,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO1 on PB1</description>
+                  <description>WO1: PB1</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9377,7 +9376,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO2 on PB2</description>
+                  <description>WO2: PB2</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9393,7 +9392,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO3 on PA3</description>
+                  <description>WO3: PA3</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9409,7 +9408,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO4 on PA4</description>
+                  <description>WO4: PA4</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9425,7 +9424,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO5 on PA5</description>
+                  <description>WO5: PA5</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9450,7 +9449,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO on PA5</description>
+                  <description>WO: PA5</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9466,7 +9465,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>WO on PA3</description>
+                  <description>WO: PA3</description>
                   <value>0</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -9491,12 +9490,12 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>USART0 on PB[3:0]</description>
+                  <description>TxD: PB2, RxD: PB3, XCK: PB1, XDIR: PB0</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>ALT1</name>
-                  <description>USART0 on PA[4:1]</description>
+                  <description>TxD: PA1, RxD: PA2, XCK: PA3, XDIR: PA4</description>
                   <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
@@ -9517,7 +9516,7 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DEFAULT</name>
-                  <description>USART1 on PA[4:1]</description>
+                  <description>TxD: PA1, RxD: PA2, XCK: PA3, XDIR: PA4</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
@@ -10394,7 +10393,7 @@
       <registers>
         <register>
           <name>CTRLA</name>
-          <description>Control</description>
+          <description>Control A</description>
           <addressOffset>0x0</addressOffset>
           <size>0x8</size>
           <access>read-write</access>
@@ -10469,22 +10468,22 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DIV4</name>
-                  <description>System Clock / 4</description>
+                  <description>CLK_PER / 4</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV16</name>
-                  <description>System Clock / 16</description>
+                  <description>CLK_PER / 16</description>
                   <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV64</name>
-                  <description>System Clock / 64</description>
+                  <description>CLK_PER / 64</description>
                   <value>2</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV128</name>
-                  <description>System Clock / 128</description>
+                  <description>CLK_PER / 128</description>
                   <value>3</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -10925,42 +10924,42 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DIV1</name>
-                  <description>System Clock</description>
+                  <description>CLK_PER</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV2</name>
-                  <description>System Clock / 2</description>
+                  <description>CLK_PER / 2</description>
                   <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV4</name>
-                  <description>System Clock / 4</description>
+                  <description>CLK_PER / 4</description>
                   <value>2</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV8</name>
-                  <description>System Clock / 8</description>
+                  <description>CLK_PER / 8</description>
                   <value>3</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV16</name>
-                  <description>System Clock / 16</description>
+                  <description>CLK_PER / 16</description>
                   <value>4</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV64</name>
-                  <description>System Clock / 64</description>
+                  <description>CLK_PER / 64</description>
                   <value>5</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV256</name>
-                  <description>System Clock / 256</description>
+                  <description>CLK_PER / 256</description>
                   <value>6</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV1024</name>
-                  <description>System Clock / 1024</description>
+                  <description>CLK_PER / 1024</description>
                   <value>7</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -11521,42 +11520,42 @@
               <enumeratedValues>
                 <enumeratedValue>
                   <name>DIV1</name>
-                  <description>System Clock</description>
+                  <description>CLK_PER</description>
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV2</name>
-                  <description>System Clock / 2</description>
+                  <description>CLK_PER / 2</description>
                   <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV4</name>
-                  <description>System Clock / 4</description>
+                  <description>CLK_PER / 4</description>
                   <value>2</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV8</name>
-                  <description>System Clock / 8</description>
+                  <description>CLK_PER / 8</description>
                   <value>3</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV16</name>
-                  <description>System Clock / 16</description>
+                  <description>CLK_PER / 16</description>
                   <value>4</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV64</name>
-                  <description>System Clock / 64</description>
+                  <description>CLK_PER / 64</description>
                   <value>5</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV256</name>
-                  <description>System Clock / 256</description>
+                  <description>CLK_PER / 256</description>
                   <value>6</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>DIV1024</name>
-                  <description>System Clock / 1024</description>
+                  <description>CLK_PER / 1024</description>
                   <value>7</value>
                 </enumeratedValue>
               </enumeratedValues>
@@ -11721,11 +11720,6 @@
                   <value>0</value>
                 </enumeratedValue>
                 <enumeratedValue>
-                  <name>UPDATE</name>
-                  <description>Force Update</description>
-                  <value>1</value>
-                </enumeratedValue>
-                <enumeratedValue>
                   <name>RESTART</name>
                   <description>Force Restart</description>
                   <value>2</value>
@@ -11781,11 +11775,6 @@
                   <name>NONE</name>
                   <description>No Command</description>
                   <value>0</value>
-                </enumeratedValue>
-                <enumeratedValue>
-                  <name>UPDATE</name>
-                  <description>Force Update</description>
-                  <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
                   <name>RESTART</name>
@@ -13671,7 +13660,7 @@
               <name>WFB</name>
               <description>Wait For Break</description>
               <bitRange>[0:0]</bitRange>
-              <access>read-write</access>
+              <access>write-only</access>
             </field>
             <field>
               <name>BDF</name>
@@ -14231,7 +14220,7 @@
               <name>WFB</name>
               <description>Wait For Break</description>
               <bitRange>[0:0]</bitRange>
-              <access>read-write</access>
+              <access>write-only</access>
             </field>
             <field>
               <name>BDF</name>

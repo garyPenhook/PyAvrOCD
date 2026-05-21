@@ -2320,12 +2320,22 @@
       <baseAddress>0x0080004C</baseAddress>
       <addressBlock>
         <offset>0x0</offset>
-        <size>0x3</size>
+        <size>0x1</size>
+        <usage>registers</usage>
+      </addressBlock>
+      <addressBlock>
+        <offset>0x0</offset>
+        <size>0x2</size>
+        <usage>registers</usage>
+      </addressBlock>
+      <addressBlock>
+        <offset>0x1</offset>
+        <size>0x2</size>
         <usage>registers</usage>
       </addressBlock>
       <registers>
         <register>
-          <name>SPCR0</name>
+          <name>SPCR</name>
           <description>SPI Control Register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x8</size>
@@ -2401,6 +2411,82 @@
           </fields>
         </register>
         <register>
+          <name>SPCR0</name>
+          <description>SPI Control Register</description>
+          <addressOffset>0x0</addressOffset>
+          <size>0x8</size>
+          <access>read-write</access>
+          <fields>
+            <field>
+              <name>SPR0</name>
+              <description>SPI Clock Rate Selects</description>
+              <bitRange>[1:0]</bitRange>
+              <access>read-write</access>
+              <writeConstraint>
+                <useEnumeratedValues>true</useEnumeratedValues>
+              </writeConstraint>
+              <enumeratedValues>
+                <enumeratedValue>
+                  <name>FOSC_2_OR_FOSC_4</name>
+                  <description>fosc/2 or fosc/4</description>
+                  <value>0</value>
+                </enumeratedValue>
+                <enumeratedValue>
+                  <name>FOSC_8_OR_FOSC_16</name>
+                  <description>fosc/8 or fosc/16</description>
+                  <value>1</value>
+                </enumeratedValue>
+                <enumeratedValue>
+                  <name>FOSC_32_OR_FOSC_64</name>
+                  <description>fosc/32 or fosc/64</description>
+                  <value>2</value>
+                </enumeratedValue>
+                <enumeratedValue>
+                  <name>FOSC_64_OR_FOSC_128</name>
+                  <description>fosc/64 or fosc/128</description>
+                  <value>3</value>
+                </enumeratedValue>
+              </enumeratedValues>
+            </field>
+            <field>
+              <name>CPHA0</name>
+              <description>Clock Phase</description>
+              <bitRange>[2:2]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>CPOL0</name>
+              <description>Clock polarity</description>
+              <bitRange>[3:3]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>MSTR0</name>
+              <description>Master/Slave Select</description>
+              <bitRange>[4:4]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>DORD0</name>
+              <description>Data Order</description>
+              <bitRange>[5:5]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>SPE0</name>
+              <description>SPI Enable</description>
+              <bitRange>[6:6]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>SPIE0</name>
+              <description>SPI Interrupt Enable</description>
+              <bitRange>[7:7]</bitRange>
+              <access>read-write</access>
+            </field>
+          </fields>
+        </register>
+        <register>
           <name>SPDR0</name>
           <description>SPI Data Register (write-only for debugger)</description>
           <addressOffset>0x2</addressOffset>
@@ -2414,7 +2500,7 @@
           </writeConstraint>
         </register>
         <register>
-          <name>SPSR0</name>
+          <name>SPSR</name>
           <description>SPI Status Register (read-only for debugger)</description>
           <addressOffset>0x1</addressOffset>
           <size>0x8</size>
@@ -2434,6 +2520,33 @@
             </field>
             <field>
               <name>SPIF</name>
+              <description>SPI Interrupt Flag</description>
+              <bitRange>[7:7]</bitRange>
+              <access>read-write</access>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>SPSR0</name>
+          <description>SPI Status Register (read-only for debugger)</description>
+          <addressOffset>0x1</addressOffset>
+          <size>0x8</size>
+          <access>read-write</access>
+          <fields>
+            <field>
+              <name>SPI2X0</name>
+              <description>Double SPI Speed Bit</description>
+              <bitRange>[0:0]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>WCOL0</name>
+              <description>Write Collision Flag</description>
+              <bitRange>[6:6]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>SPIF0</name>
               <description>SPI Interrupt Flag</description>
               <bitRange>[7:7]</bitRange>
               <access>read-write</access>

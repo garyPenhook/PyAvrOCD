@@ -1641,12 +1641,6 @@
               <access>read-write</access>
             </field>
             <field>
-              <name>PC3</name>
-              <description>Pin C3</description>
-              <bitRange>[3:3]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
               <name>PC4</name>
               <description>Pin C4</description>
               <bitRange>[4:4]</bitRange>
@@ -1698,12 +1692,6 @@
               <access>read-write</access>
             </field>
             <field>
-              <name>PC3</name>
-              <description>Pin C3</description>
-              <bitRange>[3:3]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
               <name>PC4</name>
               <description>Pin C4</description>
               <bitRange>[4:4]</bitRange>
@@ -1752,12 +1740,6 @@
               <name>PC2</name>
               <description>Pin C2</description>
               <bitRange>[2:2]</bitRange>
-              <access>read-write</access>
-            </field>
-            <field>
-              <name>PC3</name>
-              <description>Pin C3</description>
-              <bitRange>[3:3]</bitRange>
               <access>read-write</access>
             </field>
             <field>

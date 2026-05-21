@@ -2974,6 +2974,12 @@
               <bitRange>[4:4]</bitRange>
               <access>read-write</access>
             </field>
+            <field>
+              <name>PG5</name>
+              <description>Pin G5</description>
+              <bitRange>[5:5]</bitRange>
+              <access>read-write</access>
+            </field>
           </fields>
         </register>
         <register>
@@ -3013,6 +3019,12 @@
               <bitRange>[4:4]</bitRange>
               <access>read-write</access>
             </field>
+            <field>
+              <name>PG5</name>
+              <description>Pin G5</description>
+              <bitRange>[5:5]</bitRange>
+              <access>read-write</access>
+            </field>
           </fields>
         </register>
         <register>
@@ -3050,6 +3062,12 @@
               <name>PG4</name>
               <description>Pin G4</description>
               <bitRange>[4:4]</bitRange>
+              <access>read-write</access>
+            </field>
+            <field>
+              <name>PG5</name>
+              <description>Pin G5</description>
+              <bitRange>[5:5]</bitRange>
               <access>read-write</access>
             </field>
           </fields>
