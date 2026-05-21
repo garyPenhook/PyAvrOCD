@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.4.0
+
+- **Added**:
+     - Support for the Dx series
+
 ### 1.3.2 (19-May-2026)
 
 - **Fixed:**

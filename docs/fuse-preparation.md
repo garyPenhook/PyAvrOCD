@@ -1,6 +1,6 @@
 # Setting the right fuses to enable debugging
 
-The good news for Arduino IDE 2 users: You do not have to worry about fuses. Almost all the fuse setting details are taken care of by the IDE. However, on targets with JTAG interface,  it may be necessary to enable the JTAG pins on targets with the JTAG interface.
+The good news for Arduino IDE 2 users: You do not have to worry about fuses. Almost all the fuse setting details are taken care of by the IDE. You need to set the right fuses once in the beginning before debugging begins (using the `Burn Bootloader` IDE command). Further, on targets with JTAG interface,  it may be necessary to enable the JTAG pins on targets with the JTAG interface.
 
 <details>
 <summary><b>How to enable the JTAG pins</b></summary>

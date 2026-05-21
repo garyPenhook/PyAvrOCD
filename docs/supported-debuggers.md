@@ -4,7 +4,7 @@ PyAvrOCD has been built to provide access to AVR OCDs by means of Microchip's de
 
 ## Hardware debug probes
 
-Except for dw-link, the list below is copied from the README file of [pyedbglib](https://github.com/microchip-pic-avr-tools/pyedbglib). Boldface means that I have tested the debuggers and they work with PyAvrOCD; underlined means that the debugger is waiting on my desk to be tested:
+Except for dw-link, the list below is copied from the README file of [pyedbglib](https://github.com/microchip-pic-avr-tools/pyedbglib). Boldface means that I have tested the debuggers and they work with PyAvrOCD:
 
 
 * **[MPLAB PICkit 4 In-Circuit Debugger](https://www.microchip.com/en-us/development-tool/pg164140)** ([when in 'AVR mode'](#switching-to-avr-mode))
