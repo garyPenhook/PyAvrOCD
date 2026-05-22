@@ -144,11 +144,5 @@ void setup ()
 
 void loop ()
 {
-    digitalWrite(LED0, HIGH);
-    digitalWrite(LED1, HIGH);
-    delay(200);
-    digitalWrite(LED0, LOW);
-    digitalWrite(LED1, LOW);
-    delay(200);
 }
 
