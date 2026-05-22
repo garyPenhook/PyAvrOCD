@@ -40,7 +40,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 ### ATtiny 0-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny202**, **ATtiny402**
-- <u>ATtiny204</u>, **ATtiny404,** <u>ATtiny804</u>, **ATtiny1604**
+- **ATtiny204**, **ATtiny404,** **ATtiny804**, **ATtiny1604**
 - **ATtiny406**, **ATtiny806**, **ATtiny1606**
 - ATtiny807, **ATtiny1607**
 
@@ -49,7 +49,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 ### ATtiny 1-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
 - **ATtiny212**, **ATtiny412**
-- <u>ATtiny214</u>, <u>ATtiny414</u>, **ATtiny814,** <u>ATtiny1614</u>
+- **ATtiny214**, **ATtiny414**, **ATtiny814,** **ATtiny1614**
 - **ATtiny416**, **ATtiny816**, **ATtiny1616**, **ATtiny3216**
 - <u>ATtiny417</u>, **ATtiny817**, <u>ATtiny1617</u>, **ATtiny3217**
 
@@ -57,7 +57,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ### ATtiny 2-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
 
-- <u>ATtiny424</u>, <u>ATtiny824</u>, <u>ATtiny1624</u>, **ATtiny3224**
+- **ATtiny424**, **ATtiny824**, **ATtiny1624**, **ATtiny3224**
 - **ATtiny426**, **ATtiny826**, **ATtiny1626**, **ATtiny3226**
 - <u>ATtiny427</u>, <u>ATtiny827</u>, <u>ATtiny1627</u>, **ATtiny3237**
 
@@ -150,38 +150,38 @@ This is the megaAVR 0-series. The ATmega4809 made it on some Arduino boards.
 
 Work in progress: The current preview v1.4.0a1 supports the MCU mentioned below. As usual, the bold ones have been tested and work.
 
-### AVR DA series
+### AVR DA series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- <u>AVR32DA28(S)</u>, AVR32DA32(S), AVR32DA48(S)
-- <u>AVR64DA28(S)</u>, AVR64DA32(S), AVR64DA48(S), AVR32DA64(S)
-- <u>AVR128DA28(S)</u>, AVR128DA32(S), **AVR128DA48(S)**, AVR128DA64(S)
+- **AVR32DA28(S)**, AVR32DA32(S), AVR32DA48(S)
+- **AVR64DA28(S)**, AVR64DA32(S), AVR64DA48(S), AVR32DA64(S)
+- **AVR128DA28(S)**, AVR128DA32(S), **AVR128DA48(S)**, AVR128DA64(S)
 
-### AVR DB series
+### AVR DB series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- <u>AVR32DB28</u>, AVR32DB32, AVR32DB48
-- <u>AVR64DB28</u>, AVR64DB32, AVR64DB48, AVR32DB64
-- <u>AVR128DB28</u>, <u>AVR128DB32</u>, **AVR128DB48**, <u>AVR128DB64</u>
+- **AVR32DB28**, AVR32DB32, AVR32DB48
+- **AVR64DB28**, AVR64DB32, AVR64DB48, AVR32DB64
+- **AVR128DB28**, <u>AVR128DB32</u>, **AVR128DB48**, <u>AVR128DB64</u>
 
-### AVR DD series
+### AVR DD series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- AVR16DD14, AVR16DD20, <u>AVR16DD28</u>, AVR16DD32
-- AVR32DD14, AVR32DD20, <u>AVR32DD28</u>, AVR32DD32
-- <u>AVR64DD14</u>, <u>AVR64DD20</u>, <u>AVR64DD28</u>, **AVR64DD32**
+- AVR16DD14, AVR16DD20, **AVR16DD28**, AVR16DD32
+- AVR32DD14, AVR32DD20, **AVR32DD28**, AVR32DD32
+- <u>AVR64DD14</u>, <u>AVR64DD20</u>, **AVR64DD28**, **AVR64DD32**
 
-### AVR DU series
+### AVR DU series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- AVR16DU14, AVR16DU20, <u>AVR16DU28</u>, AVR16DU32
-- AVR32DU14, AVR32DU20, <u>AVR32DU28</u>, AVR32DU32
-- <u>AVR64DU28</u>, **AVR64DU32**
+- AVR16DU14, AVR16DU20, **AVR16DU28**, AVR16DU32
+- AVR32DU14, AVR32DU20, **AVR32DU28**, AVR32DU32
+- **AVR64DU28**, **AVR64DU32**
 
-### AVR EA series
+### AVR EA series supported by *[DxCore](supporting-cores.md#dxcore)*
 
 - <u>AVR16EA28</u>, AVR16EA32, AVR16EA48
 
 - <u>AVR32EA28</u>, AVR32EA32, AVR32EA48
 - <u>AVR64EA28</u>, AVR64EA32, **AVR64EA48**
 
-### AVR EB series
+### AVR EB series supported by *[DxCore](supporting-cores.md#dxcore)*
 
 - AVR16EB14, AVR16EB20, <u>AVR16EB28</u>, **AVR16EB32**
 - AVR32EB14, AVR32EB20, <u>AVR32EB28</u>, AVR32EB32
@@ -192,7 +192,7 @@ No support yet
 
 ### AVR SD series
 
-No support yet.
+No support yet. Since DxCore will most probably not support these chips, it is questionable whether PyAvrOCD will.
 
 ## XMegas
 

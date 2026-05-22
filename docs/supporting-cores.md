@@ -92,3 +92,13 @@ This is a fork of the core for modern ATiny Chips (series 0, 1, and 2). You can 
 ```
 https://felias-fogg.github.io/megaTinyCore/package_SpenceKonde_megaTinyCore_index.json
 ```
+
+### [DxCore (Debug enabled)](https://github.com/felias-fogg/DxCore)
+
+This is a fork of Spence Konde's DxCore, the core for the most recently marketed AVR chips. Install it using:
+
+```
+https://felias-fogg.github.io/megaTinyCore/package_SpenceKonde_DxCore_index.json
+```
+
+### 

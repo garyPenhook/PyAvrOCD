@@ -19,7 +19,7 @@ This is an error message you may get under macOS. It happens when you download e
 
 ### `No compatible tool discovered`
 
-This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that another process currently uses it, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install.md).
+This could mean that no debug tool is connected, that you specified an incompatible debug probe using the `--tool` option, that the serial line the tool is attached to is busy, or that [you have not yet installed the necessary udev rules under Linux](install.md).
 
 ### `[Errno 48] Address already in use`
 
