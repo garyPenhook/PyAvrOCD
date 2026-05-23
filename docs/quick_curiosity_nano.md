@@ -17,6 +17,7 @@ Add new *boards manager URL*s in the `Preferences` dialog:[^*]
 ```
 https://felias-fogg.github.io/MegaCoreX/package_MCUdude_MegaCoreX_index.json
 https://felias-fogg.github.io/megaTinyCore/package_SpenceKonde_megaTinyCore_index.json
+https://felias-fogg.github.io/DxCore/package_SpenceKonde_DxCore_index.json
 ```
 
 {!details-boards-manager-url.md!}
@@ -30,7 +31,7 @@ Next, you have to install the appropriate core. Activate the `Boards Manager`, s
 
 ### Step 2: Load sketch and select board
 
-Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> <core> -> <board>`. If you want to use serial I/O, you may also want to select the right `Port` in the `Tools` menu. Perhaps you want to set a few additional options in the `Tools` menu, such as the chip, the pinout, etc.
+Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> <core> -> <board>`. If you want to use serial I/O, you need to select the right `Port` in the `Tools` menu. The boards do not always use the standard serial interface. Check out the [section on supported Microchip boards](supported-boards.md). Finally, you may want to set a few additional options in the `Tools` menu, such as the chip, the pinout, etc.
 
 ### Step 3: Compile the sketch
 
@@ -50,4 +51,4 @@ If you want to stop debugging, it may be a good idea to deactivate the `Optimize
 
 If something goes wrong, it is a good idea to have a look at the output of the `gdb-server` console. Messages with the prefix \[CRITICAL] often tell what went wrong. It may also be a good idea to consult the [Troubleshooting](troubleshooting.md) and the [Limitations](limitations.md) section of the PyAvrOCD manual.
 
-[^*]: Extensions to cover the Dx- and Ex-chips are expected to arrive soon.
+[^*]: You actually will need to add only one of these URLs which depends one the [MCU on the board](supported-mcus.md).
