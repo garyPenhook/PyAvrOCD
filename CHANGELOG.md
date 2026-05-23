@@ -1,14 +1,14 @@
 # Changelog
 
-### 1.4.0a1 (22-May-2026)
+### 1.4.0 (23-May-2026)
 
 - **Goal reached:**
-     - All e2e tests work on the AVR Dx/Ex CNANO boards. There were 2 glitches (see test-problems.md, which seem not to be mine, though). The remaining chips will be tested soon.
+     - All e2e tests work on the AVR Dx/Ex CNANO boards and the DIP chips. There were 2 glitches (see test-problems.md, which seem not to be mine, though).
 
 - **Added**:
      - Support for the Dx and Ex series was added (SVD, device files).
 - **Fixed:**
-     - Check for `-mrelax` every line recorded by a producer in order not to miss any of those. Before, only those lines with 'GNU C' in them were tested.
+     - Now we check for `-mrelax` in every line recorded by a producer in the ELF file in order not to miss any of those. Before, only those lines with 'GNU C' in them were tested.
 
 
 ### 1.3.2 (19-May-2026)

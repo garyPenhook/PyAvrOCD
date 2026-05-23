@@ -97,7 +97,7 @@ bool checktab(unsigned long tab, int count)
 
 void setup ()
 {
-  //Serial.begin(19200);
+  // Serial.begin(19200);
   // Serial.println("Hello Flashed");
   LedInit();
     unsigned long addr[TABNUM] = {

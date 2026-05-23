@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release v1.4.0
+
+- Support for the Dx and Ex series was added (and tested).
+
 ## Release v1.3.2
 
 - You can now debug on a UPDI target even when the bootloader option has been set (but the bootloader will be deleted so that it cannot interfere with the debugger).

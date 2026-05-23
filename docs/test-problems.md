@@ -21,3 +21,4 @@ While running the end-to-end test, I had to make some amends to get them through
 - The AVR64EA48 crashes on `flashed.ino` when there is a `Serial.begin(9600)` in `setup`. All other chips do OK.
 - <s>The DX/EX CNANO boards do not communicate over the virtual serial line.</s> You have to figure out, which serial line and which Swap Microchip used for each board.
 - The AVR16DU28 and AVR32DU28 did not compile with the homebrew GCC toolchain because some files were missing.
+- AVR32EB28 device spec is missing from homebrew version of GCC15 toolchain. And it is locked and cannot be unlocked.

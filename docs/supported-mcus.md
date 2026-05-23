@@ -176,15 +176,15 @@ Work in progress: The current preview v1.4.0a1 supports the MCU mentioned below.
 
 ### AVR EA series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- <u>AVR16EA28</u>, AVR16EA32, AVR16EA48
+- **AVR16EA28**, AVR16EA32, AVR16EA48
 
-- <u>AVR32EA28</u>, AVR32EA32, AVR32EA48
-- <u>AVR64EA28</u>, AVR64EA32, **AVR64EA48**
+- **AVR32EA28**, AVR32EA32, AVR32EA48
+- **AVR64EA28**, AVR64EA32, **AVR64EA48**
 
 ### AVR EB series supported by *[DxCore](supporting-cores.md#dxcore)*
 
-- AVR16EB14, AVR16EB20, <u>AVR16EB28</u>, **AVR16EB32**
-- AVR32EB14, AVR32EB20, <u>AVR32EB28</u>, AVR32EB32
+- AVR16EB14, AVR16EB20, **AVR16EB28**, **AVR16EB32**
+- AVR32EB14, AVR32EB20, AVR32EB28, AVR32EB32
 
 ### AVR LA series
 
