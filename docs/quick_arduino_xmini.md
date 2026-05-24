@@ -23,9 +23,9 @@ https://felias-fogg.github.io/XMiniCore/package_felias-fogg_XMiniCore_index.json
 
 {!details-boards-manager-url.md!}
 
-Next you have to install the new core. Activate the `Boards Manager`, select `XMiniCore`, and click on `Install`.
+Next you have to install the new package. Activate the `Boards Manager`, select `XMiniCore`, and click on `Install`.
 
-{!details-install-core.md!}
+{!details-install-package.md!}
 
 !!! info "Linux systems"
     After the installation, users of Linux systems will need to add `udev` rules. Download [https://pyavrocd.io/99-edbg-debuggers.rules](https://pyavrocd.io/99-edbg-debuggers.rules), edit if you want, and copy to `/etc/udev/rules.d/`.

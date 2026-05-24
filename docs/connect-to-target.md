@@ -27,7 +27,7 @@ If you do not have the standard headers on board or you are using a breadboard, 
 <img src="https://raw.githubusercontent.com/felias-fogg/PyAvrOCD/refs/heads/main/docs/pics/pickit4-connect.png" width="70%">
 </p>
 
-In this case, it is essential to consult the user guide of the programmer and the [pinout of the MCU](https://pinouts.de) in the datasheet or the documentation of the respective core to make the correct connections.
+In this case, it is essential to consult the user guide of the programmer and the [pinout of the MCU](https://pinouts.de) in the datasheet or the documentation of the respective Arduino package to make the correct connections.
 
 ## Connecting to a debugWIRE target
 

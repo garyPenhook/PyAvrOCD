@@ -1,18 +1,18 @@
 # Supported MCUs
 
-This is the list of all AVR MCUs, which should be compatible with PyAvrOCD. It is extended continuously as the development of PyAvrOCD proceeds. MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested. All other MCUs listed are supposed to be compatible because their close cousins are. However, this assumption can be wrong, as I have experienced repeatedly.
+This is the list of the AVR MCUs that should be compatible with PyAvrOCD. It is extended continuously as the development of PyAvrOCD proceeds. MCUs tested with PyAvrOCD are marked in bold. MCUs known not to work with PyAvrOCD are struck out. Underlined MCUs are sitting on my desk and are waiting to be tested. All other MCUs listed are supposed to be compatible because their close cousins are. However, this assumption can be wrong, as I have experienced repeatedly.
 
 The list is structured by the Arduino cores that support the chips, where some of the MCUs are supported by more than one core.
 
 ## Classic ATtinys
 
-### ATtinys supported by *[MicroCore](supporting-cores.md#microcore)*
+### ATtinys supported by [MicroCore](supporting-packages.md#microcore)
 
 - **ATtiny13(A)**
 
 Because of its limited flash memory, debugging a sketch on this MCU is rather challenging.
 
-### ATtinys supported by *[TinyCore](supporting-cores.md#tinycore)* and *[ATTinyCore (Debug enabled)](supporting-cores.md#attinycore-debug-enabled)*
+### ATtinys supported by [TinyCore](supporting-packages.md#tinycore) and [ATTinyCore (Debug enabled)](supporting-packages.md#attinycore)
 
 * **ATtiny43U**
 * **ATtiny2313, ATtiny2313A, ATtiny4313**
@@ -37,7 +37,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ## Modern ATtinys
 
-### ATtiny 0-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
+### ATtiny 0-series supported by [megaTinyCore (Debug enabled)](supporting-packages.md#megatinycore)
 
 - **ATtiny202**, **ATtiny402**
 - **ATtiny204**, **ATtiny404,** **ATtiny804**, **ATtiny1604**
@@ -46,7 +46,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 
 
-### ATtiny 1-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
+### ATtiny 1-series supported by [megaTinyCore (Debug enabled)](supporting-packages.md#megatinycore)
 
 - **ATtiny212**, **ATtiny412**
 - **ATtiny214**, **ATtiny414**, **ATtiny814,** **ATtiny1614**
@@ -55,7 +55,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 
 
-### ATtiny 2-series supported by [megaTinyCore (Debug enabled)](supporting-cores.md#megatinycore-debug-enabled)
+### ATtiny 2-series supported by [megaTinyCore (Debug enabled)](supporting-packages.md#megatinycore)
 
 - **ATtiny424**, **ATtiny824**, **ATtiny1624**, **ATtiny3224**
 - **ATtiny426**, **ATtiny826**, **ATtiny1626**, **ATtiny3226**
@@ -65,7 +65,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 ## Classic ATmegas
 
-### ATmegas supported by [*MiniCore*](supporting-cores.md#minicore)
+### ATmegas supported by [MiniCore](supporting-packages.md#minicore)
 
 - <s>ATmega8</s>
 
@@ -76,7 +76,7 @@ Because of its limited flash memory, debugging a sketch on this MCU is rather ch
 
 The ATmega8 does not possess a debug interface. The ATmega48 and ATmega88 (without the A-suffix) sitting on my desk suffer from the problem that they either cannot be switched to debugWIRE mode, or, if you are successful, they become unresponsive. I suspect that this applies to all chips labeled this way. Even chips recently purchased through an official distributor had these issues. For this reason, PyAvrOCD will identify these chips and refuse to handle them.
 
-### ATmegas supported by [*XMiniCore*](supporting-cores.md#xminicore)
+### ATmegas supported by [XMiniCore](supporting-packages.md#xminicore)
 
 The following MCUs are already supported by MiniCore. However, XMiniCore goes some way to make it easier to deal with the Microchip Xplained Mini development boards so that debugging becomes plug-and-play.
 
@@ -84,7 +84,7 @@ The following MCUs are already supported by MiniCore. However, XMiniCore goes so
 - **ATmega168PB** (Xplained Mini board)
 - **ATmega328PB** (Xplained Mini board)
 
-### ATmegas supported by [*MightyCore*](supporting-cores.md#mightycore)
+### ATmegas supported by [MightyCore](supporting-packages.md#mightycore)
 
 * **ATmega16(A)**, **ATmega32(A)**
 * **ATmega164(P)(A)**, **ATmega324(P)(A)**, **ATmega324PB**, **ATmega644(P)(A)**, **ATmega1284(P)**
@@ -94,7 +94,7 @@ The ATmega16 MCUs (with and without an A-suffix) have a stuck-at-one-bit in the 
 
 The ATmega8535 does not possess a debug interface.
 
-### ATmegas supported by [*MegaCore*](supporting-cores.md#megacore)
+### ATmegas supported by [MegaCore](supporting-packages.md#megacore)
 
 * **ATmega64(A)**, **ATmega128(A)**
 * **ATmega640**, **ATmega1280**, **ATmega2560**
@@ -109,12 +109,22 @@ The Atmega64(A), ATmega329(P)(A), and ATmega3250(P)(A) MCUs have a stuck-at-one-
 
 The ATmega128(A) MCUs do not allow for software breakpoints. This means that you can use only four hardware breakpoints.
 
-### ATmega supported by [*MajorCore*](supporting-cores.md#majorcore)
+### ATmega supported by [MajorCore](supporting-packages.md#majorcore)
 
 * **ATmega162**
 * <s>ATmega8515</s>
 
 The ATmega8515 does not have a debug interface.
+
+### ATmegas supported by [Arduino AVR Boards (Debug enabled)](supporting-packages.md#arduino-avr-boards)
+
+Most of the MCUs covered by this package are already supported by other packages. However, one exception is the ATmega32U4 (e.g., on the Leonardo).
+
+- **ATmega168**
+- **Atmega328P**
+- **ATmega32U4**
+- **ATmega1280**
+- **ATmega2560**
 
 ### Other ATmegas with debugWIRE interface
 
@@ -128,7 +138,7 @@ The ATmega8515 does not have a debug interface.
 
 ### Other ATmegas with JTAG interface
 
-* ATmega16U4, **ATmega32U4**
+* ATmega16U4
 * AT90USB646, AT90USB647, <u>AT90USB1286</u>, AT90USB1287
 * ATmega644rfr2, ATmega1284rfr2, ATmega2564rfr2
 * ATmega64rfr2, ATmega128rfr2, <u>ATmega256rfr2</u>
@@ -137,51 +147,55 @@ The ATmega8515 does not have a debug interface.
 
 ## Modern ATmegas
 
-### Atmegas supported by *[MegaCoreX](supporting-cores.md#megacorex)*
+### ATmegas supported by [MegaCoreX (Debug enabled)](supporting-packages.md#megacorex)
 
 This is the megaAVR 0-series. The ATmega4809 made it on some Arduino boards.
 
 - **ATmega808**, **ATmega1608**, **ATmega3208**, **ATmega4808**
 - **ATmega809**, **ATmega1609**, **ATmega3209**, **ATmega4809**
 
+### ATmega supported by [Arduino megaAVR Boards (Debug enabled)](supporting-packages.md#arduino-megaavr-boards)
 
+There exists only 2 Arduino boards, both using the
+
+- **ATmega4809**
 
 ## AVR Dx-, Ex-, Lx-, Sx- devices
 
 Work in progress: The current preview v1.4.0a1 supports the MCU mentioned below. As usual, the bold ones have been tested and work.
 
-### AVR DA series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR DA series supported by [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - **AVR32DA28(S)**, AVR32DA32(S), AVR32DA48(S)
 - **AVR64DA28(S)**, AVR64DA32(S), AVR64DA48(S), AVR32DA64(S)
 - **AVR128DA28(S)**, AVR128DA32(S), **AVR128DA48(S)**, AVR128DA64(S)
 
-### AVR DB series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR DB series supported by  [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - **AVR32DB28**, AVR32DB32, AVR32DB48
 - **AVR64DB28**, AVR64DB32, AVR64DB48, AVR32DB64
 - **AVR128DB28**, <u>AVR128DB32</u>, **AVR128DB48**, <u>AVR128DB64</u>
 
-### AVR DD series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR DD series supported by  [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - AVR16DD14, AVR16DD20, **AVR16DD28**, AVR16DD32
 - AVR32DD14, AVR32DD20, **AVR32DD28**, AVR32DD32
 - <u>AVR64DD14</u>, <u>AVR64DD20</u>, **AVR64DD28**, **AVR64DD32**
 
-### AVR DU series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR DU series supported by  [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - AVR16DU14, AVR16DU20, **AVR16DU28**, AVR16DU32
 - AVR32DU14, AVR32DU20, **AVR32DU28**, AVR32DU32
 - **AVR64DU28**, **AVR64DU32**
 
-### AVR EA series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR EA series supported by  [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - **AVR16EA28**, AVR16EA32, AVR16EA48
 
 - **AVR32EA28**, AVR32EA32, AVR32EA48
 - **AVR64EA28**, AVR64EA32, **AVR64EA48**
 
-### AVR EB series supported by *[DxCore](supporting-cores.md#dxcore)*
+### AVR EB series supported by  [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - AVR16EB14, AVR16EB20, **AVR16EB28**, **AVR16EB32**
 - AVR32EB14, AVR32EB20, AVR32EB28, AVR32EB32

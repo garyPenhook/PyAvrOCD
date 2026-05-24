@@ -14,7 +14,7 @@ Mac and Linux users should be aware of some idiosyncrasies.
 
 ### Arduino IDE 2
 
-If you want to use PyAvrOCD as part of Arduino IDE 2, you do not need to install it explicitly. It is sufficient to [install a debug-enabled Arduino core](supporting-cores.md). Together with PyAvrOCD, you will also get the GDB client `avr-gdb` and the simulator (for some AVR chips) `simavr`.
+If you want to use PyAvrOCD as part of Arduino IDE 2, you do not need to install it explicitly. It is sufficient to [install a debug-enabled Arduino package](supporting-packages.md). Together with PyAvrOCD, you will also get the GDB client `avr-gdb` and the simulator (for some AVR chips) `simavr`.
 
 If you want to use PyAvrOCD stand-alone or as part of another IDE, you need to install the PyAvrOCD package explicitly, as described below.
 

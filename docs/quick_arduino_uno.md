@@ -30,7 +30,7 @@ The completed board setup may then look as follows.
 
 ### Step 2: Install the debug-enabled MiniCore
 
-Since the stock Arduino AVR Boards core does not support debugging, we need to shop elsewhere. For this reason, you need to add a new *boards manager URL* in the `Preferences` dialog so that `MiniCore` can be installed:
+Since the stock Arduino AVR Boards package does not support debugging, we need to shop elsewhere. For this reason, you need to add a new *boards manager URL* in the `Preferences` dialog so that `MiniCore` can be installed:
 
 ```
 https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
@@ -40,7 +40,7 @@ https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
 
 Next you have to install the `MiniCore`. Activate the `Boards Manager`, select `MiniCore`, and click on `Install`.
 
-{!details-install-core.md!}
+{!details-install-package.md!}
 
 ### Step 3: Prepare the target board for debugging
 

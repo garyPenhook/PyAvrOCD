@@ -10,7 +10,7 @@ You need a Curiosity Nano board and a USB cable to connect the board to your com
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/cnano.png" width="55%">
 </p>
 
-### Step 1: Install a debug-enabled core
+### Step 1: Install a debug-enabled Arduino package
 
 Add new *boards manager URL*s in the `Preferences` dialog:[^*]
 
@@ -22,16 +22,16 @@ https://felias-fogg.github.io/DxCore/package_SpenceKonde_DxCore_index.json
 
 {!details-boards-manager-url.md!}
 
-Next, you have to install the appropriate core. Activate the `Boards Manager`, select the most recent versions of the core you want to install, and click on `Install`.
+Next, you have to install the appropriate Arduino package. Activate the `Boards Manager`, select the most recent versions of the package you want to install, and click on `Install`.
 
-{!details-install-core.md!}
+{!details-install-package.md!}
 
 !!! info "Linux systems"
     After the installation, users of Linux systems will need to add `udev` rules. Download [https://pyavrocd.io/99-edbg-debuggers.rules](https://pyavrocd.io/99-edbg-debuggers.rules), edit if you want, and copy to `/etc/udev/rules.d/`.
 
 ### Step 2: Load sketch and select board
 
-Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> <core> -> <board>`. If you want to use serial I/O, you need to select the right `Port` in the `Tools` menu. The boards do not always use the standard serial interface. Check out the [section on supported Microchip boards](supported-boards.md). Finally, you may want to set a few additional options in the `Tools` menu, such as the chip, the pinout, etc.
+Load a sketch, e.g., the `Blink` sketch, and select the right board: `Tools -> Board -> <package> -> <board>`. If you want to use serial I/O, you need to select the right `Port` in the `Tools` menu. The boards do not always use the standard serial interface. Check out the [section on supported Microchip boards](supported-boards.md). Finally, you may want to set a few additional options in the `Tools` menu, such as the chip, the pinout, etc.
 
 ### Step 3: Compile the sketch
 

@@ -32,7 +32,7 @@ nav:
   - Installation:
     - PyAvrOCD: 'install.md'
     - Debugging software: 'debugging-software.md'
-    - Arduino cores: 'supporting-cores.md'
+    - Arduino packages: 'supporting-packages.md'
   - Usage:
     - Preparing the target board: 'board-preparation.md'
     - Setting the right fuses: 'fuse-preparation.md'

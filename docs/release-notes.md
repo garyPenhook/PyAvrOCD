@@ -14,7 +14,7 @@
 
 ## Release v1.3.0
 
-- Support for modern ATtinys has been added. Now, you can use SpenceKonde's megaTinyCore (presently using my fork of this core).
+- Support for modern ATtinys has been added. Now, you can use SpenceKonde's megaTinyCore (presently using my fork of this package).
 
 ## Release v1.2.3
 
@@ -70,7 +70,7 @@
 
 - All e2e tests are passed on all MCUs on my desk using all the different debuggers.
 - New way to handle non-zero unused PC bits. If an MCU returns non-zero unused PC bits, these are masked out in PyAvrOCD.
-- Non-zero unused bits in return addresses (which disturb line-stepping and backtracing) are now handled with a patch in AVR-GDB. I make the patched version available in the repo [avr-gdb](https://github.com/felias-fogg/avr-gdb), and it is distributed in the debug-enabled cores.
+- Non-zero unused bits in return addresses (which disturb line-stepping and backtracing) are now handled with a patch in AVR-GDB. I make the patched version available in the repo [avr-gdb](https://github.com/felias-fogg/avr-gdb), and it is distributed in the debug-enabled packages.
 - The option `onlycaching` of the command `monitor load` has been renamed to `noinitialload`
 
 ## Release v0.21.0

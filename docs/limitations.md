@@ -66,11 +66,11 @@ Another effect of using the `-Og` compiler optimization could be that all of a s
 
 Link-time optimization (`-flto`) will 'optimize away' important structural debug information about C++ objects and global variables.
 
-Link-time optimization is a technique introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units.
+Link-time optimization is a technique introduced into the Arduino IDE only in 2020.  It optimizes across all compilation units and is able to prune away unused functions and data structures, as well as inlining functions across compilation units. It often reduces the code by 20--30~\% code.
 
-The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.
+The disadvantage is that [link-time optimization prunes away essential information about C++ objects](https://arduino-craft-corner.de/index.php/2021/12/15/link-time-optimization-and-debugging-of-object-oriented-programs-on-avr-mcus/) so that class instances all of a sudden seem to be variables of a structure type. Furthermore, they prune away the info that variables are global, which means that in the `VARIABLES` debugging pane of the Arduino IDE 2, no variables are displayed. Finally, because of aggressive inlining, this technique can provoke stack overflows.  Hopefully, these problems will go away when more recent version of the GCC compiler are going to be used.
 
-All these problems disappear when link-time optimization is disabled. However, in this case, much more code space may be needed. In some debug-enabled Arduino cores, link-time optimization can be disabled. Hopefully, these problems will go away when more recent version of the GCC compiler are going to be used.
+All these problems disappear when link-time optimization is disabled. In some debug-enabled Arduino packages, link-time optimization can be disabled in the `Tools` menu. In others, it is only disabled when the `Optimize for Debugging` option is activated. For all packages supporting modern AVR chips, link-time optimization is always active.
 
 ## Link-time jump relaxation
 
