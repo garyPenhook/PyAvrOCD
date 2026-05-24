@@ -11,8 +11,8 @@ If, after debugging, you want to restore a target board to its original state, a
 !!! info "Use dw-link as an 'Arduino as ISP' programmer"
     You can use dw-link as a programmer. Select as the `Port` in the `Tools` menu the serial connection to dw-link and choose `Arduino as ISP` as the `Programmer`. Now you can upload programs and burn bootloaders and fuses.
 
-!!! warning "Burning the bootloader using the Arduino AVR Boards core"
-    If you have debugged a board using, e.g., `MiniCore`, and now want to restore an Uno R3 board to its previous state under the`Arduino AVR Boards` core as an `Arduino Uno`, you may encounter problems when using one of the Microchip debug probes. Use a cheap USBasp programmer or something similar instead for burning the boot loader. Alternatively, you may consider staying with MiniCore and employing [Urboot](https://github.com/stefanrueger/urboot) as the bootloader.
+!!! warning "Burning the bootloader using the Arduino AVR Boards package"
+    If you have debugged a board using, e.g., `MiniCore`, and now want to restore an Uno R3 board to its previous state under the`Arduino AVR Boards` package as an `Arduino Uno`, you may encounter problems when using one of the Microchip debug probes. Use a cheap USBasp programmer or something similar instead for burning the boot loader. Alternatively, you may consider staying with MiniCore and employing [Urboot](https://github.com/stefanrueger/urboot) as the bootloader.
 
 !!! warning "Burning the bootloader when there are many user-selectable options"
     If you have debugged a target for which the `Tools` menu offers many different options, make sure that all relevant options have the correct value before you use the `Burn Bootloader` command. In particular, make sure that the right `Clock` value is selected! Otherwise, it can happen that you need to apply an external clock to reanimate your chip.

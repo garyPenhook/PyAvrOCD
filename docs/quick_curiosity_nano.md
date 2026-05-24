@@ -51,4 +51,4 @@ If you want to stop debugging, it may be a good idea to deactivate the `Optimize
 
 If something goes wrong, it is a good idea to have a look at the output of the `gdb-server` console. Messages with the prefix \[CRITICAL] often tell what went wrong. It may also be a good idea to consult the [Troubleshooting](troubleshooting.md) and the [Limitations](limitations.md) section of the PyAvrOCD manual.
 
-[^*]: You actually will need to add only one of these URLs which depends one the [MCU on the board](supported-mcus.md).
+[^*]: You actually will need to add only one of these URLs which depends on the [MCU on the board](supported-mcus.md).
