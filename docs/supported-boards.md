@@ -1,8 +1,6 @@
 # Supported boards
 
-Almost all boards equipped with one of the supported chips can be used in one way or another. Tested boards are marked in boldface, and those known not to work are struck out. The ones that are underlined are sitting on my desk and are waiting to be tested. If no package is mentioned, then there is no support through an Arduino package yet, but PyAvrOCD nevertheless supports debugging the chip.
-
-For supported boards, possible board modifications and other information is mentioned.
+Almost all boards equipped with one of the [supported chips](supported-mcus.md) can be used in one way or another. Tested boards are marked in boldface, and those known not to work are struck out. The ones that are underlined are sitting on my desk and are waiting to be tested. If no supporting hardware package is mentioned, then there is no support through an Arduino package yet, but PyAvrOCD nevertheless supports debugging the chip. For supported boards that have been tested, possible board modifications and other information are mentioned.
 
 
 ## Microchip boards
@@ -28,13 +26,13 @@ Most of the supported Microchip boards have an embedded debugger on board, which
 - **AVR128DA48 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PC6 (pin 20); button is on PC7 (pin 21); programmer should be `Curiosity Nano`; serial I/O is routed via `Serial1` instead of `Serial` through the debug interface.
 - **AVR128DB48 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PB3 (pin 11); button is on PB2 (pin 10); serial I/O is routed via `Serial3` instead of `Serial` through the debug interface.
 - **AVR64DD32 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PF5 (pin 25); button is on PF6 (pin 26, `RESET`); programmer should be `Curiosity Nano`; serial I/O through the debug interface is routed via `Serial`, however, you need to swap the I/O pins using `Serial.swap(3)`.
-- **AVR64DU32 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PF2 (pin 22); button is on PF6 (pin 26, `RESET`); programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
+- **AVR64DU32 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PF2 (pin 22); button is on PF6 (pin 26, `RESET`); programmer should be `Curiosity Nano`; serial I/O is routed via `Serial1` instead of `Serial` through the debug interface, and in addition, you need to swap the pins: `Serial1.swap(2)`.
 - **AVR64EA48 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PB3 (pin 11); button is on PB2 (pin 10); programmer should be `Curiosity Nano`; serial I/O is routed via `Serial1` instead of `Serial` through the debug interface.
-- **AVR16EB32 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PF5 (pin 25); button is on PF6 (pin 26, `RESET`); programmer should be `Curiosity Nano`; serial I/O through the debug interface does not seem to work.
+- **AVR16EB32 Curiosity Nano**: [DxCore (Debug enabled)](supporting-packages.md#dxcore); onboard debugger; LED is connected to PF5 (pin 25); button is on PF6 (pin 26, `RESET`); programmer should be `Curiosity Nano`; serial I/O through the debug interface is routed via `Serial`, however, you need to swap the I/O pins using `Serial.swap(4)`.
 
 ## Arduino boards
 
-All the Arduino boards with AVR chips are also supported by the debug-enabled forks of the *Arduino (mega)AVR Boards* packages.
+All the Arduino boards with AVR chips are also supported by the debug-enabled forks of the [*Arduino (mega)AVR Boards*](supporting-packages.md#debug-enabled-forks-of-official-arduino-packages) packages.
 
 - Arduino Yún
 - **Arduino UNO R3**:   [MiniCore](supporting-packages.md#minicore); [the `RESET EN` solder bridge needs to be cut](board-preparation.md#preparing-a-debugwire-target)
@@ -92,7 +90,7 @@ All the Arduino boards with AVR chips are also supported by the debug-enabled fo
 - <s>Flora (ATmega32U4)</s>: JTAG pins are not accessible
 - Feather 32U4
 - Feather 328P: [MiniCore](supporting-packages.md#minicore)
-- Gemma (ATtiny85):  [TinyCore](https://github.com/MCUdude/TinyCore),
+- Gemma (ATtiny85):  [TinyCore](https://github.com/MCUdude/TinyCore); RESET pad on backside
 - Trinket 3.3V (ATtiny85): [TinyCore](supporting-packages.md#tinycore)
 - Trinket 5V (ATtiny85): [TinyCore](supporting-packages.md#tinycore)
 - Metro (ATmega328P):  [MiniCore](supporting-packages.md#minicore), cut `RESET EN` solder bridge
@@ -158,7 +156,7 @@ All the Arduino boards with AVR chips are also supported by the debug-enabled fo
 ## Miscellaneous boards
 
 - <u>MH-ET LIVE (ATtiny88)</u>: [TinyCore](supporting-packages.md#tinycore)
-- <u>Digispark (ATtiny85)</u>: [TinyCore](supporting-packages.md#tinycore)
+- <s>Digispark (ATtiny85)</s>: RESET pin is set to be a GPIO; HV programming needed before the board can be debugged
 - <u>Digispark Pro (ATtiny167)</u>: [TinyCore](supporting-packages.md#tinycore)
 - <u>Pololu A-Star 328PB Micro</u>: [MiniCore](supporting-packages.md#minicore)
 - **Thinary Nano Every (ATmega4808)**: [MegaCoreX](supporting-packages.md#megacorex); the only supported pinout is `Nano 4808`; serial I/O via `Serial`; `LED_BUILTIN` is digital pin 9 (PA7); no bootloader support because there is a `JTAG2UPDI` programmer on board

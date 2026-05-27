@@ -162,8 +162,6 @@ There exists only 2 Arduino boards, both using the
 
 ## AVR Dx-, Ex-, Lx-, Sx- devices
 
-Work in progress: The current preview v1.4.0a1 supports the MCU mentioned below. As usual, the bold ones have been tested and work.
-
 ### AVR DA series supported by [DxCore (Debug enabled)](supporting-packages.md#dxcore)
 
 - **AVR32DA28(S)**, AVR32DA32(S), AVR32DA48(S)

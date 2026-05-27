@@ -26,6 +26,11 @@ markdown_extensions:
   - attr_list
 
 nav:
+  - Supported devices & platforms:
+    - MCUs: 'supported-mcus.md'
+    - Boards: 'supported-boards.md'
+    - Debug probes: 'supported-debuggers.md'
+    - Platforms: 'supported-platforms.md'
   - Quickstart Guides:
     - Arduino IDE 2: 'quick_arduino.md'
     - PlatformIO: 'quick_pio.md'
@@ -43,11 +48,6 @@ nav:
     - Monitor commands: 'monitor-commands.md'
     - Restoring the target: 'restore-original-state.md'
     - Troubleshooting: 'troubleshooting.md'
-  - Supported devices & platforms:
-    - MCUs: 'supported-mcus.md'
-    - Boards: 'supported-boards.md'
-    - Debug probes: 'supported-debuggers.md'
-    - Platforms: 'supported-platforms.md'
   - Caveats:
     - Disclaimer: 'disclaimer.md'
     - Limitations: 'limitations.md'

@@ -45,11 +45,13 @@ When using *debugWIRE*, the communication speed is severely limited from the beg
 
 With *JTAG* and *UPDI* targets, this problem should not happen. For JTAG, the default speed is 1 MHz for programming (`--prog-clock`) and 200 kHz for debugging (`--debug-clock`). However, you can request higher values when starting PyAvrOCD. Programming speed is only limited by the MCU's maximal frequency (and the wiring). Debugging speed should be no more than a quarter of the actual clock frequency of the target MCU. UPDI communication speed is set to 750 kb/s by default (`--comm-speed`). On Dx and Ex series chips, speeds up to 1800 kb/s are possible.  [Refrain from setting speed to 400 kb/s or less](#the-debugger-does-not-stop-at-a-line-with-a-set-breakpoint-but-only-later-or-not-at-all).
 
-### The debugger does not stop at a line with a set breakpoint, but only later (or not at all)
+### The debugger does not stop at a line with a set breakpoint
 
 This happens when the line marked to be stopped at does not contain any machine code. The problem gets worse when the switch `Optimize for Debugging` in the Arduino IDE 2 is not activated or, if you are working in a CLI environment, you did not use the `-Og` compiler option.
 
-A different cause for such behavior can be that the UPDI communication speed is too low. I experienced breakpoint and single-step skidding when the UPDI communication was too low, e.g., 400 kHz or less when the MCU ran at 16 MHz. This could lead to stopping at a different location or not stopping at all.
+### The debugger does not stop at all although only a single-step was requested or it definitely should have stopped at the next breakpoint.
+
+Such behavior could be caused the UPDI communication speed being too slow. I experienced breakpoint and single-step skidding when the UPDI communication speed was too low, e.g., 400 kbps or less when the MCU ran at 16 MHz. And this may lead to missing a breakpoint or stepping too far. Another possible cause is the [`-mrelax` optimization](compilation-options.md#critical-optimization-options) option (see below).
 
 ### The debugger seems to be confused about the line where it stopped
 
@@ -57,15 +59,21 @@ If the debugger stopped at a line, but from other evidence it is clear that the 
 
 ### When single-stepping, execution jumps around
 
-Probably the same reason as above.
+Probably the one of the reasons mentioned above (no `-Og` option set, `-mrelax` set, or UPDI communication speed too low).
 
 ### Single-stepping takes forever
 
-You requested a single step, and the debugger seems to take forever to complete this single step. There are a few possible causes. First, when single-stepping a SLEEP instruction, the MCU will go into sleep mode. Second, [single-steping a source code line that contains an (implicit) loop](limitations.md#single-stepping-lines-containing-loops) can lead to a severe slowdown.  Third, this could also be caused by the phenomenon mentioned above (low UPDI communication speed leading to single-step skidding). In all cases, simply stop with Ctrl-C (or the equivalent on the IDE level), set a breakpoint where you want to stop next, and continue execution.
+You requested a single step, and the debugger seems to take forever to complete this single step. There are a few possible causes. First, when single-stepping a SLEEP instruction, the MCU will go into sleep mode. Second, [single-steping a source code line that contains an (implicit) loop](limitations.md#single-stepping-lines-containing-loops) can lead to a severe slowdown.  Third, this could also be caused by the phenomenon mentioned above (low UPDI communication speed leading to single-step skidding). Fourth, it could be caused by the `-mrelax` option (see above).
+
+In all cases, simply stop with Ctrl-C (or the equivalent on the IDE level), set a breakpoint where you want to stop next, and continue execution.
 
 ### Variables cannot be accessed in the debugger
 
 Again, this might be because you forgot to activate the optimization option for debugging. Or, it can be that the compiler has optimized away your variable. If you really are in need to inspect and maybe change the variable. you can declare it as `volatile`. Then it will always be visible when in scope. However, handling of it is rather inefficient.
+
+### Global variables are not listed in the `Global variables` section
+
+The LTO linker optimization does that to you. However, you still can inspect variables by hovering over them or requesting to display them in the `Watch` pane. You can set the value of variables by using the `set var <variable>=<value>` GDB command, which you can type in the last line of the `Debug Console` window.
 
 ### The values of a local variable cannot be changed, or a wrong value is displayed in the debugger
 
