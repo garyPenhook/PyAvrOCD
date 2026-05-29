@@ -133,3 +133,5 @@ Most of the time, one-shot debugging will be enough to locate a problem. This me
 
 Sometimes, however, you may want to have a more persistent debugging scenario. If a bug shows up only after some time, you may want to leave the MCU running without the debug probe connected to it until the point that something goes wrong, and then *attach* to the MCU without going through the motion of setting fuses and resetting the MCU. This is supported by the monitor command `monitor atexit stay` and the command-line option `--attach`. With the mentioned monitor command, PyAvrOCD is instructed not to leave the debugging mode when the GDB server is terminated. When later PyAvrOCD is started with the command line option `--attach`, it will try to connect to the on-chip debugging module without setting any fuses and without a reset. If successful, you can then inspect the state of the program, change things, and continue execution.
 
+Note that for UPDI targets, it is not necessary to use the `monitor atexit stay` command because UPDI targets do not have any special debug fuses.
+
