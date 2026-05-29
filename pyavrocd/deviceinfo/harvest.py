@@ -749,34 +749,33 @@ def main() -> None:
                         help="name (and path) of file to harvest data from or path to folder with atdf files"
                         )
 
-    parser.add_argument('-i', '-interface', dest='interface',
-                            help = "consider only ATDF files that mention this interface")
+    parser.add_argument('-i', '--interface', dest='interface',
+                            help = "Consider only ATDF files that mention this interface")
+
+    parser.add_argument('-o', '--output', dest='output_path',
+                            help = "Output path. Without it, everything goes to stdout")
 
     arguments = parser.parse_args()
 
-    if arguments.filename.lower().endswith('.atdf'):
-        dict_content, _ = harvest_from_file(arguments.filename)
+    base = os.path.basename(arguments.filename)
+    path = os.path.dirname(arguments.filename)
+    for file in os.listdir(path):
+        if base != "" and file != base:
+            continue
+        if os.path.splitext(file)[1].lower() != ".atdf":
+            print("Skipping %s" %  file)
+            continue
+        print("Parsing %s" % os.path.splitext(file)[0])
+        dict_content, _ = harvest_from_file(os.path.join(path, file))
         if arguments.interface is None or arguments.interface.lower() in dict_content.lower():
             content = "\nfrom pymcuprog.deviceinfo.eraseflags import ChiperaseEffect\n\n"
             content += "DEVICE_INFO = {{\n{}}}".format(dict_content)
-            print(content)
-    else:
-        all_critical_fields = []
-        for file in os.listdir(arguments.filename):
-            if os.path.splitext(file)[1].lower() != ".atdf":
-                print("Skipping %s" %  file)
-                continue
-            print("Parsing %s" % os.path.splitext(file)[0])
-            dict_content, crit_fields = harvest_from_file(arguments.filename + '/' + file)
-            all_critical_fields.append([ os.path.splitext(file)[0],
-                                             sorted(crit_fields)])
-            if arguments.interface is None or arguments.interface.lower() in dict_content.lower():
-                content = "\nfrom pymcuprog.deviceinfo.eraseflags import ChiperaseEffect\n\n"
-                content += "DEVICE_INFO = {{\n{}}}".format(dict_content)
-                with open(os.path.splitext(file)[0].lower() + '.py', 'w', encoding='utf-8') as f:
+            if arguments.output_path:
+                with open(os.path.join(arguments.output_path,(os.path.splitext(file)[0].lower() + '.py')),
+                              'w', encoding='utf-8') as f:
                     f.write(content)
-        with open("critical-fields.txt", 'w', encoding='utf-8') as f:
-            pprint.pp(sorted(all_critical_fields), stream=f)
+            else:
+                print(content)
 
 
 if __name__ == "__main__":

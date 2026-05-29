@@ -4,10 +4,11 @@ The test suit for the MonitorCommand class
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
 import importlib
 from unittest import TestCase
+from unittest.mock import magicMock
 from pyavrocd.monitor import MonitorCommand, monopts
 from pyavrocd.main import options
 from pyavrocd.errors import FatalError
-
+from unittest.mock import Mock
 
 class TestMonitorCommand(TestCase):
 
@@ -16,8 +17,8 @@ class TestMonitorCommand(TestCase):
         self.moj = None
 
     def set_up(self):
-        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool", "avr8")
-        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool", "avr8")
+        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool", "avr8", MagicMock())
+        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool", "avr8", MagicMock())
 
     def test_consistency_failure(self):
         self.set_up()

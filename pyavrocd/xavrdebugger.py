@@ -73,6 +73,8 @@ class XAvrDebugger(AvrDebugger):
         # Caching general registers, will be updated when execution is resumed
         self._regfile : bytearray | None = None
         self._regsupd : bool = False
+        self._masked_registers : list[int] = self.device_info.get('masked_registers',[])
+        self._ronly_registers : list[int] = self.device_info.get('ronly_registers',[])
 
         # Gather device info
         # moved here so that we have mem + device info before the debug process starts
@@ -1095,3 +1097,62 @@ class XAvrDebugger(AvrDebugger):
         return self.device.write(self.memory_info.memory_info_by_name('eeprom'), address,
                                          data, prog_mode)
 
+    def sram_masked_read(self, addr : int, size : int) -> bytes:
+        """
+        Read a chunk from SRAM but leaving  out any masked registers. In theory,
+        one could use the "Memory Read Masked" method of the AVR8 Generic protocol.
+        However, there is no Python method implemented that does that for you.
+        For this reason, we do it here step by step.
+
+        In addition to that, the function fetches the values from the general
+        registers if the address is below the iooffset, i.e., < 20 for JTAG and
+        dw targets.
+        """
+        end : int = addr + size
+        data : bytearray = bytearray()
+        mr : int
+        if addr < self.get_iooffset():
+            data = self.register_read(addr, min(self.get_iooffset(), end) - addr)
+            addr = self.get_iooffset()
+        for mr in sorted(self._masked_registers):
+            if mr >= end or addr >= end:
+                break
+            if mr < addr:
+                continue
+            if addr < mr:
+                data.extend(self.sram_read(addr, mr - addr))
+            data.append(0x00)
+            addr = mr + 1
+        if addr < end:
+            data.extend(self.sram_read(addr, end - addr))
+        return data
+
+    def sram_masked_write(self, addr : int, data : bytes) -> None:
+        """
+        Write a chunk to SRAM but leaving  out any read-only registers. If there is an
+        attempt to write to a read-only register, spew out a warning message.
+
+        If we write to SRAM below iooffset, then we will write to the registerfile
+        """
+        start : int = addr
+        end : int = addr + len(data)
+        rr : int
+        if addr < self.dbg.get_iooffset():
+            self.dbg.register_write(addr, bytes(data[:min(self.dbg.get_iooffset()-addr,len(data))]))
+            addr = self.dbg.get_iooffset()
+            data = data[self.dbg.get_iooffset()-addr:]
+            if not data:
+                return
+        for rr in sorted(self._ronly_registers):
+            if rr >= end or addr >= end:
+                break
+            if rr < addr:
+                continue
+            if addr < rr:
+                # write to SRAM from addr up to rr-1
+                self.dbg.sram_write(addr, data[addr-start:rr-start])
+            self.logger.warning("Not writing to 0x%X because it is write-protected", rr)
+            addr = rr + 1
+        if addr < end:
+            # write remaining data
+            self.dbg.sram_write(addr, data[addr-start:end-start])

@@ -1,5 +1,14 @@
 # Changelog
 
+### 1.5.0
+
+- **Added:**
+     - New monitor command `inspect`. Argument for `inspect` is a regular expression that selects  I/O registers. Then information and values are printed.
+     - The addsvd.py utility has been added in `deviceinfo`. This utility reads an SVD file and adds it as a Python data structure to the corresponding device file in `deviceinfo.devices`.  This has to be called after harvest.py.
+
+- **Changed:**
+     -  `sram_masked_read` and `sram_masked_write` are moved to xavrdebug, so that they can be used in the monitor command.
+
 ### 1.4.0 (23-May-2026)
 
 - **Goal reached:**

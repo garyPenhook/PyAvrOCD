@@ -3,6 +3,9 @@ This module implements the 'monitor' command
 """
 from collections.abc import Callable
 
+# wildcard matching
+import fnmatch
+
 # args, logging
 import importlib.metadata
 import logging
@@ -25,6 +28,7 @@ monopts: dict[str, tuple[ str | None, str | None, list [ str ] ] ] \
             'erasebeforeload' : ('cli', None, ['enable', 'disable']),
             'help'            : (None, None, []),
             'info'            : (None, None, []),
+            'inspect'         : (None, None, ['*']),
             'load'            : ('cli', None, ['readbeforewrite', 'writeonly', 'noinitialload']),
             'onlywhenloaded'  : ('cli', None, ['enable', 'disable']),
             'rangestepping'   : ('cli', 'enable', ['enable', 'disable']),
@@ -45,11 +49,13 @@ class MonitorCommand():
     the right action. The return value of the dispatch method is
     a pair consisting of an action identifier and the string to be displayed.
     """
-    def __init__(self, iface : str, args : argparse.Namespace, toolname : str, arch : str) -> None:
+    def __init__(self, iface : str, args : argparse.Namespace, toolname : str, arch : str,
+                     dbg : XAvrDebugger)
         self._iface : str = iface
         self._debugger_active : bool = False
         self._toolname : str = toolname
         self._arch : str = arch
+        self._dbg = dbg
         self._debugger_activated_once : bool = False
         self.logger : logging.Logger = logging.getLogger('pyavrocd.monitor')
         # state variables (will be set by set_default_values)
@@ -79,6 +85,7 @@ class MonitorCommand():
             'erasebeforeload' : self._mon_erase_before_load,
             'help'            : self._mon_help,
             'info'            : self._mon_info,
+            'inspect'         : self._mon_inspect,
             'load'            : self._mon_load,
             'onlywhenloaded'  : self._mon_noload,
             'rangestepping'   : self._mon_range_stepping,
@@ -255,7 +262,7 @@ class MonitorCommand():
         """
         if not tokens:
             return self._mon_help(0)
-        handler : Callable[[int], tuple[str,  str]] = self._mon_unknown_cmd
+        handler : Callable[[int | list [ str ] ], tuple[str,  str]] = self._mon_unknown_cmd
         full : bool = False
         opts : list[str | None] | None = None
         name : str | None = None
@@ -282,6 +289,9 @@ class MonitorCommand():
                 handler = self._mon_unknown_cmd
                 opts = None
 
+        # If opts == ['*'], just pass the remaining tokens
+        if opts == ['*']:
+            return handler(tokens[1:])
         # Now we parse the arguments
         optix = 0
         if opts and len(tokens) > 1:
@@ -432,6 +442,11 @@ Range-stepping:           """ + ("enabled" if self._range else "disabled") + """
 Single-stepping:          """ + ("safe" if self._safe else "interruptible")  + """
 Timers:                   """ + ("frozen when stopped"
                                      if self._timersfreeze else "run when stopped") + "{}")
+
+    def _mon_inspect(self, args : list [str]) -> tuple[ str, str ]:
+        if len(args) != 1:
+            return self._mon_unknown_arg(0)
+
 
     def _mon_load(self, optix: int) -> tuple[ str, str ]:
         if optix == 3 or (optix == 0 and self._only_cache is True):

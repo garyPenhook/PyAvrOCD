@@ -1,6 +1,6 @@
 [project]
 name = "pyavrocd"
-version = "1.4.0"
+version = "1.5.0a1"
 description = "A cross-platform GDB server for AVR MCUs"
 authors = [
     {name = "Bernhard Nebel",email = "nebel@arduino-craft-corner.de"}
@@ -38,7 +38,8 @@ dependencies = [
     "mkdocs (>=1.6.1,<2.0.0)",
     "markdown-include (>=0.8.1,<0.9.0)",
     "mypy (>=1.19.1, <1.20.0)",
-    "pyelftools (>=0.32, <1.0)"
+    "pyelftools (>=0.32, <1.0)",
+    "svd2py (>=1.0.0,<2.0.0)"
 ]
 
 [project.urls]

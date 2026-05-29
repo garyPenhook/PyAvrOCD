@@ -44,7 +44,7 @@ class GdbHandler():
         self.rsp_logger = logging.getLogger('pyavrocd.rsp')
         self.dbg : XAvrDebugger = avrdebugger
         self.mon : MonitorCommand = MonitorCommand(self.dbg.get_iface(), args, toolname,
-                                                       self.dbg.get_architecture())
+                                                       avrdebugger)
         self.mem : Memory = Memory(avrdebugger, self.mon)
         self.bp : BreakAndExec = BreakAndExec(self.mon, avrdebugger, self.mem.flash_read_word)
         self._rs_start : int = 0

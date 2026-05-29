@@ -38,8 +38,6 @@ class Memory():
         self._flash_page_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['page_size'])
         self._flash_size : int = int(self.dbg.memory_info.memory_info_by_name('flash')['size'])
         self._multi_buffer : int = int(self.dbg.device_info.get('buffers_per_flash_page',1))
-        self._masked_registers : list[int] = self.dbg.device_info.get('masked_registers',[])
-        self._ronly_registers : list[int] = self.dbg.device_info.get('ronly_registers',[])
         self._multi_page_size : int = self._multi_buffer*self._flash_page_size
         self._sram_start : int = self.dbg.memory_info.memory_info_by_name('internal_sram')['address']
         self._sram_size : int = self.dbg.memory_info.memory_info_by_name('internal_sram')['size']
@@ -118,7 +116,7 @@ class Memory():
             return(iaddr, self.flash_read, lambda *x: 'E13')
         if addr_section == "80": # ram
             if not self.programming_mode:
-                return(iaddr, self.sram_masked_read, self.sram_masked_write)
+                return(iaddr, self.dbg.sram_masked_read, self.dbg.sram_masked_write)
         if addr_section == "81": # eeprom
             return(iaddr, self.eeprom_read, self.eeprom_write)
         if addr_section == "82": # fuse
@@ -147,65 +145,6 @@ class Memory():
                               addr, addr_section)
         return (0, lambda addr, num: bytes([0xFF]*num), lambda *x: 'E13')
 
-    def sram_masked_read(self, addr : int, size : int) -> bytes:
-        """
-        Read a chunk from SRAM but leaving  out any masked registers. In theory,
-        one could use the "Memory Read Masked" method of the AVR8 Generic protocol.
-        However, there is no Python method implemented that does that for you.
-        For this reason, we do it here step by step.
-
-        In addition to that, the function fetches the values from the general
-        registers if the address is below the iooffset, i.e., < 20 for JTAG and
-        dw targets.
-        """
-        end : int = addr + size
-        data : bytearray = bytearray()
-        mr : int
-        if addr < self.dbg.get_iooffset():
-            data = self.dbg.register_read(addr, min(self.dbg.get_iooffset(), end) - addr)
-            addr = self.dbg.get_iooffset()
-        for mr in sorted(self._masked_registers):
-            if mr >= end or addr >= end:
-                break
-            if mr < addr:
-                continue
-            if addr < mr:
-                data.extend(self.dbg.sram_read(addr, mr - addr))
-            data.append(0x00)
-            addr = mr + 1
-        if addr < end:
-            data.extend(self.dbg.sram_read(addr, end - addr))
-        return data
-
-    def sram_masked_write(self, addr : int, data : bytes) -> None:
-        """
-        Write a chunk to SRAM but leaving  out any read-only registers. If there is an
-        attempt to write to a read-only register, spew out a warning message.
-
-        If we write to SRAM below iooffset, then we will write to the registerfile
-        """
-        start : int = addr
-        end : int = addr + len(data)
-        rr : int
-        if addr < self.dbg.get_iooffset():
-            self.dbg.register_write(addr, bytes(data[:min(self.dbg.get_iooffset()-addr,len(data))]))
-            addr = self.dbg.get_iooffset()
-            data = data[self.dbg.get_iooffset()-addr:]
-            if not data:
-                return
-        for rr in sorted(self._ronly_registers):
-            if rr >= end or addr >= end:
-                break
-            if rr < addr:
-                continue
-            if addr < rr:
-                # write to SRAM from addr up to rr-1
-                self.dbg.sram_write(addr, data[addr-start:rr-start])
-            self.logger.warning("Not writing to 0x%X because it is write-protected", rr)
-            addr = rr + 1
-        if addr < end:
-            # write remaining data
-            self.dbg.sram_write(addr, data[addr-start:end-start])
 
     def flash_read(self, addr : int, size : int) -> bytes:
         """
