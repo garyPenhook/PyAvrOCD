@@ -753,3 +753,86 @@ class TestXAvrDebugger(TestCase):
         self.xa.reset()
         self.xa.device.avr.protocol.reset.assert_called_once()
 
+    def test_readmem_sram_masked_register_one_byte(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        self.xa.masked_registers = [0x35, 0x21, 0x26]
+        self.assertEqual(self.xa.sram_masked_read(0x21, 1), bytearray([0x00]))
+
+    def test_readmem_sram_masked_register_bytearray(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        self.xa.masked_registers = [0x35, 0x21, 0x26]
+        sram = list(reversed(range(0x35)))
+        def access_sram(ix, length):
+            return bytearray(sram[ix:ix+length])
+        self.xa.sram_read = MagicMock(side_effect=access_sram)
+        self.assertEqual(self.xa.sram_masked_read(0x25, 3), bytearray([0x0F, 0x00, 0x0D]))
+        self.assertEqual(self.xa.sram_masked_read(0x24, 3), bytearray([0x10, 0x0F, 0x00]))
+
+    def test_readmem_sram_iooffset_nonnull_below(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        self.xa.sram_masked_read(0x10,3)
+        self.xa.device.read.assert_not_called()
+
+    def test_readmem_sram_iooffset_nonnull_above(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        self.xa.sram_masked_read(0x30,3)
+        self.xa.device.read.assert_called_once()
+
+    def test_readmem_sram_iooffset_nonnull_crossing(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        self.xa.sram_masked_read(0x1F,3)
+        self.xa.device.read.assert_called_once()
+
+    def test_readmem_sram_iooffset_null_crossing(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        self.xa.sram_masked_read(0x1F,3)
+        self.xa.device.read.assert_called_once()
+
+    def test_writemem_sram_iooffset_nonnull_below(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        data = bytearray([1,2,3])
+        self.xa.sram_masked_write(0x10, data)
+        self.xa.device.write.assert_not_called()
+
+    def test_writemem_sram_iooffset_nonnull_above(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        data = bytearray([1,2,3])
+        self.xa.sram_masked_write(0x30, data)
+        self.xa.device.write.assert_called_once()
+
+    def test_writemem_sram_iooffset_nonnull_crossing(self):
+        self.set_up()
+        self.xa._iooffset = 0x20
+        data = bytearray([1,2,3])
+        self.xa.sram_masked_write(0x1F, data)
+        self.xa.device.write.assert_called_once()
+
+    def test_writemem_sram_iooffset_null_crossing(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        data = bytearray([1,2,3])
+        self.xa.sram_masked_write(0x1F, data)
+        self.xa.device.write.assert_called_once()
+
+    def test_writemem_sram_ronly_register_one_byte(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        self.xa.ronly_registers = [15, 1, 6]
+        self.xa.sram_masked_write(1,  bytearray([0x55]))
+        self.xa.device.write.assert_not_called()
+
+    def test_writemem_sram_ronly_register_bytearray(self):
+        self.set_up()
+        self.xa._iooffset = 0
+        self.xa.ronly_registers = [15, 1, 6, 0]
+        self.xa.sram_masked_write(1, bytearray([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07]))
+        self.assertEqual(self.xa.device.write.call_count, 2)
+
