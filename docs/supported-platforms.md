@@ -10,8 +10,8 @@ One can distinguish the support of PyAvrOCD based on whether one can install the
 | macOS 15, Apple Silicon 64-bit        | **yes**     | **yes**             |
 | Linux, Ubuntu 22.02, Intel 64-bit     | **yes**     | **yes**             |
 | Linux, Ubuntu 22.02, ARM 64-bit       | **yes**     | **yes**             |
-| Linux,  Intel 32-bit                  | yes         | **no**              |
-| Linux Raspi OS 6.0, ARM 32-bit        | **yes**[^*] | **no**              |
+| Linux,  Intel 32-bit                  | yes         | no                  |
+| Linux Raspi OS 6.0, ARM 32-bit        | **yes**[^*] | no                  |
 | Windows 10, Intel 64-bit              | **yes**     | **yes**             |
 | Windows 11, ARM 64-bit<br> (emulated) | **yes**     | **yes**             |
 | Windows 10, Intel 32-bit              | **yes**     | **yes**             |
