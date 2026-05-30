@@ -4,30 +4,38 @@ The test suit for the MonitorCommand class
 #pylint: disable=protected-access,missing-function-docstring,consider-using-f-string,invalid-name,line-too-long,missing-class-docstring,too-many-public-methods
 import importlib
 from unittest import TestCase
-from unittest.mock import magicMock
+from unittest.mock import MagicMock
 from pyavrocd.monitor import MonitorCommand, monopts
 from pyavrocd.main import options
 from pyavrocd.errors import FatalError
-from unittest.mock import Mock
 
 class TestMonitorCommand(TestCase):
 
     def setUp(self):
         self.mo = None
         self.moj = None
+        self.mockdbg = None
 
     def set_up(self):
-        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool", "avr8", MagicMock())
-        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool", "avr8", MagicMock())
+        self.mockdbg = MagicMock()
+        self.mockdbg.return_value.get_architecture.return_value = 'avr8'
+        self.mo = MonitorCommand('debugwire', options(['-f', 'foo', '-d', 'atmega328p']), "Tool",
+                                     self.mockdbg)
+        self.mo._arch = 'avr8'
+        self.moj = MonitorCommand('jtag', options(['-f', 'foo', '-d', 'atmega128', '--timer', 'freeze']), "Tool",
+                                      self.mockdbg)
+        self.moj._arch = 'avr8'
 
     def test_consistency_failure(self):
         self.set_up()
         monopts['bla'] = [1,2,3]
-        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool", "avr8")
+        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool",
+                              self.mockdbg)
         monopts.pop('bla')
         temp = monopts['LiveTests']
         del monopts['LiveTests']
-        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool", "avr8")
+        self.assertRaises(FatalError, MonitorCommand, 'jtag', options([ '-d', 'atmega328p']), "Tool",
+                              self.mockdbg)
         monopts['LiveTests'] = temp
 
     def test_defaults_atmega128(self):

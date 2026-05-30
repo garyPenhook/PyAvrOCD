@@ -75,7 +75,7 @@ markers = [
 
 [tool.pylint.MASTER]
 ignore-patterns = ["(attiny|atmega|at90|avr16|avr32|avr64|avr128|avr256).*\\.py" ]
-ignore-paths = [".poetry",".*alldevices.py"]
+ignore-paths = [".poetry",".*alldevices.py",".*addsvd.py"]
 jobs = 1
 
 [tool.pylint.'MESSAGE CONTROL']

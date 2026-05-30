@@ -73,8 +73,6 @@ class XAvrDebugger(AvrDebugger):
         # Caching general registers, will be updated when execution is resumed
         self._regfile : bytearray | None = None
         self._regsupd : bool = False
-        self._masked_registers : list[int] = self.device_info.get('masked_registers',[])
-        self._ronly_registers : list[int] = self.device_info.get('ronly_registers',[])
 
         # Gather device info
         # moved here so that we have mem + device info before the debug process starts
@@ -86,6 +84,10 @@ class XAvrDebugger(AvrDebugger):
         self._architecture = str(self.device_info['architecture']).lower()
         if iface not in str(self.device_info['interface']).lower():
             raise PymcuprogToolConfigurationError("Incompatible debugging interface")
+
+        # set ronly and wonly regs
+        self.masked_registers : list[int] = self.device_info.get('masked_registers',[])
+        self.ronly_registers : list[int] = self.device_info.get('ronly_registers',[])
 
         # Memory info for the device
         self.memory_info = deviceinfo.DeviceMemoryInfo(self.device_info)
@@ -156,6 +158,12 @@ class XAvrDebugger(AvrDebugger):
         Returns offset to I/O registers, i.e., 0x20 for dw and JTAG, 0x00 for UPDI
         """
         return self._iooffset
+
+    def get_devicename(self) -> str:
+        """
+        Returns devicename
+        """
+        return self._devicename
 
     def start_debugging(self, flash_data : bytes | None = None, warmstart : bool = False) -> bool:
         """
@@ -1108,13 +1116,14 @@ class XAvrDebugger(AvrDebugger):
         registers if the address is below the iooffset, i.e., < 20 for JTAG and
         dw targets.
         """
+        addr &= 0xFFFF # mask out GDB bits
         end : int = addr + size
         data : bytearray = bytearray()
         mr : int
         if addr < self.get_iooffset():
             data = self.register_read(addr, min(self.get_iooffset(), end) - addr)
             addr = self.get_iooffset()
-        for mr in sorted(self._masked_registers):
+        for mr in sorted(self.masked_registers):
             if mr >= end or addr >= end:
                 break
             if mr < addr:
@@ -1122,6 +1131,7 @@ class XAvrDebugger(AvrDebugger):
             if addr < mr:
                 data.extend(self.sram_read(addr, mr - addr))
             data.append(0x00)
+            self.logger.warning("Not reading from SRAM 0x%X because it is read-protected", mr)
             addr = mr + 1
         if addr < end:
             data.extend(self.sram_read(addr, end - addr))
@@ -1134,25 +1144,27 @@ class XAvrDebugger(AvrDebugger):
 
         If we write to SRAM below iooffset, then we will write to the registerfile
         """
+        addr &= 0xFFFF # mask out GDB bits
         start : int = addr
         end : int = addr + len(data)
         rr : int
-        if addr < self.dbg.get_iooffset():
-            self.dbg.register_write(addr, bytes(data[:min(self.dbg.get_iooffset()-addr,len(data))]))
-            addr = self.dbg.get_iooffset()
-            data = data[self.dbg.get_iooffset()-addr:]
+        if addr < self.get_iooffset():
+            self.register_write(addr, bytes(data[:min(self.get_iooffset()-addr,len(data))]))
+            addr = self.get_iooffset()
+            data = data[self.get_iooffset()-addr:]
             if not data:
                 return
-        for rr in sorted(self._ronly_registers):
+        for rr in sorted(self.ronly_registers):
             if rr >= end or addr >= end:
                 break
             if rr < addr:
                 continue
             if addr < rr:
                 # write to SRAM from addr up to rr-1
-                self.dbg.sram_write(addr, data[addr-start:rr-start])
-            self.logger.warning("Not writing to 0x%X because it is write-protected", rr)
+                self.sram_write(addr, data[addr-start:rr-start])
+            self.logger.warning("Not writing to SRAM 0x%X because it is write-protected", rr)
             addr = rr + 1
         if addr < end:
             # write remaining data
-            self.dbg.sram_write(addr, data[addr-start:end-start])
+            self.logger.debug("Write remaining from 0x%X to 0x%X (not incl)", addr, end)
+            self.sram_write(addr, data[addr-start:end-start])

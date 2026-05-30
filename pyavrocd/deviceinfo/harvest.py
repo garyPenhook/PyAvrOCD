@@ -11,7 +11,6 @@ import os
 import collections
 import argparse
 import textwrap
-import pprint
 from xml.etree import ElementTree
 
 from pymcuprog.deviceinfo.memorynames import MemoryNames
@@ -760,7 +759,7 @@ def main() -> None:
     base = os.path.basename(arguments.filename)
     path = os.path.dirname(arguments.filename)
     for file in os.listdir(path):
-        if base != "" and file != base:
+        if base not in ["", file]:
             continue
         if os.path.splitext(file)[1].lower() != ".atdf":
             print("Skipping %s" %  file)

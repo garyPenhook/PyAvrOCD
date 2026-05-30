@@ -2,6 +2,7 @@
 This module implements the 'monitor' command
 """
 from collections.abc import Callable
+from typing import Any
 
 # wildcard matching
 import fnmatch
@@ -13,6 +14,7 @@ import argparse
 
 # error exceptions
 from pyavrocd.errors import FatalError
+from pyavrocd.xavrdebugger import XAvrDebugger
 
 
 # This is a list of monitor commands, of which many also be used as command line options
@@ -28,7 +30,7 @@ monopts: dict[str, tuple[ str | None, str | None, list [ str ] ] ] \
             'erasebeforeload' : ('cli', None, ['enable', 'disable']),
             'help'            : (None, None, []),
             'info'            : (None, None, []),
-            'inspect'         : (None, None, ['*']),
+            'ioregister'      : (None, None, ['*']),
             'load'            : ('cli', None, ['readbeforewrite', 'writeonly', 'noinitialload']),
             'onlywhenloaded'  : ('cli', None, ['enable', 'disable']),
             'rangestepping'   : ('cli', 'enable', ['enable', 'disable']),
@@ -49,12 +51,12 @@ class MonitorCommand():
     the right action. The return value of the dispatch method is
     a pair consisting of an action identifier and the string to be displayed.
     """
-    def __init__(self, iface : str, args : argparse.Namespace, toolname : str, arch : str,
-                     dbg : XAvrDebugger)
+    def __init__(self, iface : str, args : argparse.Namespace, toolname : str,
+                     dbg : XAvrDebugger) -> None:
         self._iface : str = iface
         self._debugger_active : bool = False
         self._toolname : str = toolname
-        self._arch : str = arch
+        self._arch : str = dbg.get_architecture()
         self._dbg = dbg
         self._debugger_activated_once : bool = False
         self.logger : logging.Logger = logging.getLogger('pyavrocd.monitor')
@@ -77,7 +79,7 @@ class MonitorCommand():
         self._args : argparse.Namespace = args # needed to set initial monitor option values
 
         # The jump table (should have the same set of keys as monopts)
-        self.jumptable : dict[ str, Callable[ [ int ], tuple[ str, str ] ] ] = {
+        self.jumptable : dict[ str, Callable[ [ int | list[ str ] ], tuple[ str, str ] ] ] = {
             'atexit'          : self._mon_atexit,
             'breakpoints'     : self._mon_breakpoints,
             'caching'         : self._mon_cache,
@@ -85,7 +87,7 @@ class MonitorCommand():
             'erasebeforeload' : self._mon_erase_before_load,
             'help'            : self._mon_help,
             'info'            : self._mon_info,
-            'inspect'         : self._mon_inspect,
+            'ioregister'      : self._mon_ioregister,
             'load'            : self._mon_load,
             'onlywhenloaded'  : self._mon_noload,
             'rangestepping'   : self._mon_range_stepping,
@@ -290,7 +292,8 @@ class MonitorCommand():
                 opts = None
 
         # If opts == ['*'], just pass the remaining tokens
-        if opts == ['*']:
+        if opts == [None, '*']:
+            self.logger.debug("Pass on tokens to monitor handlers: %s", tokens)
             return handler(tokens[1:])
         # Now we parse the arguments
         optix = 0
@@ -304,16 +307,16 @@ class MonitorCommand():
         self.logger.debug("optix=%s", optix)
         return handler(optix)
 
-    def _mon_unknown_cmd(self, _ : int) -> tuple[ str, str ]:
+    def _mon_unknown_cmd(self, _ : int | list[str]) -> tuple[ str, str ]:
         return("", "Unknown 'monitor' command")
 
-    def _mon_unknown_arg(self, _ : int) -> tuple[ str, str ]:
+    def _mon_unknown_arg(self, _ : int | list[str]) -> tuple[ str, str ]:
         return("", "Unknown argument in 'monitor' command")
 
-    def _mon_ambigious(self, _ : int) -> tuple[ str, str ]:
+    def _mon_ambigious(self, _ : int | list[str]) -> tuple[ str, str ]:
         return("", "Ambiguous 'monitor' command string")
 
-    def _mon_atexit(self, optix : int) -> tuple[ str, str ]:
+    def _mon_atexit(self, optix : int | list[str]) -> tuple[ str, str ]:
         assert self._leaveonexit is True or self._leaveonexit is False, "self._leaveonexit violates LEM"
         if optix == 1 or (optix == 0 and self._leaveonexit is False):
             self._leaveonexit = False
@@ -323,7 +326,7 @@ class MonitorCommand():
             return("", "MCU will leave debug mode on exit")
         return self._mon_unknown_arg(0)
 
-    def _mon_breakpoints(self, optix : int) -> tuple[ str, str ]:
+    def _mon_breakpoints(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 0:
             if self._onlyhwbps and self._onlyswbps:
                 return("", "Internal confusion: No breakpoints are allowed")
@@ -334,7 +337,7 @@ class MonitorCommand():
                     return("", "On this MCU, only hardware breakpoints are allowed")
                 return("", "Only hardware breakpoints")
             return("", "All breakpoints are allowed")
-        if 1 <= optix <= 3 and self._bpfixed:
+        if optix in [1, 2, 3] and self._bpfixed:
             return("", "Breakpoint mode cannot be changed on this MCU")
         if optix == 1:
             self._onlyhwbps = False
@@ -350,7 +353,7 @@ class MonitorCommand():
             return("", "Only hardware breakpoints")
         return self._mon_unknown_arg(0)
 
-    def _mon_cache(self, optix : int) -> tuple[ str, str ]:
+    def _mon_cache(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 1 or (optix == 0 and self._cache is True):
             self._cache = True
             return("", "Flash memory will be cached")
@@ -359,8 +362,8 @@ class MonitorCommand():
             return("", "Flash memory will not be cached")
         return self._mon_unknown_arg(0)
 
-    def _mon_debugwire(self, optix : int) -> tuple[ str, str ]:
-        if self._iface != "debugwire" and 0 <= optix <= 2:
+    def _mon_debugwire(self, optix : int | list[str]) -> tuple[ str, str ]:
+        if self._iface != "debugwire" and optix in [0, 1, 2]:
             return("reset" if optix != 0 else "", "This is not a debugWIRE target")
         if optix == 0:
             if self._debugger_active:
@@ -381,7 +384,7 @@ class MonitorCommand():
             return("", "debugWIRE is disabled")
         return self._mon_unknown_arg(0)
 
-    def _mon_erase_before_load(self, optix : int) -> tuple[ str, str ]:
+    def _mon_erase_before_load(self, optix : int | list[str]) -> tuple[ str, str ]:
         if self._iface == 'debugwire':
             return("", "On debugWIRE targets, flash memory cannot be erased before loading executable")
         if optix == 1 or (optix == 0 and self._erase_before_load is True):
@@ -392,7 +395,7 @@ class MonitorCommand():
             return("", "Flash memory will not be erased before loading executable")
         return self._mon_unknown_arg(0)
 
-    def _mon_flash_verify(self, optix : int) -> tuple[ str, str ]:
+    def _mon_flash_verify(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 1 or (optix == 0 and self._verify is True):
             self._verify = True
             return("", "Verifying flash after load")
@@ -401,28 +404,31 @@ class MonitorCommand():
             return("", "Load operations are not verified")
         return self._mon_unknown_arg(0)
 
-    def _mon_help(self, _ : int) -> tuple[ str, str ]:
+    def _mon_help(self, _ : int | list[str]) -> tuple[ str, str ]:
         return("", """help                                - this help text
 version                             - print version
 info                                - print info about target and debugger
 reset                               - reset MCU
-atexit [stay|leave]                 - stay in debug mode on exit (def.) or leave
+atexit [stay|leave]                 - stay in/leave debug mode on exit
 breakpoints [all|software|hardware] - allow breakpoints of a certain kind
 caching [enable|disable]            - use loaded executable as cache (default)
 debugwire [enable|disable]          - activate/deactivate debugWIRE mode,
 erasebeforeload [enable|disable]    - erase flash memory before load (default
-                                      except for debugWIRE)
+                                      only for JTAG targets)
+ioregister <ioreg-expr> [<int>]     - display I/O register or bitfield and
+                                      set it to new value if <int> is given
 load [readbeforewrite|writeonly|noinitialload]
                                     - read flash before writing (default for
                                       debugWIRE), write blindly, or read
                                       w/o flashing initially
-onlywhenloaded [enable|disable]     - execute only with loaded executable
+onlywhenloaded [enable|disable]     - execute only with loaded executable (def.)
 rangestepping [enable|disable]      - allow range stepping
 singlestep [safe|interruptible]     - single stepping mode; safe is default
 timers [run|freeze]                 - run (def.) or freeze timers when stopped
+                                      ('run' is impossible on UPDI targets)
 verify [enable|disable]             - verify that loading was successful (def.)""")
 
-    def _mon_info(self, _ : int) -> tuple[ str, str ]:
+    def _mon_info(self, _ : int | list[str]) -> tuple[ str, str ]:
         return ('info',"""PyAvrOCD version:         """ + importlib.metadata.version("pyavrocd") + """
 Debugging enabled:        """ + ("yes" if self._debugger_active else "no") + """
 Target:                   {}
@@ -443,12 +449,16 @@ Single-stepping:          """ + ("safe" if self._safe else "interruptible")  + "
 Timers:                   """ + ("frozen when stopped"
                                      if self._timersfreeze else "run when stopped") + "{}")
 
-    def _mon_inspect(self, args : list [str]) -> tuple[ str, str ]:
-        if len(args) != 1:
-            return self._mon_unknown_arg(0)
+    def _mon_ioregister(self, args : int | list [str]) -> tuple[ str, str ]:
+        if not 'SVD' in self._dbg.device_info:
+            return("", f"No SVD information for '{self._dbg.get_devicename}'")
+        if isinstance(args, list) and len(args) == 1:
+            return self._get_ioregister_value(args)
+        if isinstance(args, list) and len(args) == 2:
+            return self._set_ioregister_value(args)
+        return("", "The 'ioregister' command requires 1 or 2 arguments")
 
-
-    def _mon_load(self, optix: int) -> tuple[ str, str ]:
+    def _mon_load(self, optix: int | list[str]) -> tuple[ str, str ]:
         if optix == 3 or (optix == 0 and self._only_cache is True):
             self._only_cache = True
             return("", "Only caching when loading")
@@ -462,7 +472,7 @@ Timers:                   """ + ("frozen when stopped"
             return("", "No reading before writing when loading")
         return self._mon_unknown_arg(0)
 
-    def _mon_noload(self, optix : int) -> tuple[ str, str ]:
+    def _mon_noload(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 1 or(optix == 0 and self._noload is False):
             self._noload = False
             return("",  "Execution is only possible after a previous load command")
@@ -471,7 +481,7 @@ Timers:                   """ + ("frozen when stopped"
             return("", "Execution is always possible")
         return self._mon_unknown_arg(0)
 
-    def _mon_range_stepping(self, optix : int) -> tuple[ str, str ]:
+    def _mon_range_stepping(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 1 or (optix == 0 and self._range is True):
             self._range = True
             return("",  "Range stepping is enabled")
@@ -480,12 +490,12 @@ Timers:                   """ + ("frozen when stopped"
             return("", "Range stepping is disabled")
         return self._mon_unknown_arg(0)
 
-    def _mon_reset(self, _ : int) -> tuple[ str, str ]:
+    def _mon_reset(self, _ : int | list[str]) -> tuple[ str, str ]:
         if self._debugger_active:
             return("reset", "MCU has been reset")
         return("","Debugger is not enabled")
 
-    def _mon_singlestep(self, optix : int) -> tuple[ str, str ]:
+    def _mon_singlestep(self, optix : int | list[str]) -> tuple[ str, str ]:
         if optix == 1 or (optix == 0 and self._safe is True):
             self._safe = True
             return("", "Single-stepping is interrupt-safe")
@@ -494,7 +504,7 @@ Timers:                   """ + ("frozen when stopped"
             return("", "Single-stepping is interruptible")
         return self._mon_unknown_arg(0)
 
-    def _mon_timers(self, optix : int) -> tuple[ str, str ]:
+    def _mon_timers(self, optix : int | list[str]) -> tuple[ str, str ]:
         if self._arch == 'avr8x':
             return("", "On (U)PDI targets, timers are frozen when execution is stopped")
         if optix == 2 or (optix == 0 and self._timersfreeze is True):
@@ -509,15 +519,15 @@ Timers:                   """ + ("frozen when stopped"
             return("", resp)
         return (str(int(not self._timersfreeze)), "MCU reset\n" + resp)
 
-    def _mon_version(self, _ : int) -> tuple[ str, str ]:
+    def _mon_version(self, _ : int | list[str] ) -> tuple[ str, str ]:
         return("", "PyAvrOCD version {}".format(importlib.metadata.version("pyavrocd")))
 
     # The following commands are for internal purposes
-    def _mon_old_execution(self, _ : int) -> tuple[ str, str ]:
+    def _mon_old_execution(self, _ : int | list[str]) -> tuple[ str, str ]:
         self._old_exec = True
         return("", "Old execution mode")
 
-    def _mon_target(self, optix : int)  -> tuple[ str, str ]:
+    def _mon_target(self, optix : int | list[str] )  -> tuple[ str, str ]:
         res : tuple[ str, str ]
         if optix == 1:
             self._power = True
@@ -536,13 +546,163 @@ Timers:                   """ + ("frozen when stopped"
             return self._mon_unknown_arg(0)
         return res
 
-    def _mon_live_tests(self, _ : int) -> tuple[ str, str ]:
+    def _mon_live_tests(self, _ : int | list[str]) -> tuple[ str, str ]:
         if self._debugger_active:
             return("live_tests", "Tests done")
         return("", "Cannot run tests because debugging is not enabled")
 
 
-    def _mon_test(self,_ : int) -> tuple[ str, str ]:
+    def _mon_test(self,_ : int | list[str]) -> tuple[ str, str ]:
         if self._debugger_active:
             return("test", "Tests done")
         return("", "Cannot execute test because debugging is not enabled")
+
+    def _matching_registers(self, expr : str) -> list[ dict[ str, Any ]]:
+        result = []
+        if not expr:
+            return []
+        for p in self._dbg.device_info['SVD']['device']['peripherals']['peripheral']: # all peripherals
+            for r in p['registers']['register']: # all registers
+                if fnmatch.fnmatch(p['name'] + '.' + r['name'], expr.upper()): # matching register
+                    result.append({ 'name': p['name'] + '.' + r['name'],
+                                        'address' : p['baseAddress'] + r['addressOffset'],
+                                        'description': r['description'], 'size': r['size'] })
+        self.logger.debug("Matching regs: %s", result)
+        return result
+
+    def _matching_fields(self, expr : str) -> list[ dict[ str, Any ]]:
+        result = []
+        if not expr:
+            return []
+        for p in self._dbg.device_info['SVD']['device']['peripherals']['peripheral']: # all peripherals
+            for r in p['registers']['register']: # all registers
+                if 'fields' not in r:
+                    continue
+                for f in r['fields']['field']: # all fields
+                    if fnmatch.fnmatch(p['name'] + '.' + r['name'] + '.' + f['name'], expr.upper()):
+                        result.append({ 'name': p['name'] + '.' + r['name'] + '.' + f['name'],
+                                        'address' : p['baseAddress'] + r['addressOffset'],
+                                        'bits' : f['bitRange'],
+                                        'size' : r['size'],
+                                        'description': f['description'] })
+        self.logger.debug("Matching fields: %s", result)
+        return result
+
+    def _display_registers(self, regs : list [ dict [ str, Any ]]) -> str:
+        results = []
+        for r in regs:
+            val = int.from_bytes(self._dbg.sram_masked_read(r['address'], r['size']//8), 'little')
+            results.append(
+              f"{r['name']} (@0x{r['address']:X}, {r['size']}-bits) = 0x{val:X}, 0b{val:b}, {val} ({r['description']})")
+        return '\n'.join(results)
+
+    def _display_fields(self,  fields : list [ dict [ str, Any ]]) -> str:
+        results = []
+        for f in fields:
+            val = int.from_bytes(self._dbg.sram_masked_read(f['address'], f['size']//8), 'little')
+            val = self._extract_bitfield(val, f['bits'])
+            results.append(
+                f"{f['name']} (@0x{f['address']:X}{f['bits']}) = 0x{val:X}, 0b{val:b}, {val} ({f['description']})")
+        return '\n'.join(results)
+
+    def _extract_bitfield(self, val : int, bits : str) -> int:
+        bitsrange = bits.replace("[","").replace("]","").split(":")
+        start = int(bitsrange[0])
+        end = int(bitsrange[1])
+        val = val >> end
+        mask = (1 << (start-end+1)) - 1
+        return val & mask
+
+    def _set_bitfield(self, oldregval : int, newval : int, bits : str) -> int:
+        bitsrange = bits.replace("[","").replace("]","").split(":")
+        start = int(bitsrange[0])
+        end = int(bitsrange[1])
+        self.logger.debug("start=%d, end=%d", start, end)
+        mask = (1 << (start - end + 1)) - 1
+        self.logger.debug("mask=0x%X", mask)
+        if mask < newval:
+            raise OverflowError
+        newregval = (newval & mask) << end
+        self.logger.debug("newregval=0x%X", newregval)
+        mask = mask << end
+        self.logger.debug("shifted mask=0x%X", mask)
+        return oldregval - (oldregval & mask) + newregval
+
+    def _get_ioregister_value(self, args : list [str]) -> tuple[ str, str ]:
+        regs = self._matching_registers(args[0])
+        if len(regs) == 0:
+            regs = self._matching_registers("*." + args[0])
+        if len(regs) > 1:
+            return ("", self._display_registers(regs))
+        if len(regs) == 1:
+            result = self._display_fields(self._matching_fields(regs[0]['name'] + ".*"))
+            if result:
+                result = self._display_registers(regs) + '\n' + result
+            else:
+                result = self._display_registers(regs)
+            return ("", result)
+        fields = self._matching_fields(args[0])
+        if len(fields) == 0:
+            fields = self._matching_fields("*." + args[0])
+        if fields:
+            return("", self._display_fields(fields))
+        return("", "No matching I/O registers or fields identified")
+
+    def _set_ioregister_value(self, args : list [str]) -> tuple[ str, str ]:
+        try:
+            newvalue = int(args[1], 0)
+        except ValueError:
+            return("", "Second argument must be a well-formed integer literal")
+        regs = self._matching_registers(args[0])
+        if len(regs) == 0:
+            regs = self._matching_registers("*." + args[0])
+        if len(regs) > 1:
+            return("", "No unique I/O register addressed")
+        if len(regs) == 1:
+            oldvalue = int.from_bytes(self._dbg.sram_masked_read(regs[0]['address'], regs[0]['size']//8), 'little')
+            try:
+                self._sram_write16bitreg(regs[0]['address'], newvalue.to_bytes(regs[0]['size']//8, 'little'))
+            except OverflowError:
+                return("", "Value out of range, cannot be stored")
+            mess = ""
+            if regs[0]['address'] & 0xFFFF in self._dbg.masked_registers:
+                mess = " register is read-protected"
+            elif newvalue != int.from_bytes(self._dbg.sram_masked_read(regs[0]['address'],
+                                                                           regs[0]['size']//8), 'little'):
+                mess = " was unsuccessful"
+            return("", f"{regs[0]['name']} = {newvalue} (old value was: {oldvalue}){mess}")
+        fields = self._matching_fields(args[0])
+        if len(fields) == 0:
+            fields = self._matching_fields("*." + args[0])
+        if len(fields) > 1:
+            return("", "No unique I/O register field addressed")
+        if len(fields) == 1:
+            self.logger.debug("Field to change: %s", fields[0])
+            oldregval = int.from_bytes(self._dbg.sram_masked_read(fields[0]['address'], fields[0]['size']//8), 'little')
+            self.logger.debug("oldreg = %s", oldregval)
+            oldfieldval = self._extract_bitfield(oldregval, fields[0]['bits'])
+            self.logger.debug("oldreg = %s, oldfield = %s", oldregval, oldfieldval)
+            try:
+                newregval = self._set_bitfield(oldregval, newvalue, fields[0]['bits'])
+                self._sram_write16bitreg(fields[0]['address'], newregval.to_bytes(fields[0]['size']//8, 'little'))
+            except OverflowError:
+                return("", "Value out of range, cannot be store")
+            mess = ""
+            if fields[0]['address'] & 0xFFFF in self._dbg.masked_registers: #pylint: disable='protected-access'
+                mess = " register is read-protected"
+            elif newregval != int.from_bytes(self._dbg.sram_masked_read(fields[0]['address'],
+                                                                            fields[0]['size']//8), 'little'):
+                mess = " was unsuccessful"
+            return("", f"{fields[0]['name']} = {newvalue} (old value was: {oldfieldval}){mess}")
+        return("", "No matching I/O register or field")
+
+    def _sram_write16bitreg(self, addr : int, data : bytes) -> None:
+        """
+        If writing to a 16 bit register on the classic MCUs, you first have to write the high, then the low byte.
+        On modern MCUs, it is the other way around.
+        """
+        if len(data) != 2 or self._dbg.get_architecture() == 'avr8x':
+            self._dbg.sram_masked_write(addr, data)
+        else:
+            self._dbg.sram_masked_write(addr+1, data[1:])
+            self._dbg.sram_masked_write(addr, data[:1])
