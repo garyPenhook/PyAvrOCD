@@ -80,5 +80,1438 @@ DEVICE_INFO = {
     'masked_registers' : [0x4e],
     'ronly_registers' : [0x26, 0x28, 0x36, 0x41, 0x45, 0x46, 0x50, 0x51, 0x57, 0x58, 0x5a],
     'device_id': 0x1E9007,
-    'interface': 'ISP+HVSP+debugWIRE'
+    'interface': 'ISP+HVSP+debugWIRE',
+
+    # SVD data
+    'svd' : {'device': {'access': 'read-write',
+            'addressUnitBits': 0x8,
+            'attributes': {'schemaVersion': '1.1'},
+            'cpu': {'endian': 'little',
+                    'fpuPresent': 0x0,
+                    'mpuPresent': 0x0,
+                    'name': 'other',
+                    'nvicPrioBits': 0x4,
+                    'revision': 'r0p0',
+                    'vendorSystickConfig': 0x0},
+            'description': 'No description available.',
+            'name': 'ATtiny13A',
+            'peripherals': {'peripheral': [{'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x5,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x11,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800023,
+                                            'description': 'Analog Comparator',
+                                            'name': 'AC',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x5,
+                                                                        'description': 'Analog '
+                                                                                       'Comparator '
+                                                                                       'Control '
+                                                                                       'And '
+                                                                                       'Status '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:0]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Interrupt '
+                                                                                                             'Mode '
+                                                                                                             'Select '
+                                                                                                             'bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Interrupt '
+                                                                                                                                                       'on '
+                                                                                                                                                       'Toggle',
+                                                                                                                                        'name': 'INTERRUPT_ON_TOGGLE',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Reserved',
+                                                                                                                                        'name': 'RESERVED',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Interrupt '
+                                                                                                                                                       'on '
+                                                                                                                                                       'Falling '
+                                                                                                                                                       'Edge',
+                                                                                                                                        'name': 'INTERRUPT_ON_FALLING_EDGE',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Interrupt '
+                                                                                                                                                       'on '
+                                                                                                                                                       'Rising '
+                                                                                                                                                       'Edge',
+                                                                                                                                        'name': 'INTERRUPT_ON_RISING_EDGE',
+                                                                                                                                        'value': 0x3}]},
+                                                                                              'name': 'ACIS',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'ACIE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Interrupt '
+                                                                                                             'Flag',
+                                                                                              'name': 'ACI'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Compare '
+                                                                                                             'Output',
+                                                                                              'name': 'ACO'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Bandgap '
+                                                                                                             'Select',
+                                                                                              'name': 'ACBG'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Disable',
+                                                                                              'name': 'ACD'}]},
+                                                                        'name': 'ACSR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'ADC '
+                                                                                       'Control '
+                                                                                       'and '
+                                                                                       'Status '
+                                                                                       'Register '
+                                                                                       'B',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Comparator '
+                                                                                                             'Multiplexer '
+                                                                                                             'Enable',
+                                                                                              'name': 'ACME'}]},
+                                                                        'name': 'ADCSRB',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x11,
+                                                                        'description': 'No '
+                                                                                       'Description.',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'AIN0 '
+                                                                                                             'Digital '
+                                                                                                             'Input '
+                                                                                                             'Disable',
+                                                                                              'name': 'AIN0D'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'AIN1 '
+                                                                                                             'Digital '
+                                                                                                             'Input '
+                                                                                                             'Disable',
+                                                                                              'name': 'AIN1D'}]},
+                                                                        'name': 'DIDR0',
+                                                                        'size': 0x8}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x5,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x11,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800023,
+                                            'description': 'Analog-to-Digital '
+                                                           'Converter',
+                                            'name': 'ADC',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x1,
+                                                                        'description': 'ADC '
+                                                                                       'Data '
+                                                                                       'Register  '
+                                                                                       'Bytes',
+                                                                        'name': 'ADC',
+                                                                        'size': 0x10,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFFFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x3,
+                                                                        'description': 'The '
+                                                                                       'ADC '
+                                                                                       'Control '
+                                                                                       'and '
+                                                                                       'Status '
+                                                                                       'register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[2:0]',
+                                                                                              'description': 'ADC  '
+                                                                                                             'Prescaler '
+                                                                                                             'Select '
+                                                                                                             'Bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': '2',
+                                                                                                                                        'name': '2',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': '4',
+                                                                                                                                        'name': '4',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': '8',
+                                                                                                                                        'name': '8',
+                                                                                                                                        'value': 0x3},
+                                                                                                                                       {'description': '16',
+                                                                                                                                        'name': '16',
+                                                                                                                                        'value': 0x4},
+                                                                                                                                       {'description': '32',
+                                                                                                                                        'name': '32',
+                                                                                                                                        'value': 0x5},
+                                                                                                                                       {'description': '64',
+                                                                                                                                        'name': '64',
+                                                                                                                                        'value': 0x6},
+                                                                                                                                       {'description': '128',
+                                                                                                                                        'name': '128',
+                                                                                                                                        'value': 0x7}]},
+                                                                                              'name': 'ADPS',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'ADIE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Interrupt '
+                                                                                                             'Flag',
+                                                                                              'name': 'ADIF'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Auto '
+                                                                                                             'Trigger '
+                                                                                                             'Enable',
+                                                                                              'name': 'ADATE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Start '
+                                                                                                             'Conversion',
+                                                                                              'name': 'ADSC'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Enable',
+                                                                                              'name': 'ADEN'}]},
+                                                                        'name': 'ADCSRA',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'ADC '
+                                                                                       'Control '
+                                                                                       'and '
+                                                                                       'Status '
+                                                                                       'Register '
+                                                                                       'B',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[2:0]',
+                                                                                              'description': 'ADC '
+                                                                                                             'Auto '
+                                                                                                             'Trigger '
+                                                                                                             'Sources',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Free '
+                                                                                                                                                       'Running '
+                                                                                                                                                       'mode',
+                                                                                                                                        'name': 'FREE_RUNNING_MODE',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Analog '
+                                                                                                                                                       'Comparator',
+                                                                                                                                        'name': 'ANALOG_COMPARATOR',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'External '
+                                                                                                                                                       'Interrupt '
+                                                                                                                                                       'Request '
+                                                                                                                                                       '0',
+                                                                                                                                        'name': 'EXTERNAL_INTERRUPT_REQUEST_0',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Timer/Counter0 '
+                                                                                                                                                       'Compare '
+                                                                                                                                                       'Match '
+                                                                                                                                                       'A',
+                                                                                                                                        'name': 'TIMER_COUNTER0_COMPARE_MATCH_A',
+                                                                                                                                        'value': 0x3},
+                                                                                                                                       {'description': 'Timer/Counter0 '
+                                                                                                                                                       'Overflow',
+                                                                                                                                        'name': 'TIMER_COUNTER0_OVERFLOW',
+                                                                                                                                        'value': 0x4},
+                                                                                                                                       {'description': 'Timer/Counter1 '
+                                                                                                                                                       'Compare '
+                                                                                                                                                       'Match '
+                                                                                                                                                       'B',
+                                                                                                                                        'name': 'TIMER_COUNTER1_COMPARE_MATCH_B',
+                                                                                                                                        'value': 0x5},
+                                                                                                                                       {'description': 'Timer/Counter1 '
+                                                                                                                                                       'Overflow',
+                                                                                                                                        'name': 'TIMER_COUNTER1_OVERFLOW',
+                                                                                                                                        'value': 0x6},
+                                                                                                                                       {'description': 'Timer/Counter1 '
+                                                                                                                                                       'Capture '
+                                                                                                                                                       'Event',
+                                                                                                                                        'name': 'TIMER_COUNTER1_CAPTURE_EVENT',
+                                                                                                                                        'value': 0x7}]},
+                                                                                              'name': 'ADTS',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}}]},
+                                                                        'name': 'ADCSRB',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x4,
+                                                                        'description': 'The '
+                                                                                       'ADC '
+                                                                                       'multiplexer '
+                                                                                       'Selection '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:0]',
+                                                                                              'description': 'Analog '
+                                                                                                             'Channel '
+                                                                                                             'and '
+                                                                                                             'Gain '
+                                                                                                             'Selection '
+                                                                                                             'Bits',
+                                                                                              'name': 'MUX',
+                                                                                              'writeConstraint': {'range': {'maximum': 0x3,
+                                                                                                                            'minimum': 0x0}}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Left '
+                                                                                                             'Adjust '
+                                                                                                             'Result',
+                                                                                              'name': 'ADLAR'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Reference '
+                                                                                                             'Selection '
+                                                                                                             'Bit '
+                                                                                                             '0',
+                                                                                              'name': 'REFS0'}]},
+                                                                        'name': 'ADMUX',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x11,
+                                                                        'description': 'Digital '
+                                                                                       'Input '
+                                                                                       'Disable '
+                                                                                       'Register '
+                                                                                       '0',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'ADC2 '
+                                                                                                             'Digital '
+                                                                                                             'input '
+                                                                                                             'Disable',
+                                                                                              'name': 'ADC1D'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'ADC3 '
+                                                                                                             'Digital '
+                                                                                                             'input '
+                                                                                                             'Disable',
+                                                                                              'name': 'ADC3D'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'ADC2 '
+                                                                                                             'Digital '
+                                                                                                             'input '
+                                                                                                             'Disable',
+                                                                                              'name': 'ADC2D'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'ADC0 '
+                                                                                                             'Digital '
+                                                                                                             'input '
+                                                                                                             'Disable',
+                                                                                              'name': 'ADC0D'}]},
+                                                                        'name': 'DIDR0',
+                                                                        'size': 0x8}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x9,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0xB,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0xF,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x12,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x18,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x1A,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800045,
+                                            'description': 'CPU Registers',
+                                            'interrupt': [{'description': 'External '
+                                                                          'Reset, '
+                                                                          'Power-on '
+                                                                          'Reset '
+                                                                          'and '
+                                                                          'Watchdog '
+                                                                          'Reset',
+                                                           'name': 'RESET',
+                                                           'value': 0x0},
+                                                          {'description': 'External '
+                                                                          'Interrupt '
+                                                                          '0',
+                                                           'name': 'INT0',
+                                                           'value': 0x1},
+                                                          {'description': 'External '
+                                                                          'Interrupt '
+                                                                          'Request '
+                                                                          '0',
+                                                           'name': 'PCINT0',
+                                                           'value': 0x2},
+                                                          {'description': 'Timer/Counter0 '
+                                                                          'Overflow',
+                                                           'name': 'TIM0_OVF',
+                                                           'value': 0x3},
+                                                          {'description': 'EEPROM '
+                                                                          'Ready',
+                                                           'name': 'EE_RDY',
+                                                           'value': 0x4},
+                                                          {'description': 'Analog '
+                                                                          'Comparator',
+                                                           'name': 'ANA_COMP',
+                                                           'value': 0x5},
+                                                          {'description': 'Timer/Counter '
+                                                                          'Compare '
+                                                                          'Match '
+                                                                          'A',
+                                                           'name': 'TIM0_COMPA',
+                                                           'value': 0x6},
+                                                          {'description': 'Timer/Counter '
+                                                                          'Compare '
+                                                                          'Match '
+                                                                          'B',
+                                                           'name': 'TIM0_COMPB',
+                                                           'value': 0x7},
+                                                          {'description': 'Watchdog '
+                                                                          'Time-out',
+                                                           'name': 'WDT',
+                                                           'value': 0x8},
+                                                          {'description': 'ADC '
+                                                                          'Conversion '
+                                                                          'Complete',
+                                                           'name': 'ADC',
+                                                           'value': 0x9}],
+                                            'name': 'CPU',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0xB,
+                                                                        'description': 'BOD '
+                                                                                       'Control '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'BOD '
+                                                                                                             'Power-Down '
+                                                                                                             'Sleep '
+                                                                                                             'Enable',
+                                                                                              'name': 'BODSE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'BOD '
+                                                                                                             'Power-Down '
+                                                                                                             'in '
+                                                                                                             'Power-Down '
+                                                                                                             'Sleep',
+                                                                                              'name': 'BODS'}]},
+                                                                        'name': 'BODCR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x1,
+                                                                        'description': 'Clock '
+                                                                                       'Prescale '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[3:0]',
+                                                                                              'description': 'Clock '
+                                                                                                             'Prescaler '
+                                                                                                             'Select '
+                                                                                                             'Bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': '1',
+                                                                                                                                        'name': '1',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': '2',
+                                                                                                                                        'name': '2',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': '4',
+                                                                                                                                        'name': '4',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': '8',
+                                                                                                                                        'name': '8',
+                                                                                                                                        'value': 0x3},
+                                                                                                                                       {'description': '16',
+                                                                                                                                        'name': '16',
+                                                                                                                                        'value': 0x4},
+                                                                                                                                       {'description': '32',
+                                                                                                                                        'name': '32',
+                                                                                                                                        'value': 0x5},
+                                                                                                                                       {'description': '64',
+                                                                                                                                        'name': '64',
+                                                                                                                                        'value': 0x6},
+                                                                                                                                       {'description': '128',
+                                                                                                                                        'name': '128',
+                                                                                                                                        'value': 0x7},
+                                                                                                                                       {'description': '256',
+                                                                                                                                        'name': '256',
+                                                                                                                                        'value': 0x8}]},
+                                                                                              'name': 'CLKPS',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Clock '
+                                                                                                             'Prescaler '
+                                                                                                             'Change '
+                                                                                                             'Enable',
+                                                                                              'name': 'CLKPCE'}]},
+                                                                        'name': 'CLKPR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x9,
+                                                                        'description': 'Debug '
+                                                                                       'Wire '
+                                                                                       'Data '
+                                                                                       'Register '
+                                                                                       '(write-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'name': 'DWDR',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x10,
+                                                                        'description': 'MCU '
+                                                                                       'Control '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:0]',
+                                                                                              'description': 'Interrupt '
+                                                                                                             'Sense '
+                                                                                                             'Control '
+                                                                                                             '0 '
+                                                                                                             'bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Low '
+                                                                                                                                                       'Level '
+                                                                                                                                                       'of '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'LOW_LEVEL_OF_INTX',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Any '
+                                                                                                                                                       'Logical '
+                                                                                                                                                       'Change '
+                                                                                                                                                       'in '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'ANY_LOGICAL_CHANGE_IN_INTX',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Falling '
+                                                                                                                                                       'Edge '
+                                                                                                                                                       'of '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'FALLING_EDGE_OF_INTX',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Rising '
+                                                                                                                                                       'Edge '
+                                                                                                                                                       'of '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'RISING_EDGE_OF_INTX',
+                                                                                                                                        'value': 0x3}]},
+                                                                                              'name': 'ISC0',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:3]',
+                                                                                              'description': 'Sleep '
+                                                                                                             'Mode '
+                                                                                                             'Select '
+                                                                                                             'Bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Idle',
+                                                                                                                                        'name': 'IDLE',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'ADC '
+                                                                                                                                                       'Noise '
+                                                                                                                                                       'Reduction '
+                                                                                                                                                       '(If '
+                                                                                                                                                       'Available)',
+                                                                                                                                        'name': 'ADC',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Power '
+                                                                                                                                                       'Down',
+                                                                                                                                        'name': 'PDOWN',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Reserved',
+                                                                                                                                        'name': 'VAL_0x03',
+                                                                                                                                        'value': 0x3}]},
+                                                                                              'name': 'SM',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Sleep '
+                                                                                                             'Enable',
+                                                                                              'name': 'SE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Pull-up '
+                                                                                                             'Disable',
+                                                                                              'name': 'PUD'}]},
+                                                                        'name': 'MCUCR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0xF,
+                                                                        'description': 'MCU '
+                                                                                       'Status '
+                                                                                       'register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Power-On '
+                                                                                                             'Reset '
+                                                                                                             'Flag',
+                                                                                              'name': 'PORF'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'External '
+                                                                                                             'Reset '
+                                                                                                             'Flag',
+                                                                                              'name': 'EXTRF'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Brown-out '
+                                                                                                             'Reset '
+                                                                                                             'Flag',
+                                                                                              'name': 'BORF'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Watchdog '
+                                                                                                             'Reset '
+                                                                                                             'Flag',
+                                                                                              'name': 'WDRF'}]},
+                                                                        'name': 'MCUSR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0xC,
+                                                                        'description': 'Oscillator '
+                                                                                       'Calibration '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[7:0]',
+                                                                                              'description': 'Oscillator '
+                                                                                                             'Calibration',
+                                                                                              'name': 'OSCCAL',
+                                                                                              'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                                            'minimum': 0x0}}}]},
+                                                                        'name': 'OSCCAL',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'Power '
+                                                                                       'Reduction '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Power '
+                                                                                                             'Reduction '
+                                                                                                             'ADC',
+                                                                                              'name': 'PRADC'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Power '
+                                                                                                             'Reduction '
+                                                                                                             'Timer/Counter0',
+                                                                                              'name': 'PRTIM0'}]},
+                                                                        'name': 'PRR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x18,
+                                                                        'description': 'Stack '
+                                                                                       'Pointer '
+                                                                                       'Low '
+                                                                                       'Byte',
+                                                                        'name': 'SPL',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x12,
+                                                                        'description': 'Store '
+                                                                                       'Program '
+                                                                                       'Memory '
+                                                                                       'Control '
+                                                                                       'and '
+                                                                                       'Status '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Store '
+                                                                                                             'program '
+                                                                                                             'Memory '
+                                                                                                             'Enable',
+                                                                                              'name': 'SPMEN'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Page '
+                                                                                                             'Erase',
+                                                                                              'name': 'PGERS'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Page '
+                                                                                                             'Write',
+                                                                                              'name': 'PGWRT'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Read '
+                                                                                                             'Fuse '
+                                                                                                             'and '
+                                                                                                             'Lock '
+                                                                                                             'Bits',
+                                                                                              'name': 'RFLB'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Clear '
+                                                                                                             'Temporary '
+                                                                                                             'Page '
+                                                                                                             'Buffer',
+                                                                                              'name': 'CTPB'}]},
+                                                                        'name': 'SPMCSR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x1A,
+                                                                        'description': 'Status '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Carry '
+                                                                                                             'Flag',
+                                                                                              'name': 'C'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Zero '
+                                                                                                             'Flag',
+                                                                                              'name': 'Z'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Negative '
+                                                                                                             'Flag',
+                                                                                              'name': 'N'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': "Two's "
+                                                                                                             'Complement '
+                                                                                                             'Overflow '
+                                                                                                             'Flag',
+                                                                                              'name': 'V'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Sign '
+                                                                                                             'Bit',
+                                                                                              'name': 'S'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Half '
+                                                                                                             'Carry '
+                                                                                                             'Flag',
+                                                                                              'name': 'H'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Bit '
+                                                                                                             'Copy '
+                                                                                                             'Storage',
+                                                                                              'name': 'T'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Global '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'I'}]},
+                                                                        'name': 'SREG',
+                                                                        'size': 0x8}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x3,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x80003C,
+                                            'description': 'EEPROM',
+                                            'name': 'EEPROM',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x2,
+                                                                        'description': 'EEPROM '
+                                                                                       'Read/Write '
+                                                                                       'Access',
+                                                                        'name': 'EEAR',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'EEPROM '
+                                                                                       'Control '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'EEPROM '
+                                                                                                             'Read '
+                                                                                                             'Enable',
+                                                                                              'name': 'EERE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'EEPROM '
+                                                                                                             'Write '
+                                                                                                             'Enable',
+                                                                                              'name': 'EEWE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'EEPROM '
+                                                                                                             'Master '
+                                                                                                             'Write '
+                                                                                                             'Enable',
+                                                                                              'name': 'EEMWE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'EEProm '
+                                                                                                             'Ready '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'EERIE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:4]',
+                                                                                              'description': 'No '
+                                                                                                             'Description.',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Erase '
+                                                                                                                                                       'and '
+                                                                                                                                                       'Write '
+                                                                                                                                                       'in '
+                                                                                                                                                       'one '
+                                                                                                                                                       'operation',
+                                                                                                                                        'name': 'ERASE_AND_WRITE_IN_ONE_OPERATION',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Erase '
+                                                                                                                                                       'Only',
+                                                                                                                                        'name': 'ERASE_ONLY',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Write '
+                                                                                                                                                       'Only',
+                                                                                                                                        'name': 'WRITE_ONLY',
+                                                                                                                                        'value': 0x2}]},
+                                                                                              'name': 'EEPM',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}}]},
+                                                                        'name': 'EECR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x1,
+                                                                        'description': 'EEPROM '
+                                                                                       'Data '
+                                                                                       'Register',
+                                                                        'name': 'EEDR',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x20,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x25,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800035,
+                                            'description': 'External '
+                                                           'Interrupts',
+                                            'name': 'EXINT',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x25,
+                                                                        'description': 'General '
+                                                                                       'Interrupt '
+                                                                                       'Flag '
+                                                                                       'register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Pin '
+                                                                                                             'Change '
+                                                                                                             'Interrupt '
+                                                                                                             'Flag',
+                                                                                              'name': 'PCIF'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'External '
+                                                                                                             'Interrupt '
+                                                                                                             'Flag '
+                                                                                                             '0',
+                                                                                              'name': 'INTF0'}]},
+                                                                        'name': 'GIFR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x26,
+                                                                        'description': 'General '
+                                                                                       'Interrupt '
+                                                                                       'Mask '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Pin '
+                                                                                                             'Change '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'PCIE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'External '
+                                                                                                             'Interrupt '
+                                                                                                             'Request '
+                                                                                                             '0 '
+                                                                                                             'Enable',
+                                                                                              'name': 'INT0'}]},
+                                                                        'name': 'GIMSK',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x20,
+                                                                        'description': 'MCU '
+                                                                                       'Control '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Interrupt '
+                                                                                                             'Sense '
+                                                                                                             'Control '
+                                                                                                             '0 '
+                                                                                                             'Bit '
+                                                                                                             '0',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Low '
+                                                                                                                                                       'Level '
+                                                                                                                                                       'of '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'LOW_LEVEL_OF_INTX',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Any '
+                                                                                                                                                       'Logical '
+                                                                                                                                                       'Change '
+                                                                                                                                                       'of '
+                                                                                                                                                       'INTX',
+                                                                                                                                        'name': 'ANY_LOGICAL_CHANGE_OF_INTX',
+                                                                                                                                        'value': 0x1}]},
+                                                                                              'name': 'ISC00',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Interrupt '
+                                                                                                             'Sense '
+                                                                                                             'Control '
+                                                                                                             '0 '
+                                                                                                             'Bit '
+                                                                                                             '1',
+                                                                                              'name': 'ISC01'}]},
+                                                                        'name': 'MCUCR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'Pin '
+                                                                                       'Change '
+                                                                                       'Enable '
+                                                                                       'Mask',
+                                                                        'name': 'PCMSK',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x3,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800036,
+                                            'description': 'I/O Port',
+                                            'name': 'PORTB',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x1,
+                                                                        'description': 'Data '
+                                                                                       'Direction '
+                                                                                       'Register, '
+                                                                                       'Port '
+                                                                                       'B',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B0',
+                                                                                              'name': 'PB0'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B1',
+                                                                                              'name': 'PB1'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B2',
+                                                                                              'name': 'PB2'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B3',
+                                                                                              'name': 'PB3'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B4',
+                                                                                              'name': 'PB4'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B5',
+                                                                                              'name': 'PB5'}]},
+                                                                        'name': 'DDRB',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'Input '
+                                                                                       'Pins, '
+                                                                                       'Port '
+                                                                                       'B '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B0',
+                                                                                              'name': 'PB0'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B1',
+                                                                                              'name': 'PB1'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B2',
+                                                                                              'name': 'PB2'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B3',
+                                                                                              'name': 'PB3'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B4',
+                                                                                              'name': 'PB4'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B5',
+                                                                                              'name': 'PB5'}]},
+                                                                        'name': 'PINB',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x2,
+                                                                        'description': 'Data '
+                                                                                       'Register, '
+                                                                                       'Port '
+                                                                                       'B',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B0',
+                                                                                              'name': 'PB0'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B1',
+                                                                                              'name': 'PB1'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B2',
+                                                                                              'name': 'PB2'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B3',
+                                                                                              'name': 'PB3'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B4',
+                                                                                              'name': 'PB4'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:5]',
+                                                                                              'description': 'Pin '
+                                                                                                             'B5',
+                                                                                              'name': 'PB5'}]},
+                                                                        'name': 'PORTB',
+                                                                        'size': 0x8}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x7,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0xA,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0xE,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'},
+                                                             {'offset': 0x10,
+                                                              'size': 0x2,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800048,
+                                            'description': 'Timer/Counter, '
+                                                           '8-bit',
+                                            'name': 'TC0',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'General '
+                                                                                       'Timer '
+                                                                                       'Counter '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[0:0]',
+                                                                                              'description': 'Prescaler '
+                                                                                                             'Reset '
+                                                                                                             'Timer/Counter0',
+                                                                                              'name': 'PSR10'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Timer/Counter '
+                                                                                                             'Synchronization '
+                                                                                                             'Mode',
+                                                                                              'name': 'TSM'}]},
+                                                                        'name': 'GTCCR',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0xE,
+                                                                        'description': 'Timer/Counter0 '
+                                                                                       'Output '
+                                                                                       'Compare '
+                                                                                       'Register',
+                                                                        'name': 'OCR0A',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x1,
+                                                                        'description': 'Timer/Counter0 '
+                                                                                       'Output '
+                                                                                       'Compare '
+                                                                                       'Register',
+                                                                        'name': 'OCR0B',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x7,
+                                                                        'description': 'Timer/Counter  '
+                                                                                       'Control '
+                                                                                       'Register '
+                                                                                       'A',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:0]',
+                                                                                              'description': 'Waveform '
+                                                                                                             'Generation '
+                                                                                                             'Mode',
+                                                                                              'name': 'WGM0',
+                                                                                              'writeConstraint': {'range': {'maximum': 0x3,
+                                                                                                                            'minimum': 0x0}}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[5:4]',
+                                                                                              'description': 'Compare '
+                                                                                                             'Match '
+                                                                                                             'Output '
+                                                                                                             'B '
+                                                                                                             'Mode',
+                                                                                              'name': 'COM0B',
+                                                                                              'writeConstraint': {'range': {'maximum': 0x3,
+                                                                                                                            'minimum': 0x0}}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:6]',
+                                                                                              'description': 'Compare '
+                                                                                                             'Match '
+                                                                                                             'Output '
+                                                                                                             'A '
+                                                                                                             'Mode',
+                                                                                              'name': 'COM0A',
+                                                                                              'writeConstraint': {'range': {'maximum': 0x3,
+                                                                                                                            'minimum': 0x0}}}]},
+                                                                        'name': 'TCCR0A',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0xB,
+                                                                        'description': 'Timer/Counter '
+                                                                                       'Control '
+                                                                                       'Register '
+                                                                                       'B',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[2:0]',
+                                                                                              'description': 'Clock '
+                                                                                                             'Select',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'No '
+                                                                                                                                                       'Clock '
+                                                                                                                                                       'Source '
+                                                                                                                                                       '(Stopped)',
+                                                                                                                                        'name': 'NO_CLOCK_SOURCE_STOPPED',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'No '
+                                                                                                                                                       'Prescaling',
+                                                                                                                                        'name': 'RUNNING_NO_PRESCALING',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'CLK/8',
+                                                                                                                                        'name': 'RUNNING_CLK_8',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'CLK/64',
+                                                                                                                                        'name': 'RUNNING_CLK_64',
+                                                                                                                                        'value': 0x3},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'CLK/256',
+                                                                                                                                        'name': 'RUNNING_CLK_256',
+                                                                                                                                        'value': 0x4},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'CLK/1024',
+                                                                                                                                        'name': 'RUNNING_CLK_1024',
+                                                                                                                                        'value': 0x5},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'ExtClk '
+                                                                                                                                                       'Tn '
+                                                                                                                                                       'Falling '
+                                                                                                                                                       'Edge',
+                                                                                                                                        'name': 'RUNNING_EXTCLK_TN_FALLING_EDGE',
+                                                                                                                                        'value': 0x6},
+                                                                                                                                       {'description': 'Running, '
+                                                                                                                                                       'ExtClk '
+                                                                                                                                                       'Tn '
+                                                                                                                                                       'Rising '
+                                                                                                                                                       'Edge',
+                                                                                                                                        'name': 'RUNNING_EXTCLK_TN_RISING_EDGE',
+                                                                                                                                        'value': 0x7}]},
+                                                                                              'name': 'CS0',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Waveform '
+                                                                                                             'Generation '
+                                                                                                             'Mode',
+                                                                                              'name': 'WGM02'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Force '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'B',
+                                                                                              'name': 'FOC0B'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Force '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'A',
+                                                                                              'name': 'FOC0A'}]},
+                                                                        'name': 'TCCR0B',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0xA,
+                                                                        'description': 'Timer/Counter0',
+                                                                        'name': 'TCNT0',
+                                                                        'size': 0x8,
+                                                                        'writeConstraint': {'range': {'maximum': 0xFF,
+                                                                                                      'minimum': 0x0}}},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x10,
+                                                                        'description': 'Timer/Counter0 '
+                                                                                       'Interrupt '
+                                                                                       'Flag '
+                                                                                       'register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Overflow '
+                                                                                                             'Flag',
+                                                                                              'name': 'TOV0'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'Flag '
+                                                                                                             '0A',
+                                                                                              'name': 'OCF0A'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'Flag '
+                                                                                                             '0B',
+                                                                                              'name': 'OCF0B'}]},
+                                                                        'name': 'TIFR0',
+                                                                        'size': 0x8},
+                                                                       {'access': 'read-write',
+                                                                        'addressOffset': 0x11,
+                                                                        'description': 'Timer/Counter0 '
+                                                                                       'Interrupt '
+                                                                                       'Mask '
+                                                                                       'Register',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[1:1]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Overflow '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'TOIE0'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[2:2]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'Match '
+                                                                                                             'A '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'OCIE0A'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Timer/Counter0 '
+                                                                                                             'Output '
+                                                                                                             'Compare '
+                                                                                                             'Match '
+                                                                                                             'B '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'OCIE0B'}]},
+                                                                        'name': 'TIMSK0',
+                                                                        'size': 0x8}]}},
+                                           {'addressBlock': [{'offset': 0x0,
+                                                              'size': 0x1,
+                                                              'usage': 'registers'}],
+                                            'baseAddress': 0x800041,
+                                            'description': 'Watchdog Timer',
+                                            'name': 'WDT',
+                                            'registers': {'register': [{'access': 'read-write',
+                                                                        'addressOffset': 0x0,
+                                                                        'description': 'Watchdog '
+                                                                                       'Timer '
+                                                                                       'Control '
+                                                                                       'Register '
+                                                                                       '(read-only '
+                                                                                       'for '
+                                                                                       'debugger)',
+                                                                        'fields': {'field': [{'access': 'read-write',
+                                                                                              'bitRange': '[5:0]',
+                                                                                              'description': 'Watchdog '
+                                                                                                             'Timer '
+                                                                                                             'Prescaler '
+                                                                                                             'Bits',
+                                                                                              'enumeratedValues': {'enumeratedValue': [{'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '2K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_2K',
+                                                                                                                                        'value': 0x0},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '4K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_4K',
+                                                                                                                                        'value': 0x1},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '8K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_8K',
+                                                                                                                                        'value': 0x2},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '16K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_16K',
+                                                                                                                                        'value': 0x3},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '32K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_32K',
+                                                                                                                                        'value': 0x4},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '64K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_64K',
+                                                                                                                                        'value': 0x5},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '128K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_128K',
+                                                                                                                                        'value': 0x6},
+                                                                                                                                       {'description': 'Oscillator '
+                                                                                                                                                       'Cycles '
+                                                                                                                                                       '256K',
+                                                                                                                                        'name': 'OSCILLATOR_CYCLES_256K',
+                                                                                                                                        'value': 0x7}]},
+                                                                                              'name': 'WDP',
+                                                                                              'writeConstraint': {'useEnumeratedValues': 0x1}},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[3:3]',
+                                                                                              'description': 'Watch '
+                                                                                                             'Dog '
+                                                                                                             'Enable',
+                                                                                              'name': 'WDE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[4:4]',
+                                                                                              'description': 'Watchdog '
+                                                                                                             'Change '
+                                                                                                             'Enable',
+                                                                                              'name': 'WDCE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[6:6]',
+                                                                                              'description': 'Watchdog '
+                                                                                                             'Timeout '
+                                                                                                             'Interrupt '
+                                                                                                             'Enable',
+                                                                                              'name': 'WDTIE'},
+                                                                                             {'access': 'read-write',
+                                                                                              'bitRange': '[7:7]',
+                                                                                              'description': 'Watchdog '
+                                                                                                             'Timeout '
+                                                                                                             'Interrupt '
+                                                                                                             'Flag',
+                                                                                              'name': 'WDTIF'}]},
+                                                                        'name': 'WDTCR',
+                                                                        'size': 0x8}]}}]},
+            'resetMask': 0xFF,
+            'resetValue': 0x0,
+            'size': 0x8,
+            'version': '1.0',
+            'width': 0x8}}
 }

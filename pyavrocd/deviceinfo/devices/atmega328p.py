@@ -85,7 +85,7 @@ DEVICE_INFO = {
     'interface': 'ISP+HVPP+debugWIRE',
 
     # SVD data
-    'SVD' : {'device': {'access': 'read-write',
+    'svd' : {'device': {'access': 'read-write',
             'addressUnitBits': 0x8,
             'attributes': {'schemaVersion': '1.1'},
             'cpu': {'endian': 'little',
