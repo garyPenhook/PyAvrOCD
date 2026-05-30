@@ -1,5 +1,10 @@
 # Release Notes
 
+## Release v1.5.0
+
+- The main addition is the new monitor command: `monitor ioregister <ioreg-expression>` [`<integer>`]. It can be used to inspect and set I/O registers and bitfields in I/O registers.
+- SRAM reads and writes initiated by the debugger are now again filtered by write-only and read-only restrictions from the ATDF files.
+
 ## Release v1.4.0
 
 - Support for the Dx and Ex series was added (and tested).

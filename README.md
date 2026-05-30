@@ -24,12 +24,12 @@ PyAvrOCD is a GDB server for 8-bit AVR MCUs (see [list of supported MCUs](https:
 
 So, why another open-source GDB server for AVR MCUs? The main intention is to provide a *cross-platform* AVR GDB server. In other words, it is *the missing AVR debugging solution* for the [Arduino IDE 2](https://www.arduino.cc/en/software/) and [PlatformIO](https://platformio.org). In particular, the integration with Arduino IDE 2 is pretty tight, allowing one to start debugging without much hassle (see [quickstart guides](https://pyavrocd.io/quick_arduino/)). Additionally, PyAvrOCD excels in [minimizing flash wear](https://arduino-craft-corner.de/index.php/2025/05/05/stop-and-go/) and [protects single-stepping against interrupts](https://arduino-craft-corner.de/index.php/2025/03/19/interrupted-and-very-long-single-steps/).
 
+Interested in giving PyAvrOCD a try? You are welcome to [install](https://pyavrocd.io/install/) it. Want to learn more about it? [Read the docs](https://pyavrocd.io). Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
+
 <p align="center">
 <img src="https://raw.githubusercontent.com/felias-fogg/pyavrocd/refs/heads/main/docs/pics/ide2-6.png" width="70%">
 </p>
 
 ## What has been done so far, and what to expect in the future
-
-[PyAvrOCD v1.4.0 has been released](https://arduino-craft-corner.de/index.php/2026/02/10/pyavrocd-1-0-0-released/). Interested in giving it a try? You are welcome to [install](https://pyavrocd.io/install/) it. Want to learn more about it? [Read the docs](https://pyavrocd.io). Any feedback, be it bug reports, crazy ideas, or praise, is welcome.
 
 Meanwhile, PyAvrOCD covers all debugWIRE, JTAG (Megas), and UPDI MCUs. I am unsure whether it makes sense to extend its coverage to Xmegas. There is the idea of basing everything on more recent versions of the GCC toolchain because it will probably solve a number of problems on the debugging front. Finally, I am committed to fixing some of the more obvious bugs in the AVR part of the GDB debugger.
