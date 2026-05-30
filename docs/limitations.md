@@ -149,6 +149,12 @@ Specific I/O registers cannot be read without side effects, such as clearing fla
 
 Other I/O registers cannot be written to without side effects, e.g., registers where a flag is cleared by writing a '1' to a particular bit. These are read-only to the debugger, and any write attempt will fail silently (but PyAvrOCD will issue a warning). Again, if you use the Arduino IDE or PlatformIO, the `PERIPHERALS` pane will inform you about the fact that the register is read-only to the debugger.
 
+## SVD mediated access to bitfields in I/O registers
+
+Bitfield access to I/O registers mediated through SVD is sometimes buggy.
+
+The translation from Microchip ATDF files to open-source (ARM) SVD files (when building the base for PyAvrOCD) is not completely lossless. Sometimes, bitfields in AVR MCUs are not continuous, i.e., the bits are sprinkled over the byte of an I/O register. In this case, the generated SVD representation has bitfields that overlap with other bitfields. This is, for example, the case with the WDTCSR in ATmega328P. It may simply be confusing. When you try to assign values to such bitfields, it will get it outright wrong.
+
 ## Unsafe exits from debugging
 
 MCU and debug probe can be in an undefined state after abrupt exits.
