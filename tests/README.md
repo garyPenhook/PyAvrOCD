@@ -9,7 +9,7 @@
 Run pylint in the root folder:
 
 ```shell
-poetry run pylint pyavrocd/
+uv run pylint pyavrocd/
 ```
 
 
@@ -19,13 +19,13 @@ poetry run pylint pyavrocd/
 Run unit tests in the root folder using:
 
 ```shell
-poetry run pytest
+uv run pytest
 ```
 
 With the following command, you generate a coverage report in the folder `cov/`
 
 ```bash
- poetry run pytest --cov-report=html:cov --cov=pyavrocd/
+ uv run pytest --cov-report=html:cov --cov=pyavrocd/
 ```
 
 ### Type checking
@@ -33,7 +33,7 @@ With the following command, you generate a coverage report in the folder `cov/`
 Run the static type checker with
 
 ```
-poetry run mypy .
+uv run mypy .
 ```
 
 
@@ -49,7 +49,7 @@ serv.sh [<verbosity level>]
 Then start the end-to-end tests in another window (also in the `end-to-end` folder)
 
 ```shell
-poetry run python3 e2e_test.py -d <mcu> -c <clock in MHz>
+uv run python3 e2e_test.py -d <mcu> -c <clock in MHz>
 ```
 
 Afterwards, you need to kill the `serv.sh` script with CTRL-C

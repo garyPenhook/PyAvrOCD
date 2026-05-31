@@ -95,30 +95,30 @@ Note that the folder with [SVD](https://arduino-craft-corner.de/index.php/2025/0
 
 ### GitHub
 
-Alternatively, you can download or clone the [GitHub repository](https://github.com/felias-fogg/PyAvrOCD). Additionally, you need to install a Python package manager, for instance, [Poetry](https://python-poetry.org), which can be used to install and run the package.
+Alternatively, you can download or clone the [GitHub repository](https://github.com/felias-fogg/PyAvrOCD). Additionally, you need to install a Python package manager, for instance, [uv](https://docs.astral.sh/uv/), which can be used to install and run the package.
 
 <details>
-<summary><b>How to use Poetry</b></summary>
+<summary><b>How to use uv</b></summary>
 <p></p>
 <p>
-After having cloned the repo, install Poetry:
+After having cloned the repo, install uv:
 </p>
 <pre>
-<code class="language-bash hljs">pipx install poetry</code>
+<code class="language-bash hljs">pipx install uv</code>
 </pre>
 <p>
 After having moved into the PyAvrOCD project folder, you can start executing the script inside the downloaded folder as follows:
 </p>
 <pre>
-<code class="language-bash hljs">poetry install
-poetry run pyavrocd ...
+<code class="language-bash hljs">uv sync
+uv run pyavrocd ...
 </code>
 </pre>
 <p>
 Furthermore, you can create a binary standalone package as follows:
 </p>
 <pre>
-<code class="language-bash hljs">poetry run pyinstaller pyavrocd.spec</code>
+<code class="language-bash hljs">uv run pyinstaller pyavrocd.spec</code>
 </pre>
 <p>
   As a result, you find an executable <code>pyavrocd</code> (or <code>pyavrocd.exe</code>) in the directory <code>dist/pyavrocd/</code> together with the folder <code>pyavrocd-util</code>. You can copy those two to a place in your <code>PATH</code>.
