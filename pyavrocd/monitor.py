@@ -450,8 +450,8 @@ Timers:                   """ + ("frozen when stopped"
                                      if self._timersfreeze else "run when stopped") + "{}")
 
     def _mon_ioregister(self, args : int | list [str]) -> tuple[ str, str ]:
-        if not 'SVD' in self._dbg.device_info:
-            return("", f"No SVD information for '{self._dbg.get_devicename}'")
+        if not 'svd' in self._dbg.device_info:
+            return("", f"No SVD information for '{self._dbg.get_devicename()}'")
         if isinstance(args, list) and len(args) == 1:
             return self._get_ioregister_value(args)
         if isinstance(args, list) and len(args) == 2:
@@ -561,7 +561,7 @@ Timers:                   """ + ("frozen when stopped"
         result = []
         if not expr:
             return []
-        for p in self._dbg.device_info['SVD']['device']['peripherals']['peripheral']: # all peripherals
+        for p in self._dbg.device_info['svd']['device']['peripherals']['peripheral']: # all peripherals
             for r in p['registers']['register']: # all registers
                 if fnmatch.fnmatch(p['name'] + '.' + r['name'], expr.upper()): # matching register
                     result.append({ 'name': p['name'] + '.' + r['name'],
@@ -574,7 +574,7 @@ Timers:                   """ + ("frozen when stopped"
         result = []
         if not expr:
             return []
-        for p in self._dbg.device_info['SVD']['device']['peripherals']['peripheral']: # all peripherals
+        for p in self._dbg.device_info['svd']['device']['peripherals']['peripheral']: # all peripherals
             for r in p['registers']['register']: # all registers
                 if 'fields' not in r:
                     continue
