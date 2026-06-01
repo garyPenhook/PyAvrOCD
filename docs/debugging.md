@@ -123,9 +123,27 @@ Note: automatically using hardware breakpoints for read-only addresses.
 ...
 ```
 
-If you have reached this point, I trust that you are familiar with GDB and know how to proceed. I should point out one very convenient command, however: `monitor ioregister <ioreg-expression>` [`<int>`]. It will output the descriptions and contents of the I/O registers and/or bitfields that are referred to by `<ioreg-expression>` . This is a wildcard, case-insensitive expression over the names of the I/O registers and bitfields using the notation `<peripheral>.<register>`[`.<field>`], whereby `<peripheral>` can be omitted. If you specify an integer in addition, this will be used to set the value of the register (or bitfield) if uniquely described by `<ioreg-expression>`.
-
 In the above dialog, note the request to power-cycle the target system, which will only appear when dealing with debugWIRE targets. You then need to disconnect and reconnect the power to the target. Afterward, debugWIRE mode is enabled, and you can debug. The debugWIRE mode will not be disabled when you leave the debugger! It will only be disabled when you issue the command `monitor debugwire disable`.  This means that until then, the RESET button will not be of any use; you cannot upload anything using SPI programming, nor can you change fuses. Since PyAvrOCD needs to delete the bootloader as well, you also cannot upload anything over the serial line.
+
+If you have reached this point, I trust that you are familiar with GDB and know how to proceed. I should point out one very convenient command, however: `monitor ioregister <ioreg-expression>` [`<int>`]. It will output the descriptions and contents of the I/O registers and/or bitfields that are referred to by `<ioreg-expression>`. This is a wildcard, case-insensitive expression over the names of the I/O registers and bitfields using the notation `<peripheral>.<register>`[`.<field>`], whereby `<peripheral>` can be omitted. If you specify an integer in addition, this will be used to set the value of the register (or bitfield) if uniquely described by `<ioreg-expression>`. This could look like as follows.
+
+```
+...
+(gdb) monitor ioregister tc0.tc*
+TC0.TCCR0A (@0x800044, 8-bits) = 0x3, 0b11, 3 (Timer/Counter  Control Register A)
+TC0.TCCR0B (@0x800045, 8-bits) = 0x3, 0b11, 3 (Timer/Counter Control Register B)
+TC0.TCNT0 (@0x800046, 8-bits) = 0x23, 0b100011, 35 (Timer/Counter0)
+(gdb) monitor ioregister tccr0a
+TC0.TCCR0A (@0x800044, 8-bits) = 0x3, 0b11, 3 (Timer/Counter  Control Register A)
+TC0.TCCR0A.WGM0 (@0x800044[1:0]) = 0x3, 0b11, 3 (Waveform Generation Mode)
+TC0.TCCR0A.COM0B (@0x800044[5:4]) = 0x0, 0b0, 0 (Compare Output Mode, Fast PWm)
+TC0.TCCR0A.COM0A (@0x800044[7:6]) = 0x0, 0b0, 0 (Compare Output Mode, Phase Correct PWM Mode)
+(gdb) mo io tccr0a.wgm0 1
+TC0.TCCR0A.WGM0 = 1 (old value was: 3)
+(gdb)
+```
+
+
 
 ## Persistent Debugging
 
@@ -133,5 +151,5 @@ Most of the time, one-shot debugging will be enough to locate a problem. This me
 
 Sometimes, however, you may want to have a more persistent debugging scenario. If a bug shows up only after some time, you may want to leave the MCU running without the debug probe connected to it until the point that something goes wrong, and then *attach* to the MCU without going through the motion of setting fuses and resetting the MCU. This is supported by the monitor command `monitor atexit stay` and the command-line option `--attach`. With the mentioned monitor command, PyAvrOCD is instructed not to leave the debugging mode when the GDB server is terminated. When later PyAvrOCD is started with the command line option `--attach`, it will try to connect to the on-chip debugging module without setting any fuses and without a reset. If successful, you can then inspect the state of the program, change things, and continue execution.
 
-Note that for UPDI targets, it is not necessary to use the `monitor atexit stay` command because UPDI targets do not have any special debug fuses.
+Note that for UPDI targets, it is not necessary to use the `monitor atexit stay` command because UPDI targets do not have any special debug fuses. So, you can always attach.
 
