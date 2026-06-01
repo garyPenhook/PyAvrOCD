@@ -55,7 +55,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: c0d539e3ad0d10252d2aab8ad325246a
+          gistID: 07964c27194b4c6d1b6c4b87c5750778
           filename: pylint.json
           label: pylint
           namedLogo: Python
@@ -70,7 +70,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: c0d539e3ad0d10252d2aab8ad325246a
+          gistID: 07964c27194b4c6d1b6c4b87c5750778
           filename: pytest.json
           label: pytest
           namedLogo: Pytest
@@ -85,7 +85,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: c0d539e3ad0d10252d2aab8ad325246a
+          gistID: 07964c27194b4c6d1b6c4b87c5750778
           filename: pycoverage.json
           label: coverage
           namedLogo: Pytest
